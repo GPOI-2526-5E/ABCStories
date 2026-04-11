@@ -1,4 +1,4 @@
-import { Component, Input, HostListener } from '@angular/core';
+import { Component, Input, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,6 +11,12 @@ export class BookSlider {
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() books: any[] = [];
+
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
+
+  canScrollLeft = false;
+  canScrollRight = true;
+  readonly scrollStep = 600;
 
   cardWidth = 204.2;
   currentIndex = 0;
@@ -29,8 +35,19 @@ export class BookSlider {
     this.clamp();
   }
 
-  next() { if (this.currentIndex < this.maxIndex) this.currentIndex++; }
-  prev() { if (this.currentIndex > 0) this.currentIndex--; }
+  updateArrows() {
+    const el = this.scrollContainer.nativeElement;
+    this.canScrollLeft = el.scrollLeft > 5;
+    this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+  }
+
+  next() {
+    this.scrollContainer.nativeElement.scrollBy({ left: this.scrollStep, behavior: 'smooth' });
+  }
+
+  prev() {
+    this.scrollContainer.nativeElement.scrollBy({ left: -this.scrollStep, behavior: 'smooth' });
+  }
 
   private clamp() {
     this.currentIndex = Math.max(0, Math.min(this.currentIndex, this.maxIndex));

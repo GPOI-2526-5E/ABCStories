@@ -19,18 +19,26 @@
 }
 
 .slider-track-wrapper {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
   padding: 50px 0;
   margin-top: -20px;
-  width: 100%;
+  scroll-behavior: smooth;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch; // scroll per mobile
 }
 
 .slider-track {
-  display: flex;
+  display: inline-flex;
   gap: 1.2rem;
   padding-left: 2rem;
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-  will-change: transform;
+  padding-right: 2rem;
+  transition: none;
 }
 
 .book-card {
@@ -121,22 +129,45 @@
 .book-info {
   margin-top: 0.65rem;
   padding: 0 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .book-title {
-  font-size: 0.82rem;
+  //font-size: 0.82rem;
   font-weight: 700;
   color: #2c1a0e;
   margin: 0 0 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 185px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .book-author {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   color: #8a6a4a;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 185px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    opacity: 0.55;
+    cursor: default;
+  }
 }
 
 .nav-arrow {

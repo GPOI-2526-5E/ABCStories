@@ -128,20 +128,96 @@
     </div>
 
     <div class="horizontal-ranking-wrapper">
-      <div class="slider-track center-track">
-        @for (index of [3, 4, 5, 6, 7, 8, 9]; track index) {
-        <div class="book-card">
-          <div class="rank-badge small">{{index + 1}}°</div>
-          <div class="book-cover">
-            <img [src]="booksB[index]?.img" [alt]="booksB[index]?.title">
+      <button class="rank-nav-btn prev" (click)="scrollRank(-1)">&#8249;</button>
+
+      <div class="rank-scroll-outer">
+        <div class="slider-track" #rankTrack>
+          @for (index of [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track $index) {
+          <div class="book-card">
+            <div class="rank-badge small">{{index + 1}}°</div>
+            <div class="book-cover">
+              <img [src]="booksB[index]?.img" [alt]="booksB[index]?.title">
+            </div>
+            <div class="book-info">
+              <p class="book-title">{{booksB[index]?.title}}</p>
+              <p class="book-author">{{booksB[index]?.author}}</p>
+            </div>
           </div>
-          <div class="book-info">
-            <p class="book-title">{{booksB[index]?.title}}</p>
-            <p class="book-author">{{booksB[index]?.author}}</p>
+          }
+        </div>
+      </div>
+
+      <button class="rank-nav-btn next" (click)="scrollRank(1)">&#8250;</button>
+    </div>
+  </section>
+
+
+  <section class="genres-section mb-5">
+    <h2 class="text-center">Generi</h2>
+    <p class="text-center">Esplora tutti i generi</p>
+    <div class="genres-grid">
+      @for (genre of genres; track genre.name) {
+      <div class="genre-card" [class.wide]="genre.wide" (click)="onGenreClick(genre)">
+        <img class="genre-bg" [src]="genre.img" [alt]="genre.name" loading="lazy" />
+        <div class="genre-overlay"></div>
+        <span class="genre-name">{{ genre.name }}</span>
+      </div>
+      }
+    </div>
+  </section>
+
+  <app-book-slider title="In base ai tuoi preferiti" subtitle="Scorri per scoprire nuovi libri" [books]="booksC">
+  </app-book-slider>
+
+  <app-book-slider title="Consigliati" subtitle="Esplora libri simili alle tue letture" [books]="booksD">
+  </app-book-slider>
+
+  <h2 class="text-center">Nuovi talenti</h2>
+  <p class="text-center">Scopri nuovi artisti</p>
+  <section class="talents-section mb-5">
+    <div class="slider-outer" #sliderOuter>
+      <div class="slider-row">
+        @for (book of books; track book.title) {
+        <div class="talent-card" (click)="onBookClick(book)">
+          <img class="card-bg" [src]="book.img" [alt]="book.title" loading="lazy" />
+          <div class="card-fade"></div>
+          <span class="card-title-always">{{ book.title }}</span>
+          <div class="card-hover-content">
+            <span class="tag">{{ book.tag }}</span>
+            <h3>{{ book.title }}</h3>
+            <p>{{ book.desc }}</p>
+            <button class="btnCont5" (click)="onReadClick(book); $event.stopPropagation()" style="width: 175px;">Leggi
+              Ora</button>
           </div>
         </div>
         }
       </div>
     </div>
   </section>
+
+  <app-book-slider title="Scelte da ABC Stories" subtitle="Leggi libri selezionati da noi" [books]="booksC">
+  </app-book-slider>
+
+  <app-book-slider title="Letture Lampo" subtitle="Leggi storie molto brevi" [books]="booksD">
+  </app-book-slider>
+
+  <h2 class="text-center">Artisti</h2>
+  <p class="text-center">Esplora nuovi scrittori</p>
+  <section class="artists-section">
+    <div class="slider-outer" #artistsOuter (wheel)="onArtistsWheel($event)">
+      <div class="slider-row">
+        @for (artist of artists; track $index) {
+        <div class="artist-card" (click)="onArtistClick(artist)">
+          <div class="artist-avatar">
+            <img [src]="artist.img" [alt]="artist.name" loading="lazy" />
+          </div>
+          <span class="artist-name">{{ artist.name }}</span>
+          <span class="artist-followers">{{ artist.followers }} lettori</span>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
 </div>
+
+<app-footer></app-footer>

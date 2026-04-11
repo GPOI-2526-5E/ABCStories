@@ -4,16 +4,19 @@
     <p>{{ subtitle }}</p>
   </div>
 
-  <div class="slider-outer" (wheel)="onMouseWheel($event)">
-    <button class="nav-arrow nav-left" [class.hidden]="currentIndex === 0" (click)="prev()">&#10094;</button>
+  <div class="slider-outer">
+    <button class="nav-arrow nav-left"
+            [class.hidden]="!canScrollLeft"
+            (click)="prev()">&#10094;</button>
 
-    <div class="slider-track-wrapper">
-      <div class="slider-track" [style.transform]="'translateX(-' + (currentIndex * cardWidth) + 'px)'">
-        @for (book of books; track book.title) {
+    <div class="slider-track-wrapper" #scrollContainer (scroll)="updateArrows()">
+      <div class="slider-track">
+        @for (book of books; track $index) {
           <div class="book-card">
             <div class="book-cover">
               <img [src]="book.img" [alt]="book.title" loading="lazy" />
               <div class="book-spine"></div>
+
               <div class="action-icon bookmark-icon" [class.active]="book.bookmarked"
                 (click)="toggleBookmark(book); $event.stopPropagation()">
                 <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
@@ -32,6 +35,8 @@
       </div>
     </div>
 
-    <button class="nav-arrow nav-right" [class.hidden]="currentIndex >= maxIndex" (click)="next()">&#10095;</button>
+    <button class="nav-arrow nav-right"
+            [class.hidden]="!canScrollRight"
+            (click)="next()">&#10095;</button>
   </div>
 </div>

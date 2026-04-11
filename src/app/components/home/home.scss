@@ -1,4 +1,5 @@
 @use "../../../scss/colori.scss";
+@use "../../../scss/componenti.scss";
 
 :host {
   display: block;
@@ -305,37 +306,51 @@
 
 // CLASSIFICA
 @keyframes borderFlow {
-  0% { background-position: 0% 50%; }
-  25% { background-position: 100% 50%; }
-  50% { background-position: 100% 100%; }
-  75% { background-position: 0% 100%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  25% {
+    background-position: 100% 50%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  75% {
+    background-position: 0% 100%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .book-card {
   position: relative;
   cursor: pointer;
-  
+
   &:hover {
     .book-cover {
-      transform: translateY(-12px) scale(1.05); 
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35); 
-      
+      transform: translateY(-12px) scale(1.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+
       &::before {
         opacity: 1;
-        animation: borderFlow 6s linear infinite; 
+        animation: borderFlow 6s linear infinite;
       }
     }
   }
 }
 
 .book-cover {
-  position: relative; 
+  position: relative;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease; 
-  overflow: visible; 
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+  overflow: visible;
 
   img {
     width: 100%;
@@ -343,20 +358,20 @@
     object-fit: cover;
     border-radius: 12px;
     position: relative;
-    z-index: 2; 
+    z-index: 2;
   }
 
   &::before {
     content: '';
     position: absolute;
-    inset: -6px; 
-    border-radius: 18px; 
+    inset: -6px;
+    border-radius: 18px;
     background: var(--tropicalTheme);
-    background-size: 300% 300%; 
-    z-index: 1; 
-    opacity: 0; 
-    transition: opacity 0.4s ease, transform 0.4s ease; 
-    pointer-events: none; 
+    background-size: 300% 300%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
   }
 }
 
@@ -387,7 +402,7 @@
   padding-bottom: 80px;
   display: flex;
   flex-direction: column;
-  gap: 40px; 
+  gap: 40px;
   background: #fefadc;
 }
 
@@ -435,18 +450,35 @@
   }
 }
 
+// SCROLL PER SLIDER CLASSIFICA
+
 .horizontal-ranking-wrapper {
-  width: 100%;
-  padding: 20px 0;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  padding: 0;
+
+  .rank-scroll-outer {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 24px 2rem;
+    margin: -24px 0;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 
   .slider-track {
     display: flex;
     gap: 1.5rem;
-
-    &.center-track {
-      justify-content: center;
-      flex-wrap: wrap; 
-    }
+    width: max-content;
 
     .book-card {
       flex: 0 0 185px;
@@ -455,6 +487,52 @@
         width: 185px;
         height: 255px;
       }
+    }
+  }
+
+  .rank-nav-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    z-index: 20;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+
+    // stile solido e visibile
+    background: #2c1a0e;
+    color: #fefadc;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    &.prev {
+      left: 0.75rem;
+    }
+
+    &.next {
+      right: 0.75rem;
+    }
+
+    &:hover {
+      background: #4a2f18;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    &.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
   }
 }
@@ -475,7 +553,7 @@
   font-size: 1.2rem;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  pointer-events: none; 
+  pointer-events: none;
 
   &.small {
     width: 38px;
@@ -484,4 +562,401 @@
     top: -10px;
     left: -10px;
   }
+}
+
+// SEZIONE GENERI
+
+.genres-section {
+  padding: 2rem 1.5rem 2.5rem;
+}
+
+.genres-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  isolation: isolate;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.genre-card {
+  position: relative;
+  height: 86px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+  transition: transform 0.22s cubic-bezier(0.165, 0.84, 0.44, 1),
+    z-index 0s 0.22s;
+
+  &.wide {
+    grid-column: span 2;
+  }
+
+  &:hover {
+    transform: scale(1.04);
+    z-index: 10;
+    transition: transform 0.22s cubic-bezier(0.165, 0.84, 0.44, 1),
+      z-index 0s 0s;
+
+    .genre-bg {
+      transform: scale(1.08);
+      filter: brightness(1.1) saturate(1.4);
+    }
+  }
+}
+
+.genre-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.8) saturate(1.2);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.genre-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.genre-name {
+  position: absolute;
+  bottom: 0.65rem;
+  left: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+
+  .wide & {
+    font-size: 1.15rem;
+  }
+}
+
+// SEZIONE NUOVI TALENTI
+.talents-section {
+  padding: 2rem 0 2.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+  padding: 0 1.5rem;
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  a {
+    font-size: 0.85rem;
+    color: #aaa;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.slider-outer {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 24px 1.5rem;
+  margin: -24px 0;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.slider-row {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  align-items: flex-start;
+}
+
+.talent-card {
+  position: relative;
+  width: 210px;
+  height: 460px;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 1;
+  transition:
+    width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+    z-index 0s 0.55s;
+
+  &:hover {
+    width: 520px;
+    z-index: 10;
+    transition:
+      width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+      z-index 0s 0s;
+
+    .card-bg {
+      filter: brightness(0.4);
+    }
+
+    .card-fade {
+      opacity: 1;
+    }
+
+    .card-title-always {
+      opacity: 0;
+    }
+
+    .card-hover-content {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.75);
+  transition: filter 0.45s ease;
+}
+
+.card-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.55) 45%,
+      rgba(0, 0, 0, 0.0) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+}
+
+.card-title-always {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 0.85rem;
+  right: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  transition: opacity 0.2s ease;
+  z-index: 5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-hover-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.4rem 1.3rem 1.4rem 1.8rem;
+  gap: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease 0.2s;
+  z-index: 6;
+
+  .tag {
+    //font-size: 0.67rem;
+    font-weight: 700;
+    color: var(--tropicalThemeYellow);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  h3 {
+    //font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+  }
+
+  p {
+    //font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.68);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// SEZIONE DEGLI ARTISTI
+.artists-section {
+  padding: 2rem 0 5rem;
+  overflow: visible;
+}
+
+
+.slider-outer {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  padding: 30px 1.5rem;
+  margin: -30px 0;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.slider-row {
+  display: flex;
+  gap: 1.4rem;
+  width: max-content;
+}
+
+.artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  width: 140px;
+}
+
+.artist-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  overflow: visible;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1),
+    box-shadow 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--tropicalTheme);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+    animation: spin 3s linear infinite;
+  }
+
+  img {
+    position: absolute;
+    inset: 3px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+    object-fit: cover;
+    border-radius: 50%;
+    z-index: 1;
+    transition: filter 0.3s ease;
+  }
+}
+
+.artist-card:hover {
+  .artist-avatar {
+    transform: translateY(-6px) scale(1.08);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+
+    &::before {
+      opacity: 1;
+    }
+
+    img {
+      filter: brightness(1.1);
+    }
+  }
+
+  .artist-name {
+    color: var(--tropicalThemeRed)
+  }
+
+  .artist-followers {
+    color: #bbb;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.artist-name {
+  //font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  transition: color 0.25s ease;
+}
+
+.artist-followers {
+  font-size: 0.9rem;
+  color: #888;
+  text-align: center;
+  margin-top: -0.45rem;
+  transition: color 0.25s ease;
+}
+
+// OVERRIDE FORZATO DEL COLORE DEL FOOTER
+:host ::ng-deep {
+  .footerSection {
+    background: transparent;
+  }
+
+  .divCentrale {
+    background: var(--tropicalThemeYellow) !important;
+  }
+}
+
+app-footer {
+  position: relative;
+  z-index: 10; 
+  display: block;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
 }
