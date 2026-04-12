@@ -1,0 +1,64 @@
+<app-navbar></app-navbar>
+<div class="book-detail-page">
+
+  <div class="ambient-bg" [style.backgroundImage]="'url(' + book?.img + ')'"></div>
+  <div class="ambient-overlay"></div>
+  <div class="hero-bottom-fade"></div>
+
+  @if (book) {
+    <div class="detail-container container">
+      <div class="detail-hero">
+
+        <div class="detail-cover">
+          <img [src]="book.img" [alt]="book.title" />
+        </div>
+
+        <div class="detail-info">
+          <span class="detail-tag">{{ book.tag || 'Romanzo' }}</span>
+          <h1>{{ book.title }}</h1>
+          <p class="detail-author">{{ book.author }}</p>
+          <p class="detail-desc">{{ book.desc }}</p>
+        </div>
+
+      </div>
+
+      <div class="detail-stats">
+        <div class="stat-item">
+          <div class="stars">
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star">★</span>
+          </div>
+          <span class="stat-label">4.0 / 5.0</span>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span class="stat-value">12.4k</span>
+          <span class="stat-label">lettori</span>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span class="stat-value">24</span>
+          <span class="stat-label">capitoli</span>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

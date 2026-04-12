@@ -1,5 +1,6 @@
 import { Component, Input, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-book-slider',
@@ -20,6 +21,14 @@ export class BookSlider {
 
   cardWidth = 204.2;
   currentIndex = 0;
+
+  constructor(private router: Router) {}
+
+  onBookClick(book: any, index: number) {
+    this.router.navigate(['/book', index], {
+      state: { book }
+    });
+  }
 
   get visible(): number {
     if (typeof window === 'undefined') return 4;

@@ -12,7 +12,7 @@
     <div class="slider-track-wrapper" #scrollContainer (scroll)="updateArrows()">
       <div class="slider-track">
         @for (book of books; track $index) {
-          <div class="book-card">
+          <div class="book-card" (click)="onBookClick(book, $index)">
             <div class="book-cover">
               <img [src]="book.img" [alt]="book.title" loading="lazy" />
               <div class="book-spine"></div>

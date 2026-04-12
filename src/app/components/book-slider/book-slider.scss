@@ -1,8 +1,9 @@
+@use "../../../scss/colori.scss";
 // SLIDER PER IMMAGINI
 
 .slider-section {
   padding-bottom: 2rem ;
-  background: #fefadc;
+  background: var(--tropicalTheme);
 }
 
 .slider-header {
