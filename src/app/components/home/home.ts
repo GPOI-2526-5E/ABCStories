@@ -216,6 +216,8 @@ export class Home implements AfterViewInit, OnDestroy {
         this.initSlider();
         this.initFooterReveal();
       }, 100);
+
+      ScrollTrigger.refresh();
     }
   }
 

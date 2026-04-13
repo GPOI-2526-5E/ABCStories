@@ -22,31 +22,38 @@ export class Login implements AfterViewInit {
   password: string = '';
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+  if (!isPlatformBrowser(this.platformId)) return;
 
-    const leftElements = document.querySelectorAll(
-      ".animate-left .logo, .animate-left .title, .animate-left .form-wrapper, .animate-left .submit-btn, .animate-left .google-btn"
+  const leftElements = document.querySelectorAll(
+    ".animate-left .logo, .animate-left .title, .animate-left .form-wrapper, .animate-left .submit-btn, .animate-left .google-btn"
+  );
+
+  gsap.set(leftElements, { opacity: 0, y: 40 });
+
+  gsap.to(leftElements, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    ease: "power3.out",
+    stagger: 0.12      
+  });
+
+  const rightImage = document.querySelector(".animate-right .image-right");
+  if (rightImage) {
+    gsap.fromTo(
+      rightImage,
+      { opacity: 0, x: 100, scale: 1.05 },
+      { 
+        opacity: 1, 
+        x: 0, 
+        scale: 1, 
+        duration: 0.9,  
+        ease: "power3.out",
+        delay: 0.2    
+      }
     );
-
-    gsap.set(leftElements, { opacity: 0, y: 40 });
-
-    gsap.to(leftElements, {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: "power3.out",
-      stagger: 0.15
-    });
-
-    const rightImage = document.querySelector(".animate-right .image-right");
-    if (rightImage) {
-      gsap.fromTo(
-        rightImage,
-        { opacity: 0, x: 100, scale: 1.05 },
-        { opacity: 1, x: 0, scale: 1, duration: 1.2, ease: "power3.out" }
-      );
-    }
   }
+}
 
   onLogin(event: Event) {
     event.preventDefault();

@@ -7,6 +7,7 @@ h1 {
 }
 
 // CONTENITORI DIV PRINCIPALI
+
 .cont1-2 {
   position: relative;
   padding-top: 24vh !important;
@@ -17,11 +18,22 @@ h1 {
   background-repeat: no-repeat;
   isolation: isolate;
   overflow: hidden;
-  opacity: 0;
-  //transform: scale(1.08);
   width: 100%;
-  z-index: 1;
   min-height: 100vh;
+  z-index: 1;
+
+  animation: heroFadeZoom 0.95s ease-out forwards;
+}
+
+@keyframes heroFadeZoom {
+  0% {
+    opacity: 0;
+    transform: scale(1.04); 
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);   
+  }
 }
 
 .cont1-3 {
