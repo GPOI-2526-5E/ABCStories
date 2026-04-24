@@ -26,8 +26,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at center, rgba(255,255,255,0.02), transparent 60%),
-    linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5));
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.02), transparent 60%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
   z-index: 1;
 }
 
@@ -39,12 +39,10 @@
   height: 220px;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    hsla(141, 81%, 87%, 1) 0%,
-    hsla(41, 88%, 75%, 1) 50%,
-    hsla(358, 82%, 71%, 1) 100%
-  );
+  background: linear-gradient(90deg,
+      hsla(141, 81%, 87%, 1) 0%,
+      hsla(41, 88%, 75%, 1) 50%,
+      hsla(358, 82%, 71%, 1) 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
 }
@@ -64,7 +62,7 @@
 .detail-hero {
   display: flex;
   align-items: center;
-  justify-content: center ;
+  justify-content: center;
   gap: 4rem;
   margin-bottom: 3rem;
   width: 100%;
@@ -81,7 +79,7 @@
   height: 400px;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
 
   img {
     width: 100%;
@@ -109,7 +107,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .detail-info h1 {
@@ -121,14 +119,14 @@
 
 .detail-author {
   font-size: 1.1rem;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
 .detail-desc {
   font-size: 1rem;
   line-height: 1.75;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   max-width: 540px;
   margin: 0.5rem 0 0;
 }
@@ -139,10 +137,10 @@
   justify-content: space-around;
   gap: 0;
   padding: 1.5rem 2.5rem;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(16px);
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 255, 255, 0.40);
   width: 100%;
 
   @media (max-width: 768px) {
@@ -161,7 +159,7 @@
   svg {
     width: 22px;
     height: 22px;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
   }
 }
 
@@ -173,14 +171,14 @@
 
 .stat-label {
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
 }
 
 .stat-divider {
   width: 1px;
   height: 48px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
 }
 
@@ -191,7 +189,7 @@
 
 .star {
   font-size: 1.3rem;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255, 255, 255, 0.25);
 
   &.filled {
     color: var(--tropicalThemeYellow);
@@ -203,203 +201,342 @@
   background: var(--tropicalTheme);
 }
 
-/*
-// ---- Variables ----
-$glass-bg:      rgba(255, 255, 255, 0.12);
-$glass-border:  rgba(255, 255, 255, 0.25);
-$glass-inner:   rgba(255, 255, 255, 0.10);
-$glass-hover:   rgba(255, 255, 255, 0.18);
-$text-primary:  black;
-$text-muted:    rgba(255, 255, 255, 0.6);
-$text-soft:     rgba(255, 255, 255, 0.7);
-$stars-color:   #f5c842;
+// ── Variabili condivise ──────────────────────────────────────────
+$glass-bg:     rgba(255, 255, 255, 0.18);
+$glass-border: rgba(255, 255, 255, 0.40);
+$glass-hover:  rgba(255, 255, 255, 0.28);
+$text-dark:    rgba(20, 20, 10, 0.85);
+$text-muted:   rgba(20, 20, 10, 0.50);
+$text-faint:   rgba(20, 20, 10, 0.35);
 
-// ---- Reset ----
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-// ---- Card base ----
-.bk-card {
-  background: $glass-bg;
-  backdrop-filter: blur(16px);
-  border: 0.5px solid $glass-border;
-  border-radius: 18px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-
-  h2 {
-    font-size: 15px;
-    font-weight: 600;
-    color: $text-primary;
-    margin: 0 0 1rem;
-  }
+// ── divDetails wrapper ───────────────────────────────────────────
+.divDetails {
+  padding: 3rem 0 4rem;
 }
 
-// ---- Pulsante generico ----
-.show-more-btn {
+// ── Sezione generica ────────────────────────────────────────────
+.dd-section {
+  margin-bottom: 0;
+}
+
+// ── Card glass ──────────────────────────────────────────────────
+.dd-card {
+  background: $glass-bg;
+  backdrop-filter: blur(20px);
+  border: 0.5px solid $glass-border;
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+}
+
+// ── Divider ─────────────────────────────────────────────────────
+.dd-divider {
+  border: none;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.45);
+  margin: 2.5rem 0;
+}
+
+// ── Pulsante mostra altri ────────────────────────────────────────
+.dd-show-more {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   margin: 14px auto 0;
-  background: rgba(255,255,255,0.15);
-  border: 0.5px solid rgba(255,255,255,0.3);
-  border-radius: 20px;
-  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 0.5px solid $glass-border;
+  border-radius: 999px;
+  padding: 8px 24px;
   font-size: 13px;
-  color: $text-primary;
+  color: $text-dark;
   cursor: pointer;
   transition: background 0.2s;
 
-  &:hover { background: $glass-hover; }
+  &:hover {
+    background: $glass-hover;
+  }
+
+  svg {
+    transition: transform 0.2s;
+  }
 }
 
-// ---- Dettagli libro ----
-.meta-grid {
+// ── Dettagli libro ───────────────────────────────────────────────
+.dd-details-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.meta-item {
+.dd-detail-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.meta-label {
-  font-size: 11px;
+.dd-detail-label {
+  //font-size: 11px;
   color: $text-muted;
   display: flex;
   align-items: center;
   gap: 5px;
 
-  svg { width: 13px; height: 13px; opacity: 0.7; }
+  svg {
+    height: 20px;
+    opacity: 0.6;
+  }
 }
 
-.meta-value {
-  font-size: 13px;
-  font-weight: 500;
-  color: $text-primary;
+.dd-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-dark;
 }
 
-// ---- Capitoli ----
-.chapter-grid {
+// ── Capitoli ────────────────────────────────────────────────────
+.dd-chapters-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.chapter-card {
-  background: $glass-inner;
-  border: 0.5px solid rgba(255,255,255,0.2);
+.dd-chapter-card {
   border-radius: 14px;
-  padding: 14px;
+  overflow: hidden;
   cursor: pointer;
-  transition: background 0.2s;
+  background: rgba(255, 255, 255, 0.18);
+  border: 0.5px solid rgba(255, 255, 255, 0.40);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 
-  &:hover { background: $glass-hover; }
+  &:hover .dd-chapter-img {
+    transform: scale(1.08);
+  }
 }
 
-.chapter-num {
-  font-size: 18px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.9);
+.dd-chapter-img-wrap {
+  width: 100%;
+  height: 65%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dd-chapter-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.dd-chapter-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.dd-chapter-num {
+  //font-size: 17px;
+  font-weight: 700;
+  color: rgba(20, 20, 10, 0.65);
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
 }
 
-.chapter-title {
-  font-size: 12px;
-  color: $text-soft;
+.dd-chapter-name {
+  //font-size: 12px;
+  color: rgba(20, 20, 10, 0.55);
 }
 
-// ---- Cosa imparerai ----
-.learn-list {
+// ── Cosa imparerai ───────────────────────────────────────────────
+.dd-learn-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.learn-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
-  color: rgba(255,255,255,0.9);
-  line-height: 1.4;
-}
-
-.learn-dot {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.5);
-  margin-top: 1px;
-}
-
-// ---- Recensioni ----
-.review-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.review-card {
-  background: $glass-inner;
-  border: 0.5px solid rgba(255,255,255,0.2);
-  border-radius: 14px;
-  padding: 12px;
-}
-
-.reviewer-row {
+.dd-learn-item {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 8px;
+  gap: 12px;
+  font-size: 14px;
+  color: rgba(20, 20, 10, 0.75);
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
+.dd-learn-dot {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(20, 20, 10, 0.3);
+}
+
+// ── Autore ───────────────────────────────────────────────────────
+.dd-author {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.dd-author-avatar {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: $text-muted;
+}
+
+.dd-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dd-author-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: $text-dark;
+}
+
+.dd-author-bio {
   font-size: 13px;
-  font-weight: 500;
-  color: $text-primary;
+  color: $text-muted;
+  line-height: 1.6;
 }
 
-.reviewer-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: $text-primary;
+// ── Recensioni ───────────────────────────────────────────────────
+.dd-reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.stars {
-  color: $stars-color;
-  font-size: 12px;
-  letter-spacing: 1px;
+.dd-review-card {
+  background: $glass-bg;
+  backdrop-filter: blur(20px);
+  border: 0.5px solid $glass-border;
+  border-radius: 16px;
+  padding: 1.25rem;
 }
 
-.review-text {
-  font-size: 12px;
-  color: rgba(255,255,255,0.8);
-  line-height: 1.45;
-}
-
-// ---- Footer link ----
-.footer-link {
+.dd-reviewer-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  padding: 14px 4px 0;
-  cursor: pointer;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
-  svg { width: 16px; height: 16px; }
-}*/
+.dd-avatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.dd-reviewer-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.dd-stars {
+  font-size: 13px;
+  letter-spacing: 1px;
+
+  .filled { color: #c8862a; }
+  .empty  { color: rgba(20, 20, 10, 0.2); }
+}
+
+.dd-review-text {
+  font-size: 13px;
+  color: rgba(20, 20, 10, 0.65);
+  line-height: 1.5;
+}
+
+// ── Libri simili ─────────────────────────────────────────────────
+.dd-similar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dd-similar-card {
+  background: $glass-bg;
+  backdrop-filter: blur(20px);
+  border: 0.5px solid $glass-border;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $glass-hover;
+  }
+}
+
+.dd-similar-cover {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.dd-similar-info {
+  padding: 10px 12px;
+}
+
+.dd-similar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.dd-similar-author {
+  font-size: 11px;
+  color: $text-muted;
+  margin-top: 2px;
+}

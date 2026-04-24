@@ -67,5 +67,126 @@
 </div>
 
 <div class="divDetails">
+  <div class="container">
+
+    <!-- DETTAGLI LIBRO -->
+    <section class="dd-section">
+      <h2 class="text-center mb-4">Dettagli Libro</h2>
+      <div class="dd-card">
+        <div class="dd-details-grid">
+
+          <div class="dd-detail-item">
+            <span class="dd-detail-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              Genere
+            </span>
+            <span class="dd-detail-value">{{ book?.genre || 'Distopico, Politico' }}</span>
+          </div>
+
+          <div class="dd-detail-item">
+            <span class="dd-detail-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <line x1="9" y1="7" x2="15" y2="7"/>
+                <line x1="9" y1="11" x2="15" y2="11"/>
+                <line x1="9" y1="15" x2="13" y2="15"/>
+              </svg>
+              Lunghezza
+            </span>
+            <span class="dd-detail-value">{{ book?.pages || '328' }} pagine</span>
+          </div>
+
+          <div class="dd-detail-item">
+            <span class="dd-detail-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Edizione
+            </span>
+            <span class="dd-detail-value">{{ book?.year || '2009' }}</span>
+          </div>
+
+          <div class="dd-detail-item">
+            <span class="dd-detail-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Formato
+            </span>
+            <span class="dd-detail-value">Ebook, Cartaceo</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <hr class="dd-divider">
+
+    <!-- CAPITOLI -->
+    <section class="dd-section">
+      <h2 class="text-center mb-4">Capitoli</h2>
+      <div class="dd-chapters-grid">
+        @for (chapter of visibleChapters; track chapter.num) {
+          <div class="dd-chapter-card">
+            <div class="dd-chapter-img-wrap">
+              <img [src]="chapter.img" [alt]="chapter.title" class="dd-chapter-img" />
+            </div>
+            <div class="dd-chapter-body">
+              <div class="dd-chapter-num">{{ chapter.num }}</div>
+              <div class="dd-chapter-name">{{ chapter.title }}</div>
+            </div>
+          </div>
+        }
+      </div>
+      <button class="dd-show-more" (click)="toggleChapters()">
+        {{ showAllChapters ? 'Mostra meno' : 'Mostra altri' }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline [attr.points]="showAllChapters ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
+        </svg>
+      </button>
+    </section>
+
+    <hr class="dd-divider">
+
+    <!-- RECENSIONI -->
+    <section class="dd-section">
+      <h2 class="text-center mb-4">Recensioni degli utenti</h2>
+      <div class="dd-reviews-grid">
+        @for (review of visibleReviews; track review.name) {
+          <div class="dd-review-card">
+            <div class="dd-reviewer-row">
+              <div class="dd-avatar">{{ review.name[0] }}</div>
+              <div>
+                <div class="dd-reviewer-name">{{ review.name }}</div>
+                <div class="dd-stars">
+                  @for (s of getStars(review.rating); track $index) {
+                    <span [class]="s">★</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="dd-review-text">{{ review.text }}</div>
+          </div>
+        }
+      </div>
+      <button class="dd-show-more" (click)="toggleReviews()">
+        {{ showAllReviews ? 'Mostra meno' : 'Vedi altre recensioni' }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline [attr.points]="showAllReviews ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
+        </svg>
+      </button>
+    </section>
+
+    <hr class="dd-divider">
+  </div>
   
+  <app-book-slider [title]="'Potrebbero Piacerti Anche...'" subtitle="" [books]="booksD">
+  </app-book-slider>
 </div>
