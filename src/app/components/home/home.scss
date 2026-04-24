@@ -51,7 +51,7 @@
 .ambient-bg {
   position: absolute;
   inset: 0 0 -200px 0;
-  opacity: 0.75; // era 0.65, alzalo un po'
+  opacity: 0.75; 
   background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
   background-size: cover;
   background-position: center;
@@ -218,7 +218,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    margin-top: 0; // era sul .dots prima, ora gestito dal wrapper
+    margin-top: 0; 
   }
 }
 
@@ -957,7 +957,7 @@
 
 app-footer {
   position: relative;
-  z-index: 10; // Footer "sopra"
+  z-index: 10; 
   display: block;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
 }
