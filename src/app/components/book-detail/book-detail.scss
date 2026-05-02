@@ -484,7 +484,7 @@ $text-faint:   rgba(20, 20, 10, 0.35);
 
 .dd-review-text {
   font-size: 13px;
-  color: rgba(20, 20, 10, 0.65);
+  color: black;
   line-height: 1.5;
 }
 
@@ -539,4 +539,298 @@ $text-faint:   rgba(20, 20, 10, 0.35);
   font-size: 11px;
   color: $text-muted;
   margin-top: 2px;
+}
+
+// ── Commenti — da aggiungere in book-detail.scss ─────────────
+// Le variabili $glass-bg, $glass-border, $text-dark, $text-muted
+// sono già definite nel file principale; questo blocco le riutilizza.
+
+// ── Card input ───────────────────────────────────────────────
+.cm-input-card {
+  margin-bottom: 20px;
+}
+
+.cm-input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cm-avatar-me {
+  // Usa già .dd-avatar; sovrascriviamo solo il bg per distinguerlo
+  background: rgba(255, 255, 255, 0.55);
+  color: rgba(20, 20, 10, 0.65);
+}
+
+.cm-avatar-sm {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  font-size: 12px !important;
+}
+
+.cm-ta-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// Textarea principale — effetto vetro chiaro, mai nera
+.cm-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 0.5px solid rgba(255, 255, 255, 0.60);
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: inherit;
+
+  // Sfondo vetro: bianco semi-trasparente, non scuro
+  background: rgba(245, 245, 245, 0.368);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  color: rgba(20, 20, 10, 0.85);
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &::placeholder {
+    color: rgba(20, 20, 10, 0.38);
+  }
+
+  &:focus {
+    border-color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.627);
+  }
+}
+
+.cm-textarea-sm {
+  min-height: unset;
+  height: 60px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+// ── Footer form ──────────────────────────────────────────────
+.cm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cm-char-hint {
+  font-size: 11px;
+  color: rgba(20, 20, 10, 0.35);
+}
+
+// ── Pulsante Pubblica — più visibile ─────────────────────────
+.cm-btn-send {
+  background: rgba(210, 120, 5, 0.88);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.1s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(190, 105, 0, 0.96);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.cm-btn-send-sm {
+  padding: 7px 16px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ── Intestazione lista ───────────────────────────────────────
+.cm-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cm-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(20, 20, 10, 0.82);
+}
+
+.cm-sort-btn {
+  margin: 0 !important; // override .dd-show-more centering
+}
+
+// ── Lista thread ─────────────────────────────────────────────
+.cm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cm-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Card commento (estende .dd-review-card) ──────────────────
+.cm-card {
+  // .dd-review-card fornisce glass bg, border, border-radius, padding
+  // qui aggiungiamo solo ciò che manca
+
+  .dd-reviewer-row {
+    margin-bottom: 8px;
+  }
+}
+
+.cm-reply-card {
+  // Card figlia leggermente più trasparente per distinguerla visivamente
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-radius: 13px !important;
+  padding: 11px 14px !important;
+}
+
+// ── Meta utente ──────────────────────────────────────────────
+.cm-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cm-sub {
+  font-size: 11px;
+  color: rgba(20, 20, 10, 0.42);
+}
+
+// ── Testo commento ───────────────────────────────────────────
+.cm-text {
+  margin-bottom: 10px;
+  line-height: 1.55;
+}
+
+// ── Tag/chip ─────────────────────────────────────────────────
+.cm-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cm-tag {
+  font-size: 11px;
+  color: rgba(20, 20, 10, 0.55);
+  background: rgba(255, 255, 255, 0.38);
+  border: 0.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+// ── Azioni (like / rispondi) ─────────────────────────────────
+.cm-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cm-act-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: black;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.35);
+    color: rgba(20, 20, 10, 0.8);
+  }
+
+  &.cm-act-liked {
+    color: #c8862a;
+    font-weight: 600;
+  }
+}
+
+// ── Box risposta inline ──────────────────────────────────────
+.cm-reply-input {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  margin-left: 28px;
+  animation: cmSlideIn 0.22s ease;
+}
+
+// ── Pulsante mostra risposte ─────────────────────────────────
+.cm-show-replies-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  margin-left: 28px;
+  font-size: 12px;
+  color: rgba(20, 20, 10, 0.48);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: rgba(20, 20, 10, 0.78);
+  }
+
+  svg {
+    transition: transform 0.2s ease;
+  }
+}
+
+// ── Risposte annidate ────────────────────────────────────────
+.cm-replies-wrap {
+  margin-top: 8px;
+  margin-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: cmSlideIn 0.22s ease;
+}
+
+// ── Carica altri ─────────────────────────────────────────────
+.cm-load-more {
+  margin-top: 18px !important;
+}
+
+// ── Animazioni ───────────────────────────────────────────────
+@keyframes cmSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

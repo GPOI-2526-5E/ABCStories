@@ -78,8 +78,8 @@
           <div class="dd-detail-item">
             <span class="dd-detail-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
               Genere
             </span>
@@ -89,10 +89,10 @@
           <div class="dd-detail-item">
             <span class="dd-detail-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="5" y="2" width="14" height="20" rx="2"/>
-                <line x1="9" y1="7" x2="15" y2="7"/>
-                <line x1="9" y1="11" x2="15" y2="11"/>
-                <line x1="9" y1="15" x2="13" y2="15"/>
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+                <line x1="9" y1="7" x2="15" y2="7" />
+                <line x1="9" y1="11" x2="15" y2="11" />
+                <line x1="9" y1="15" x2="13" y2="15" />
               </svg>
               Lunghezza
             </span>
@@ -102,10 +102,10 @@
           <div class="dd-detail-item">
             <span class="dd-detail-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               Edizione
             </span>
@@ -115,8 +115,8 @@
           <div class="dd-detail-item">
             <span class="dd-detail-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
               </svg>
               Formato
             </span>
@@ -134,21 +134,21 @@
       <h2 class="text-center mb-4">Capitoli</h2>
       <div class="dd-chapters-grid">
         @for (chapter of visibleChapters; track chapter.num) {
-          <div class="dd-chapter-card">
-            <div class="dd-chapter-img-wrap">
-              <img [src]="chapter.img" [alt]="chapter.title" class="dd-chapter-img" />
-            </div>
-            <div class="dd-chapter-body">
-              <div class="dd-chapter-num">{{ chapter.num }}</div>
-              <div class="dd-chapter-name">{{ chapter.title }}</div>
-            </div>
+        <div class="dd-chapter-card">
+          <div class="dd-chapter-img-wrap">
+            <img [src]="chapter.img" [alt]="chapter.title" class="dd-chapter-img" />
           </div>
+          <div class="dd-chapter-body">
+            <div class="dd-chapter-num">{{ chapter.num }}</div>
+            <div class="dd-chapter-name">{{ chapter.title }}</div>
+          </div>
+        </div>
         }
       </div>
       <button class="dd-show-more" (click)="toggleChapters()">
         {{ showAllChapters ? 'Mostra meno' : 'Mostra altri' }}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-          <polyline [attr.points]="showAllChapters ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
+          <polyline [attr.points]="showAllChapters ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
         </svg>
       </button>
     </section>
@@ -160,33 +160,181 @@
       <h2 class="text-center mb-4">Recensioni degli utenti</h2>
       <div class="dd-reviews-grid">
         @for (review of visibleReviews; track review.name) {
-          <div class="dd-review-card">
-            <div class="dd-reviewer-row">
-              <div class="dd-avatar">{{ review.name[0] }}</div>
-              <div>
-                <div class="dd-reviewer-name">{{ review.name }}</div>
-                <div class="dd-stars">
-                  @for (s of getStars(review.rating); track $index) {
-                    <span [class]="s">★</span>
-                  }
-                </div>
+        <div class="dd-review-card">
+          <div class="dd-reviewer-row">
+            <div class="dd-avatar">{{ review.name[0] }}</div>
+            <div>
+              <div class="dd-reviewer-name">{{ review.name }}</div>
+              <div class="dd-stars">
+                @for (s of getStars(review.rating); track $index) {
+                <span [class]="s">★</span>
+                }
               </div>
             </div>
-            <div class="dd-review-text">{{ review.text }}</div>
           </div>
+          <div class="dd-review-text">{{ review.text }}</div>
+        </div>
         }
       </div>
       <button class="dd-show-more" (click)="toggleReviews()">
         {{ showAllReviews ? 'Mostra meno' : 'Vedi altre recensioni' }}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-          <polyline [attr.points]="showAllReviews ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
+          <polyline [attr.points]="showAllReviews ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
         </svg>
       </button>
     </section>
 
     <hr class="dd-divider">
   </div>
-  
+
   <app-book-slider [title]="'Potrebbero Piacerti Anche...'" subtitle="" [books]="booksD">
   </app-book-slider>
+
+  <!-- ── Sezione Commenti ─────────────────────────────────────── -->
+  <div class="container">
+    <section class="dd-section" aria-labelledby="comments-heading">
+      <h2 class="text-center mb-5" id="comments-heading">Commenti</h2>
+
+      <!-- Form: scrivi un commento -->
+      <div class="dd-card cm-input-card">
+        <div class="cm-input-row">
+          <div class="dd-avatar cm-avatar-me">{{ currentUserInitial }}</div>
+          <div class="cm-ta-wrap">
+            <textarea class="cm-textarea" [(ngModel)]="newCommentText" placeholder="Scrivi un commento..." rows="3"
+              maxlength="500" aria-label="Testo del commento"></textarea>
+            <div class="cm-footer">
+              <span class="cm-char-hint">{{ newCommentText.length }}/500</span>
+              <button class="cm-btn-send" [disabled]="!newCommentText.trim()" (click)="addComment()" type="button">
+                Pubblica
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intestazione lista -->
+      <div class="cm-list-header">
+        <span class="cm-count">Commenti ({{ comments.length }})</span>
+        <button class="dd-show-more cm-sort-btn" type="button" (click)="toggleSort()">
+          {{ sortLabel }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Lista commenti -->
+      <div class="cm-list">
+        @for (comment of visibleComments; track comment.id) {
+        <div class="cm-thread">
+
+          <!-- Card principale -->
+          <div class="dd-review-card cm-card">
+            <div class="dd-reviewer-row">
+              <div class="dd-avatar">{{ comment.author[0].toUpperCase() }}</div>
+              <div class="cm-meta">
+                <span class="dd-reviewer-name">{{ comment.author }}</span>
+                <span class="cm-sub">{{ comment.handle }} · {{ comment.timeAgo }}</span>
+              </div>
+            </div>
+
+            <p class="dd-review-text cm-text">{{ comment.text }}</p>
+
+            @if (comment.tags.length) {
+            <div class="cm-tags">
+              @for (tag of comment.tags; track tag) {
+              <span class="cm-tag">{{ tag }}</span>
+              }
+            </div>
+            }
+
+            <div class="cm-actions">
+              <button class="cm-act-btn" [class.cm-act-liked]="comment.liked" (click)="toggleLike(comment)"
+                type="button" [attr.aria-label]="comment.liked ? 'Rimuovi mi piace' : 'Mi piace'">
+                <svg viewBox="0 0 24 24" [attr.fill]="comment.liked ? '#c8862a' : 'none'" stroke="currentColor"
+                  stroke-width="2" width="14" height="14">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {{ comment.likes }}
+              </button>
+
+              <button class="cm-act-btn" (click)="toggleReplyBox(comment)" type="button" aria-label="Rispondi">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Rispondi
+              </button>
+            </div>
+          </div>
+
+          <!-- Box risposta inline -->
+          @if (comment.replyBoxOpen) {
+          <div class="cm-reply-input">
+            <div class="dd-avatar cm-avatar-me cm-avatar-sm">{{ currentUserInitial }}</div>
+            <textarea class="cm-textarea cm-textarea-sm" [(ngModel)]="comment.replyDraft"
+              placeholder="Scrivi una risposta..." rows="2" maxlength="300"></textarea>
+            <button class="cm-btn-send cm-btn-send-sm" [disabled]="!comment.replyDraft.trim()"
+              (click)="addReply(comment)" type="button">
+              Invia
+            </button>
+          </div>
+          }
+
+          <!-- Pulsante mostra/nascondi risposte -->
+          @if (comment.replies.length) {
+          <button class="cm-show-replies-btn" (click)="toggleReplies(comment)" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <polyline [attr.points]="comment.repliesOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
+            </svg>
+            {{ comment.repliesOpen
+            ? 'Nascondi risposte'
+            : 'Mostra risposte (' + comment.replies.length + ')' }}
+          </button>
+          }
+
+          <!-- Risposte annidate -->
+          @if (comment.repliesOpen && comment.replies.length) {
+          <div class="cm-replies-wrap">
+            @for (reply of comment.replies; track reply.id) {
+            <div class="dd-review-card cm-card cm-reply-card">
+              <div class="dd-reviewer-row">
+                <div class="dd-avatar cm-avatar-sm">{{ reply.author[0].toUpperCase() }}</div>
+                <div class="cm-meta">
+                  <span class="dd-reviewer-name">{{ reply.author }}</span>
+                  <span class="cm-sub">{{ reply.handle }} · {{ reply.timeAgo }}</span>
+                </div>
+              </div>
+              <p class="dd-review-text cm-text">{{ reply.text }}</p>
+              <div class="cm-actions">
+                <button class="cm-act-btn" [class.cm-act-liked]="reply.liked" (click)="toggleLike(reply)" type="button">
+                  <svg viewBox="0 0 24 24" [attr.fill]="reply.liked ? '#c8862a' : 'none'" stroke="currentColor"
+                    stroke-width="2" width="13" height="13">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {{ reply.likes }}
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+          }
+
+        </div>
+        }
+      </div>
+
+      <!-- Carica altri -->
+      @if (comments.length > visibleCount) {
+      <button class="dd-show-more cm-load-more" (click)="loadMore()" type="button">
+        Carica altri commenti
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      }
+
+    </section>
+  </div>
 </div>
