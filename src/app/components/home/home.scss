@@ -14,8 +14,10 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(90px, 15vh, 140px) 0 4rem;
-  padding-bottom: 6rem;
+  //padding-bottom: 6rem;
   margin-bottom: 0;
+  content-visibility: auto; // Gestisce meglio il rendering iniziale
+  contain: paint;
 
   @media (max-width: 1024px) {
     padding: clamp(80px, 12vh, 100px) 0 3rem;
@@ -51,14 +53,29 @@
 .ambient-bg {
   position: absolute;
   inset: 0 0 -200px 0;
-  opacity: 0.75; 
+  opacity: 0.8;
   background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
   background-size: cover;
   background-position: center;
-  filter: blur(110px) saturate(130%) brightness(0.85);
+  filter: blur(80px) saturate(160%) brightness(0.9);
   transform: scale(1.4);
-  transition: background-image 1.2s ease-in-out;
-  z-index: 0;
+  will-change: background-image, opacity; // Avvisa il browser di tenersi pronto
+  transform: translateZ(0); // Forza il rendering 3D (GPU layer)
+  transition: background-image 1.2s ease-in-out, opacity 0.8s ease;
+  z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .ambient-bg {
+    // Su mobile aumentiamo ancora di più la scala per "pescare"
+    // i colori dai bordi dell'immagine originale
+    transform: scale(1.5) translateZ(0);
+
+    // Riduciamo leggermente il blur su mobile per non disperdere troppo il colore
+    filter: blur(60px) saturate(180%);
+
+    opacity: 0.9; // Più opaco su mobile per compensare lo schermo piccolo
+  }
 }
 
 .ambient-overlay {
@@ -113,11 +130,16 @@
   z-index: 1;
   transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease;
   transform: scale(0.8) translateX(0);
+  will-change: transform, opacity;
+  transform: translateZ(0);
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    backface-visibility: hidden;
+    perspective: 1000;
+    -webkit-perspective: 1000;
   }
 }
 
@@ -218,7 +240,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    margin-top: 0; 
+    margin-top: 0;
   }
 }
 
@@ -259,41 +281,107 @@
   }
 }
 
+/* --- OTTIMIZZAZIONE CAROSELLO MOBILE --- */
+
 @media (max-width: 768px) {
+  .hero-slider {
+    padding: 105px 0 3rem; // Riduciamo il padding superiore
+  }
+
   .slider-shell {
-    padding: 0 0.5rem;
-    gap: 0.5rem;
+    padding: 0; // Eliminiamo padding laterale per usare tutto lo schermo
+    gap: 0;
   }
 
   .slider-viewport {
-    width: 94%;
-    min-height: 250px;
+    height: 450px; // Aumentiamo l'altezza: i testi hanno bisogno di spazio verticale
   }
 
   .slide {
-    width: 90%;
-    height: 300px;
+    width: 92%; // Quasi a tutto schermo
+    height: 100%;
+    border-radius: 1.5rem; // Arrotondamento leggermente minore
+
+    // Overlay più scuro su mobile per leggere meglio il testo bianco
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+      z-index: 2;
+    }
   }
 
   .slide-content {
-    left: 1.4rem;
-    top: 50%;
-    transform: translateY(-50%);
-    max-width: 85%;
+    left: 0;
+    right: 0;
+    bottom: 2rem; // Posizionato in basso
+    top: auto;
+    transform: none; // Rimuoviamo il centramento verticale
+    max-width: 100%;
+    padding: 0 1.5rem;
+    text-align: center; // Testo centrato per un look più moderno su mobile
+    z-index: 5;
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+    }
 
     h1 {
-      font-size: 1.7rem;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
     }
 
     p {
-      font-size: 0.92rem;
-      line-height: 1.5;
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.4;
+      display: -webkit-box;
+      line-clamp: 3;
+      -webkit-line-clamp: 3; // Taglia il testo se troppo lungo (max 3 righe)
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .btnCont {
+      width: 100%; // Bottone a larghezza piena su mobile è più facile da cliccare
+      max-width: 200px;
     }
   }
 
+  // Nascondiamo o rimpiccioliamo le frecce per non coprire il testo
   .nav-btn {
-    width: 40px;
-    height: 40px;
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+    background: rgba(0, 0, 0, 0.3);
+    top: 40%; // Alzate rispetto al testo
+
+    &.prev { left: 5px; }
+    &.next { right: 5px; }
+  }
+
+  // Gestione slide adiacenti: le allontaniamo per non sovrapporle al testo centrale
+  .slide.prev-slide {
+    transform: scale(0.8) translateX(-105%);
+    opacity: 0.2;
+  }
+
+  .slide.next-slide {
+    transform: scale(0.8) translateX(105%);
+    opacity: 0.2;
+  }
+}
+
+// Extra per schermi molto piccoli (es. iPhone SE)
+@media (max-width: 380px) {
+  .slider-viewport {
+    height: 400px;
+  }
+  .slide-content h1 {
+    font-size: 1.5rem;
   }
 }
 
@@ -409,43 +497,68 @@
 
 .podium-display {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column; // Su mobile: uno sopra l'altro
+  align-items: center;
   gap: 2rem;
+  padding: 1rem;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 
   .podium-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 200px; // Dimensione base per mobile
 
-    &.first {
-      width: 240px;
+    .book-cover {
+      width: 100%;
+      aspect-ratio: 2 / 3; // Mantiene le proporzioni della copertina
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 
-      .book-cover {
-        width: 240px;
-        height: 340px;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
       }
+    }
+
+    .book-info {
+      text-align: center;
+      margin-top: 1rem;
 
       .book-title {
-        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 0.2rem;
       }
     }
 
-    &.second {
-      width: 210px;
+    // Gestione Ordine e Dimensioni su Desktop
+    &.first { order: 1; max-width: 240px; }
+    &.second { order: 2; max-width: 210px; }
+    &.third { order: 3; max-width: 190px; }
+  }
 
-      .book-cover {
-        width: 210px;
-        height: 300px;
+  // --- Breakpoint Desktop ---
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+
+    .podium-item {
+      &.first {
+        order: 2; // Il primo va al centro
+        max-width: 260px;
       }
-    }
-
-    &.third {
-      width: 190px;
-
-      .book-cover {
-        width: 190px;
-        height: 270px;
+      &.second {
+        order: 1; // Il secondo va a sinistra
+        max-width: 220px;
+      }
+      &.third {
+        order: 3; // Il terzo va a destra
+        max-width: 200px;
       }
     }
   }
@@ -947,7 +1060,7 @@
 // OVERRIDE FORZATO DEL COLORE DEL FOOTER
 :host ::ng-deep {
   .footerSection {
-    background: transparent;
+    background: var(--tropicalTheme) !important;
   }
 
   .divCentrale {
@@ -957,7 +1070,7 @@
 
 app-footer {
   position: relative;
-  z-index: 10; 
+  z-index: 10;
   display: block;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
 }

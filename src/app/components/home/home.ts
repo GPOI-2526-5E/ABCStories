@@ -49,6 +49,9 @@ export class Home implements AfterViewInit, OnDestroy {
   public readonly totalRankingItems = 12;
   public readonly visibleCards = 5;
 
+  public currentBgImage: string = '';
+  private intervalId: any = null;
+
   booksA = [
     { title: 'Il Nome della Rosa', author: 'U. Eco', desc: 'Un monaco francescano indaga su una serie di morti misteriose in un monastero medievale, tra labirinti di libri e segreti inconfessabili.', img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80', liked: false, bookmarked: false },
     { title: "L'Alchimista", author: 'P. Coelho', desc: 'Un giovane pastore spagnolo intraprende un viaggio verso le piramidi d\'Egitto seguendo un sogno ricorrente e imparando a leggere i segni del destino.', img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=320&q=80', liked: false, bookmarked: false },
@@ -206,29 +209,42 @@ export class Home implements AfterViewInit, OnDestroy {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) { this.slidesCount = this.books.length; }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       gsap.registerPlugin(ScrollTrigger);
-
-      setTimeout(() => {
-        this.initSlider();
-        this.initFooterReveal();
-      }, 100);
+      this.preloadImages();
+      //this.initFooterReveal();
+      this.startAutoSlide();
+      this.updateAmbientBackground();
 
       ScrollTrigger.refresh();
     }
   }
 
-  private initFooterReveal(): void {
+  private preloadImages(): void {
+    this.books.forEach(book => {
+      const img = new Image();
+      img.src = book.img;
+      // La proprietà decode() è magica: decodifica l'immagine in background
+      // senza bloccare il thread principale (niente calo di frame!)
+      img.decode().then(() => {
+        console.log(`Immagine decodificata: ${book.title}`);
+      }).catch((encodingError) => {
+        // Immagine non ancora pronta, non bloccare nulla
+      });
+    });
+  }
+
+  /*private initFooterReveal(): void {
     ScrollTrigger.create({
       trigger: ".divStart",
       start: "bottom bottom",
       pin: true,
       pinSpacing: false,
     });
-  }
+  }*/
 
   ngOnDestroy(): void {
     this.stopAutoSlide();
@@ -315,48 +331,65 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   private updateAmbientBackground(): void {
-    if (!this.ambientBg || !this.slides[this.current]) return;
-
-    const bgImage = this.slides[this.current].dataset['bg'];
-    if (!bgImage) return;
-
-    this.ambientBg.style.opacity = '0';
-
-    setTimeout(() => {
-      if (this.ambientBg) {
-        this.ambientBg.style.backgroundImage = `url('${bgImage}')`;
-        this.ambientBg.style.opacity = '0.95';
-      }
-    }, 180);
+    // Invece di manipolare il DOM, aggiorniamo una variabile legata al template
+    const newBg = this.books[this.current]?.img;
+    if (newBg) {
+      this.currentBgImage = newBg;
+    }
+    this.cdr.markForCheck();
+    // Oppure, se non basta:
+    this.cdr.detectChanges();
   }
 
   public goToSlide(index: number): void {
     this.current = index;
-    this.updateSlides();
+    this.updateAmbientBackground();
   }
 
-  private nextSlide(): void {
-    this.current = (this.current + 1) % this.slides.length;
-    this.updateSlides();
+  public nextSlide(event?: Event): void {
+    // Se c'è un evento (cioè l'utente ha cliccato), blocchiamo propagazioni indesiderate
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.current = (this.current + 1) % this.slidesCount;
+    this.updateAmbientBackground();
+
+    // Riavvia l'autoplay solo se l'azione è manuale (click dell'utente)
+    if (event) {
+      this.restartAutoSlide();
+    }
   }
 
-  private prevSlide(): void {
-    this.current = (this.current - 1 + this.slides.length) % this.slides.length;
-    this.updateSlides();
+  public prevSlide(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.current = (this.current - 1 + this.slidesCount) % this.slidesCount;
+    this.updateAmbientBackground();
+
+    if (event) {
+      this.restartAutoSlide();
+    }
   }
 
-  private startAutoSlide(): void {
-    this.stopAutoSlide();
+  public startAutoSlide(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.stopAutoSlide(); // FONDAMENTALE: uccide sempre il timer vecchio prima di crearne uno nuovo
 
-    this.interval = setInterval(() => {
-      this.nextSlide();
-    }, this.autoplayDelay);
+      this.intervalId = setInterval(() => {
+        this.nextSlide(); // Chiamato senza evento, così non va in loop continuo
+      }, this.autoplayDelay);
+    }
   }
 
-  private stopAutoSlide(): void {
-    if (this.interval !== null) {
-      clearInterval(this.interval);
-      this.interval = null;
+  public stopAutoSlide(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
     }
   }
 

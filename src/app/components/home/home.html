@@ -2,77 +2,41 @@
 
 <section class="hero-slider">
   <!-- Div per sfondo dinamico con sfocatura background -->
-  <div class="ambient-bg"></div>
+  <div class="ambient-bg" [style.backgroundImage]="'url(' + currentBgImage + ')'" [class.fade-in]="currentBgImage">
+  </div>
   <div class="ambient-overlay"></div>
   <div class="hero-bottom-fade"></div>
 
   <div class="slider-shell">
-    <button class="nav-btn prev">&#10094;</button>
+    <button class="nav-btn prev" (click)="prevSlide($event)">&#10094;</button>
 
     <div class="slider-viewport">
-      <div class="slide active"
-        data-bg="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80">
-        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80"
-          alt="Adventure slide" />
-        <div class="slide-content">
-          <span class="badge">Fantasy</span>
-          <h1>Storie che prendono vita</h1>
-          <p>Esplora mondi illustrati, racconti magici e nuove avventure da scoprire.</p>
-          <button class="btnCont mt-4 fade-button">
-            Scopri
-          </button>
-        </div>
-      </div>
+      @for (slide of books; track slide.title; let i = $index) {
+      <div class="slide" [class.active]="i === current"
+        [class.prev-slide]="i === (current - 1 + slidesCount) % slidesCount"
+        [class.next-slide]="i === (current + 1) % slidesCount">
 
-      <div class="slide"
-        data-bg="https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1600&q=80">
-        <img src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1600&q=80"
-          alt="Books slide" />
-        <div class="slide-content">
-          <span class="badge">Community</span>
-          <h1>Condividi le tue storie</h1>
-          <p>Pubblica, leggi e connettiti con chi ama raccontare tanto quanto te.</p>
-          <button class="btnCont mt-4 fade-button">
-            Unisciti
-          </button>
-        </div>
-      </div>
+        <img [src]="slide.img" [alt]="slide.title" loading="lazy" />
 
-      <div class="slide"
-        data-bg="https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1600&q=80">
-        <img src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1600&q=80"
-          alt="Books slide" />
+        <!-- ABBIAMO SOSTITUITO *ngIf CON @if -->
+        @if (i === current) {
         <div class="slide-content">
-          <span class="badge">Community</span>
-          <h1>Condividi le tue storie</h1>
-          <p>Pubblica, leggi e connettiti con chi ama raccontare tanto quanto te.</p>
-          <button class="btnCont mt-4 fade-button">
-            Unisciti
-          </button>
+          <span class="badge">{{slide.tag}}</span>
+          <h1>{{slide.title}}</h1>
+          <p>{{slide.desc}}</p>
+          <button class="btnCont mt-4">Scopri</button>
         </div>
+        }
       </div>
-
-      <div class="slide"
-        data-bg="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=1600&q=80">
-        <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=1600&q=80"
-          alt="Reading slide" />
-        <div class="slide-content">
-          <span class="badge">Community</span>
-          <h1>Nuovi racconti ogni settimana</h1>
-          <p>Lasciati ispirare da nuove trame, personaggi e mondi da immaginare.</p>
-          <button class="btnCont mt-4 fade-button">
-            Esplora
-          </button>
-        </div>
-      </div>
+      }
     </div>
 
-    <button class="nav-btn next">&#10095;</button>
+    <button class="nav-btn next" (click)="nextSlide($event)">&#10095;</button>
   </div>
 
   <div class="dots-wrapper">
     <div class="dots">
-      @for (item of [].constructor(slidesCount); track $index) {
+      @for (item of books; track $index) {
       <div class="dot" [class.active]="$index === current" (click)="goToSlide($index); restartAutoSlide()">
       </div>
       }
@@ -93,14 +57,14 @@
   <p class="text-center">I libri migliori del momento</p>
   <section class="ranking-container">
     <div class="podium-display">
-      <div class="book-card podium-item third">
-        <div class="rank-badge">3°</div>
+      <div class="book-card podium-item second">
+        <div class="rank-badge">2°</div>
         <div class="book-cover">
-          <img [src]="booksB[2]?.img" [alt]="booksB[2]?.title">
+          <img [src]="booksB[1]?.img" [alt]="booksB[1]?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{booksB[2]?.title}}</p>
-          <p class="book-author">{{booksB[2]?.author}}</p>
+          <p class="book-title">{{booksB[1]?.title}}</p>
+          <p class="book-author">{{booksB[1]?.author}}</p>
         </div>
       </div>
 
@@ -115,14 +79,14 @@
         </div>
       </div>
 
-      <div class="book-card podium-item second">
-        <div class="rank-badge">2°</div>
+      <div class="book-card podium-item third">
+        <div class="rank-badge">3°</div>
         <div class="book-cover">
-          <img [src]="booksB[1]?.img" [alt]="booksB[1]?.title">
+          <img [src]="booksB[2]?.img" [alt]="booksB[2]?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{booksB[1]?.title}}</p>
-          <p class="book-author">{{booksB[1]?.author}}</p>
+          <p class="book-title">{{booksB[2]?.title}}</p>
+          <p class="book-author">{{booksB[2]?.author}}</p>
         </div>
       </div>
     </div>

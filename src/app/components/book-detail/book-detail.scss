@@ -14,20 +14,29 @@
 .ambient-bg {
   position: absolute;
   inset: 0;
-  opacity: 0.85;
+  opacity: 0.8;
   background-size: cover;
   background-position: center;
-  filter: blur(110px) saturate(130%) brightness(0.85);
-  transform: scale(1.4);
+  filter: blur(80px) saturate(180%) brightness(0.9);
+  will-change: transform, opacity;
+  transform: translateZ(0) scale(1.4);
   z-index: 0;
+
+  @media (max-width: 768px) {
+    // Su mobile aumentiamo la scala così i colori "escono" dai lati
+    transform: translateZ(0) scale(1.8);
+    filter: blur(50px) saturate(200%); // Blur meno pesante = colore più presente
+    opacity: 1;
+  }
 }
 
 .ambient-overlay {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.02), transparent 60%),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.7) 100%);
   z-index: 1;
 }
 
@@ -45,18 +54,29 @@
       hsla(358, 82%, 71%, 1) 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  backdrop-filter: blur(10px);
+
+  @media (max-width: 768px) {
+    height: 150px; // Un po' più basso su mobile per non coprire le stats
+  }
 }
 
 .detail-container {
   position: relative;
   z-index: 3;
-  padding-top: 9.5rem;
+  padding-top: 9rem;
   padding-bottom: 6rem;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center !important;
   justify-content: center !important;
+
+  @media (max-width: 768px) {
+    padding-top: 7.5rem; // Più compatto su mobile
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 .detail-hero {
@@ -100,6 +120,16 @@
   flex-direction: column;
   //align-items: center;
   gap: 0.8rem;
+
+  @media (max-width: 768px) {
+    align-items: center; // Centriamo i testi su mobile per simmetria
+    text-align: center;
+
+    .detail-desc {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  }
 }
 
 .detail-tag {
@@ -202,12 +232,12 @@
 }
 
 // ── Variabili condivise ──────────────────────────────────────────
-$glass-bg:     rgba(255, 255, 255, 0.18);
+$glass-bg: rgba(255, 255, 255, 0.18);
 $glass-border: rgba(255, 255, 255, 0.40);
-$glass-hover:  rgba(255, 255, 255, 0.28);
-$text-dark:    rgba(20, 20, 10, 0.85);
-$text-muted:   rgba(20, 20, 10, 0.50);
-$text-faint:   rgba(20, 20, 10, 0.35);
+$glass-hover: rgba(255, 255, 255, 0.28);
+$text-dark: rgba(20, 20, 10, 0.85);
+$text-muted: rgba(20, 20, 10, 0.50);
+$text-faint: rgba(20, 20, 10, 0.35);
 
 // ── divDetails wrapper ───────────────────────────────────────────
 .divDetails {
@@ -478,8 +508,13 @@ $text-faint:   rgba(20, 20, 10, 0.35);
   font-size: 13px;
   letter-spacing: 1px;
 
-  .filled { color: #c8862a; }
-  .empty  { color: rgba(20, 20, 10, 0.2); }
+  .filled {
+    color: #c8862a;
+  }
+
+  .empty {
+    color: rgba(20, 20, 10, 0.2);
+  }
 }
 
 .dd-review-text {
@@ -831,6 +866,13 @@ $text-faint:   rgba(20, 20, 10, 0.35);
 
 // ── Animazioni ───────────────────────────────────────────────
 @keyframes cmSlideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,6 +1,5 @@
-<nav class="navbar navbar-expand-lg fixed-top">
-  <div class="container mt-1 mb-1 " style="padding: 0 40px;">
-    <!-- Aggiungere animazione all'hover prolungato -->
+<nav class="navbar navbar-expand-lg fixed-top d-none d-lg-block">
+  <div class="container mt-1 mb-1" style="padding: 0 40px;">
     <a [routerLink]="['/']"><img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" id="logo" class="me-3" /></a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -14,57 +13,38 @@
             <span>Generi</span>
           </a>
           <ul class="dropdown-menu mega-menu">
-            <div class="mega-wrapper"> <!-- Wrapper generale che contiene tutto  -->
-              <div class="mega-left"> <!-- Barra di sinistra  -->
+            <div class="mega-wrapper">
+              <div class="mega-left">
 
                 <div class="mega-item">
                   <a class="dropdown-item" href="#"><img src="assets/Icone/horror.png" height="25px"> Horror</a>
                   <div class="mega-right">
-
-                    <!-- Contenitore scrollabile delle immagini -->
                     <div class="image-slider">
                       <button class="img-arrow left">&#10094;</button>
-
                       <div class="scroll-images d-flex p-3">
-                        <div class="container">
-                          <img src="assets/Presentazione/gattopardo.jpg" alt="" height="210px">
+                        <div class="container"><img src="assets/Presentazione/gattopardo.jpg" alt="" height="210px">
                         </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/la-strada.jpg" alt="" height="210px">
+                        <div class="container"><img src="assets/Presentazione/la-strada.jpg" alt="" height="210px">
                         </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/siddhartha.jpg" alt="" height="210px">
+                        <div class="container"><img src="assets/Presentazione/siddhartha.jpg" alt="" height="210px">
                         </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/dune.jpg" alt="" height="210px">
+                        <div class="container"><img src="assets/Presentazione/dune.jpg" alt="" height="210px"></div>
+                        <div class="container"><img src="assets/Presentazione/codice-da-vinci.jpg" alt=""
+                            height="210px"></div>
+                        <div class="container"><img src="assets/Presentazione/hp1.jpg" alt="" height="210px"></div>
+                        <div class="container"><img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
                         </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/codice-da-vinci.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/hp1.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container">
-                          <img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
+                        <div class="container"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
                         </div>
                       </div>
-
                       <button class="img-arrow right">&#10095;</button>
                     </div>
-
-
                     <hr class="dropdown-divider" />
-
-                    <!-- Contenuto fisso sotto le immagini -->
                     <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <!-- da togliere lo style -->
-                      <a href="#" style="text-decoration: none; color:black;" class="link arrow">Esplora il catalogo <i
-                          class="bi bi-arrow-right"></i></a>
+                      <a href="#" style="text-decoration: none; color:black;" class="link arrow">
+                        Esplora il catalogo <i class="bi bi-arrow-right"></i>
+                      </a>
                     </div>
-
                   </div>
                 </div>
 
@@ -73,37 +53,29 @@
                 <div class="mega-item">
                   <a class="dropdown-item" href="#"><img src="assets/Icone/western.png" height="25px"> Western</a>
                   <div class="mega-right">
-
-                    <!-- Contenitore scrollabile delle immagini -->
-                    <div class="scroll-images d-flex p-3">
-                      <div class="container">
-                        <img src="assets/Presentazione/codice-da-vinci.jpg" alt="" height="210px">
+                    <div class="image-slider">
+                      <button class="img-arrow left">&#10094;</button>
+                      <div class="scroll-images d-flex p-3">
+                        <div class="container"><img src="assets/Presentazione/codice-da-vinci.jpg" alt=""
+                            height="210px"></div>
+                        <div class="container"><img src="assets/Presentazione/hp1.jpg" alt="" height="210px"></div>
+                        <div class="container"><img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
+                        </div>
+                        <div class="container"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
+                        </div>
                       </div>
-                      <div class="container">
-                        <img src="assets/Presentazione/hp1.jpg" alt="" height="210px">
-                      </div>
-                      <div class="container">
-                        <img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
-                      </div>
-                      <div class="container">
-                        <img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
-                      </div>
+                      <button class="img-arrow right">&#10095;</button>
                     </div>
-
                     <hr class="dropdown-divider" />
-
-                    <!-- Contenuto fisso sotto le immagini -->
                     <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <!-- da togliere lo style -->
-                      <a href="#" style="text-decoration: none; color:black;" class="link arrow">Esplora il catalogo <i
-                          class="bi bi-arrow-right"></i></a>
+                      <a href="#" style="text-decoration: none; color:black;" class="link arrow">
+                        Esplora il catalogo <i class="bi bi-arrow-right"></i>
+                      </a>
                     </div>
-
                   </div>
                 </div>
 
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -111,9 +83,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -121,9 +91,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -131,9 +99,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -141,9 +107,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -151,9 +115,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -161,9 +123,7 @@
                     <div>western 2</div>
                   </div>
                 </div>
-
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#">Western</a>
                   <div class="mega-right">
@@ -173,7 +133,6 @@
                 </div>
 
               </div>
-
             </div>
           </ul>
         </li>
@@ -196,10 +155,190 @@
               fill-rule="evenodd"></path>
           </svg>
         </div>
-
-        <a [routerLink]="['/register']" class="text-decoration-none text-black link" style="padding: 8px;"><span>Registrati</span></a>
-        <a [routerLink]="['/login']" class="text-decoration-none text-black link" style="padding: 8px;"><span>Login</span></a>
+        <a [routerLink]="['/register']" class="text-decoration-none text-black link"
+          style="padding: 8px;"><span>Registrati</span></a>
+        <a [routerLink]="['/login']" class="text-decoration-none text-black link"
+          style="padding: 8px;"><span>Login</span></a>
       </div>
     </div>
   </div>
 </nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MOBILE NAVBAR — completamente nuova, zero Bootstrap JS, solo su mobile
+     ════════════════════════════════════════════════════════════════════════ -->
+<div class="mn-root d-block d-lg-none mt-2" [class.mn-open]="mobileNavOpen">
+
+  <!-- Pill glassmorphism card -->
+  <div class="mn-card">
+
+    <!-- Top bar: logo + hamburger -->
+    <div class="mn-topbar">
+      <a [routerLink]="['/']" class="mn-logo">
+        <img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" class="ms-2" />
+      </a>
+      <button class="mn-burger" [class.mn-burger--active]="mobileNavOpen" (click)="toggleMobileNav()" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Drawer: si apre verso il basso -->
+    <div class="mn-drawer" [class.mn-drawer--open]="mobileNavOpen">
+      <div class="mn-drawer-inner">
+
+        <!-- Search -->
+        <div class="mn-search">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+            <circle cx="8.5" cy="8.5" r="5.5" stroke="#555" stroke-width="1.8" />
+            <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#555" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <input type="text" placeholder="Cerca libri, autori..." />
+        </div>
+
+        <!-- Divisore -->
+        <div class="mn-divider"></div>
+
+        <!-- ── GENERI ── -->
+        <div class="mn-section-row" (click)="toggleMobileGenresPanel()">
+          <div class="mn-row-label">
+            <span class="mn-row-icon">📖</span>
+            <span>Generi</span>
+          </div>
+          <div class="mn-chevron" [class.mn-chevron--up]="mobileGenresOpen"></div>
+        </div>
+
+        <!-- Lista generi accordion -->
+        <div class="mn-genres-panel" [class.mn-genres-panel--open]="mobileGenresOpen">
+
+          <!-- HORROR -->
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('horror')">
+              <div class="mn-genre-icon" style="background: rgba(80,20,100,0.12)">👻</div>
+              <span>Horror</span>
+              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('horror')"></div>
+            </div>
+            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('horror')">
+              <div class="mn-books-row">
+                <div class="mn-book" style="background: linear-gradient(135deg,#2c0a3e,#5c1a6e)">
+                  <img src="assets/Presentazione/gattopardo.jpg" alt="Il Gattopardo" />
+                </div>
+                <div class="mn-book" style="background: linear-gradient(135deg,#1a0a2e,#3a1a5e)">
+                  <img src="assets/Presentazione/la-strada.jpg" alt="La Strada" />
+                </div>
+                <div class="mn-book" style="background: linear-gradient(135deg,#0a2040,#204080)">
+                  <img src="assets/Presentazione/dune.jpg" alt="Dune" />
+                </div>
+                <div class="mn-book" style="background: linear-gradient(135deg,#2e1a0a,#5e3a1a)">
+                  <img src="assets/Presentazione/hp1.jpg" alt="HP1" />
+                </div>
+                <div class="mn-book" style="background: linear-gradient(135deg,#0a3020,#206040)">
+                  <img src="assets/Presentazione/metamorfosi.jpg" alt="Metamorfosi" />
+                </div>
+                <div class="mn-book" style="background: linear-gradient(135deg,#3e200a,#7a4010)">
+                  <img src="assets/Presentazione/promessi-sposi.jpg" alt="Promessi Sposi" />
+                </div>
+              </div>
+              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+            </div>
+          </div>
+
+          <!-- WESTERN -->
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('western')">
+              <div class="mn-genre-icon" style="background: rgba(100,70,20,0.12)">🤠</div>
+              <span>Western</span>
+              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('western')"></div>
+            </div>
+            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('western')">
+              <div class="mn-books-row">
+                <div class="mn-book"><img src="assets/Presentazione/codice-da-vinci.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/hp1.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/metamorfosi.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" /></div>
+              </div>
+              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+            </div>
+          </div>
+
+          <!-- FANTASY -->
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('fantasy')">
+              <div class="mn-genre-icon" style="background: rgba(20,60,120,0.12)">🧙</div>
+              <span>Fantasy</span>
+              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('fantasy')"></div>
+            </div>
+            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('fantasy')">
+              <div class="mn-books-row">
+                <div class="mn-book"><img src="assets/Presentazione/siddhartha.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/dune.jpg" alt="" /></div>
+              </div>
+              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+            </div>
+          </div>
+
+          <!-- ROMANZO -->
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('romanzo')">
+              <div class="mn-genre-icon" style="background: rgba(160,20,80,0.12)">❤️</div>
+              <span>Romanzo</span>
+              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('romanzo')"></div>
+            </div>
+            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('romanzo')">
+              <div class="mn-books-row">
+                <div class="mn-book"><img src="assets/Presentazione/gattopardo.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/la-strada.jpg" alt="" /></div>
+              </div>
+              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+            </div>
+          </div>
+
+          <!-- THRILLER -->
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('thriller')">
+              <div class="mn-genre-icon" style="background: rgba(20,20,20,0.10)">🔪</div>
+              <span>Thriller</span>
+              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('thriller')"></div>
+            </div>
+            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('thriller')">
+              <div class="mn-books-row">
+                <div class="mn-book"><img src="assets/Presentazione/codice-da-vinci.jpg" alt="" /></div>
+              </div>
+              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+            </div>
+          </div>
+
+        </div>
+        <!-- fine lista generi -->
+
+        <div class="mn-divider"></div>
+
+        <!-- Link principali -->
+        <a href="#" class="mn-link-row">
+          <span class="mn-row-icon">🌐</span>
+          <span>Community</span>
+        </a>
+        <a href="#" class="mn-link-row">
+          <span class="mn-row-icon">✏️</span>
+          <span>Scrivi</span>
+        </a>
+        <a href="#" class="mn-link-row">
+          <span class="mn-row-icon">💬</span>
+          <span>Supporto</span>
+        </a>
+
+        <div class="mn-divider"></div>
+
+        <!-- Auth buttons -->
+        <div class="mn-auth-row">
+          <a [routerLink]="['/register']" class="mn-btn mn-btn--outline">Registrati</a>
+          <a [routerLink]="['/login']" class="mn-btn mn-btn--solid">Login</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

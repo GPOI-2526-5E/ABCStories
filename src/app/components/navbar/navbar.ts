@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from "@angular/router";
 import { isPlatformBrowser } from '@angular/common';
 
@@ -9,6 +9,10 @@ import { isPlatformBrowser } from '@angular/common';
   styleUrl: './navbar.scss',
 })
 export class Navbar implements AfterViewInit {
+  private activeMobileGenre: string | null = null;
+  mobileDropdownOpen = false;
+  mobileNavOpen = false;
+  mobileGenresOpen = false;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
 
@@ -52,21 +56,14 @@ export class Navbar implements AfterViewInit {
       const updateOverlays = () => {
         const maxScroll = container.scrollWidth - container.clientWidth;
 
-        // Usiamo una tolleranza di 2px per sicurezza
         const isAtStart = container.scrollLeft <= 2;
         const isAtEnd = container.scrollLeft >= maxScroll - 2;
 
-        if (isAtStart) {
-          slider.classList.add('no-left');
-        } else {
-          slider.classList.remove('no-left');
-        }
+        if (isAtStart) slider.classList.add('no-left');
+        else slider.classList.remove('no-left');
 
-        if (isAtEnd) {
-          slider.classList.add('no-right');
-        } else {
-          slider.classList.remove('no-right');
-        }
+        if (isAtEnd) slider.classList.add('no-right');
+        else slider.classList.remove('no-right');
       };
 
       /* ---------- SNAP AUTOMATICO ---------- */
@@ -127,7 +124,7 @@ export class Navbar implements AfterViewInit {
         if (!isDown) return;
         e.preventDefault();
         const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 2; // velocità drag
+        const walk = (x - startX) * 2;
         container.scrollLeft = scrollLeft - walk;
         updateArrows();
         updateDepth();
@@ -161,7 +158,45 @@ export class Navbar implements AfterViewInit {
       updateOverlays();
 
     });
+  }
 
+  toggleMobileNav(): void {
+    this.mobileNavOpen = !this.mobileNavOpen;
+    if (!this.mobileNavOpen) {
+      this.mobileGenresOpen = false;
+      this.activeMobileGenre = null;
+    }
+  }
+
+  /** Apre/chiude la lista generi */
+  toggleMobileGenresPanel(): void {
+    this.mobileGenresOpen = !this.mobileGenresOpen;
+    if (!this.mobileGenresOpen) {
+      this.activeMobileGenre = null;
+    }
+  }
+
+  /** Apre/chiude il pannello libri di un singolo genere */
+  toggleMobileGenre(name: string): void {
+    this.activeMobileGenre = this.activeMobileGenre === name ? null : name;
+  }
+
+  /** Usato nel template: [class.mn-genre-panel--open]="isMobileOpen('horror')" */
+  isMobileOpen(name: string): boolean {
+    return this.activeMobileGenre === name;
+  }
+
+  /** Chiude tutto se si tocca fuori dalla mobile navbar */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (window.innerWidth >= 992) return;
+    const root = document.querySelector('.mn-root');
+    if (root && !root.contains(event.target as Node)) {
+      this.mobileNavOpen = false;
+      this.mobileGenresOpen = false;
+      this.activeMobileGenre = null;
+    }
   }
 
 }
