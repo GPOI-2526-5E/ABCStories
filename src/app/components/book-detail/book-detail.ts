@@ -26,7 +26,6 @@ export interface Comment {
   likes: number;
   liked: boolean;
   replies: Reply[];
-  // UI state — non persistito
   repliesOpen: boolean;
   replyBoxOpen: boolean;
   replyDraft: string;
