@@ -9,8 +9,8 @@
       A tutto ciò che le parole sanno esprimere
     </h1>
     <p class="fade-item" style="font-size: large;">
-      “La gente pensa che le storie siano modellate dalle persone.<br>
-      In realtà sono le storie a modellare le persone.”
+      "La gente pensa che le storie siano modellate dalle persone.<br>
+      In realtà sono le storie a modellare le persone."
     </p>
     <a class="fade-item" href="https://en.wikipedia.org/wiki/Terry_Pratchett" target="_blank"
       style="font-size: large; text-decoration:none; color:black;">
@@ -40,25 +40,17 @@
           Esplora
         </button>
       </div>
-      <!--<div class="col-md-6">
-        <img src="assets/Presentazione/prova2.png" alt="" class="img-fluid rounded" />
-      </div>-->
     </div>
   </div>
 
   <div class="contDiv2 container-fluid reveal-section">
     <div class="container d-flex align-items-center">
-      <!--<div class="col-md-6">
-        <img src="assets/Presentazione/prova2.png" alt="" class="img-fluid rounded" />
-      </div>-->
       <div class="offset-md-6 col-md-6">
         <h1 class="mb-3 reveal-item">Crea la tua libreria su misura</h1>
-        <!--<h1 class="mb-3">Scopri i talenti di domani</h1>-->
         <p class="reveal-item">
           Il tuo spazio, le tue regole. Salva i racconti che ti hanno colpito al cuore e portali sempre con te,
-          ovunque
-          tu sia. Organizza le tue letture in collezioni personalizzate per avere ogni emozione a portata di click,
-          pronta per essere rivissuta.
+          ovunque tu sia. Organizza le tue letture in collezioni personalizzate per avere ogni emozione a portata di
+          click, pronta per essere rivissuta.
         </p>
 
         <button class="btnCont2 mt-4 reveal-button">
@@ -82,9 +74,6 @@
           Trova i tuoi idoli
         </button>
       </div>
-      <!--<div class="col-md-6">
-        <img src="assets/Presentazione/prova2.png" alt="" class="img-fluid rounded" />
-      </div>-->
     </div>
   </div>
 
@@ -103,15 +92,12 @@
           </button>
         </div>
       </div>
-      <!--<div class="col-md-6">
-        <img src="assets/Presentazione/prova2.png" alt="" class="img-fluid rounded" />
-      </div>-->
     </div>
   </div>
 </div>
 
 <div class="cont1-3 genres-section">
-  <div class="d-flex align-items-center justify-content-center flex-column">
+  <div class="d-flex align-items-center justify-content-center flex-column mobileSetting">
     <h1 class="mb-5 text-center genre-reveal">Esplora tutti i generi</h1>
 
     <div class="imgWrapper container-fluid genre-reveal">
@@ -168,7 +154,6 @@
               il prezzo di vendita. Avrai il controllo totale sulla tua opera e potrai raggiungere migliaia di lettori
               pronti a sostenere il tuo talento.
             </p>
-
             <button class="btnCont3 mt-4 gain-card-item">Esplora</button>
           </div>
 
@@ -191,7 +176,6 @@
               sbloccare i singoli capitoli in anteprima. È la strategia perfetta per creare suspense e garantirti un
               flusso costante di entrate durante la scrittura.
             </p>
-
             <button class="btnCont3 mt-4 gain-card-item">Esplora</button>
           </div>
         </div>
@@ -206,9 +190,7 @@
               garantirti pagamenti sicuri e promozione costante, la piattaforma trattiene solo una piccola percentuale
               fissa, lasciando a te il grosso del profitto.
             </p>
-
-            <button class="btnCont3 mt-4 gain-card-item">Esplora
-            </button>
+            <button class="btnCont3 mt-4 gain-card-item">Esplora</button>
           </div>
           <div class="col-md-7 mt-3">
             <img src="assets/Presentazione/prova2.png" class="img-fluid gain-image" alt="">
@@ -232,9 +214,7 @@
             Ricevi supporto diretto da chi ama ciò che scrivi e costruisci una community pronta ad accompagnarti
             capitolo dopo capitolo, progetto dopo progetto.
           </p>
-
-          <button class="btnCont3 mt-4 gain-card-item">Esplora
-          </button>
+          <button class="btnCont3 mt-4 gain-card-item">Esplora</button>
         </div>
       </div>
     </div>
@@ -255,56 +235,86 @@
       </div>
 
       <h1 class="text-center community-main-title" style="margin-top: 14vh;">Condividi storie, idee ed emozioni</h1>
-      <div class="container row mt-5 d-flex justify-content-center">
-        <div
-          class="col-md-5 d-flex justify-content-center align-items-center flex-column contDivCardComunity mt-3 me-2 ms-2 community-card">
-          <h2 class="mb-3 text-center community-card-item" style="font-size: 40px;">Lascia il segno tra le righe</h2>
-          <p class="text-center community-card-item">
+
+      <!-- COMMUNITY CARDS — wrapper unico per desktop (grid 2x2) e mobile (scroll snap) -->
+      <div class="community-scroll-wrapper" #communityScroll (scroll)="onCommunityScroll()">
+
+        <div class="contDivCardComunity community-card">
+          <div class="comm-icon-wrap community-card-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h2 class="mb-3 community-card-item">Lascia il segno tra le righe</h2>
+          <p class="community-card-item">
             Ogni storia merita una voce che la accolga. Commenta i capitoli che ti emozionano, condividi le tue
             impressioni e crea connessioni autentiche con autori e lettori che parlano la tua stessa lingua.
           </p>
-
-          <button class="btnCont3 mt-4 community-card-item">Partecipa alla conversazione
-          </button>
+          <button class="btnCont3 mt-4 community-card-item">Partecipa alla conversazione</button>
         </div>
-        <div
-          class="col-md-5 d-flex justify-content-center align-items-center flex-column contDivCardComunity mt-3 me-2 ms-2 community-card">
-          <h2 class="mb-3 text-center community-card-item" style="font-size: 40px;">Dai forma a ciò che immagini</h2>
-          <p class="text-center community-card-item">
-            Ogni grande storia nasce da un’idea, da un’emozione o da una scintilla improvvisa. Scrivi liberamente,
+
+        <div class="contDivCardComunity community-card">
+          <div class="comm-icon-wrap community-card-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+          <h2 class="mb-3 community-card-item">Dai forma a ciò che immagini</h2>
+          <p class="community-card-item">
+            Ogni grande storia nasce da un'idea, da un'emozione o da una scintilla improvvisa. Scrivi liberamente,
             sperimenta il tuo stile e trasforma la tua immaginazione in qualcosa che possa davvero lasciare il segno.
           </p>
-
-          <button class="btnCont3 mt-4 community-card-item">Inizia a scrivere
-          </button>
+          <button class="btnCont3 mt-4 community-card-item">Inizia a scrivere</button>
         </div>
-      </div>
 
-      <div class="container row mt-2 d-flex justify-content-center">
-        <div
-          class="col-md-5 d-flex justify-content-center align-items-center flex-column contDivCardComunity mt-3 me-2 ms-2 community-card">
-          <h2 class="mb-3 text-center community-card-item" style="font-size: 40px;">Condividi il tuo percorso creativo
-          </h2>
-          <p class="text-center community-card-item">
+        <div class="contDivCardComunity community-card">
+          <div class="comm-icon-wrap community-card-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h2 class="mb-3 community-card-item">Condividi il tuo percorso creativo</h2>
+          <p class="community-card-item">
             Racconta cosa stai costruendo, annuncia nuovi capitoli, mostra il dietro le quinte delle tue idee e tieni
             viva la connessione con chi ti segue. Ogni aggiornamento può diventare parte del tuo viaggio.
           </p>
-
-          <button class="btnCont3 mt-4 community-card-item">Pubblica un aggiornamento
-          </button>
+          <button class="btnCont3 mt-4 community-card-item">Pubblica un aggiornamento</button>
         </div>
-        <div
-          class="col-md-5 d-flex justify-content-center align-items-center flex-column contDivCardComunity mt-3 me-2 ms-2 community-card">
-          <h2 class="mb-3 text-center community-card-item" style="font-size: 40px;">Porta le tue storie più lontano</h2>
-          <p class="text-center community-card-item">
+
+        <div class="contDivCardComunity community-card">
+          <div class="comm-icon-wrap community-card-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/>
+              <circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </div>
+          <h2 class="mb-3 community-card-item">Porta le tue storie più lontano</h2>
+          <p class="community-card-item">
             Le parole hanno più forza quando viaggiano. Condividi ciò che ami, fai scoprire nuove storie alla community
             e aiuta le voci emergenti a raggiungere nuovi lettori pronti a lasciarsi sorprendere.
           </p>
-
-          <button class="btnCont3 mt-4 community-card-item">Diffondi ciò che ami
-          </button>
+          <button class="btnCont3 mt-4 community-card-item">Diffondi ciò che ami</button>
         </div>
+
       </div>
+
+      <!-- Dots indicatori — visibili solo su mobile -->
+      <div class="community-dots">
+        <span class="dot" [class.active]="activeDot === 0"></span>
+        <span class="dot" [class.active]="activeDot === 1"></span>
+        <span class="dot" [class.active]="activeDot === 2"></span>
+        <span class="dot" [class.active]="activeDot === 3"></span>
+      </div>
+
     </div>
   </div>
 </div>

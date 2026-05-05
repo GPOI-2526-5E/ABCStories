@@ -6,7 +6,9 @@ h1 {
   line-height: 1.1;
 }
 
+// ─────────────────────────────────────────
 // CONTENITORI DIV PRINCIPALI
+// ─────────────────────────────────────────
 
 .cont1-2 {
   position: relative;
@@ -39,16 +41,20 @@ h1 {
 .cont1-3 {
   position: relative;
   top: 0;
-  //padding: 12vh 1rem 12vh !important;
   background: var(--tropicalThemeYellow);
   margin-top: 0 !important;
   min-height: 100vh;
   overflow: hidden;
 }
 
+.mobileSetting {
+  @media (max-width: 768px) {
+    padding-bottom: 350px;
+  }
+}
+
 .cont1-4 {
   position: relative;
-  //padding-top: 24vh !important;
   padding-bottom: 25vh !important;
   min-height: 100vh;
   overflow: hidden;
@@ -77,11 +83,9 @@ h1 {
 }
 
 .cont4 {
-  //padding-top: 14vh;
-  //padding-bottom: 24vh;
   position: relative;
   width: 100%;
-  z-index: 21; // numero per far isolare la stracazzo di freccia
+  z-index: 21;
   background: var(--tropicalThemeYellow) !important;
   border-radius: 50px 50px 0 0;
   overflow: hidden;
@@ -104,7 +108,10 @@ h1 {
   background: var(--tropicalTheme-reverse);
 }
 
-// ANIMAZIONE ELEMENTI CONTENITORI
+// ─────────────────────────────────────────
+// ANIMAZIONI ELEMENTI
+// ─────────────────────────────────────────
+
 .reveal-section {
   position: relative;
 }
@@ -123,12 +130,14 @@ h1 {
   transform: translateZ(0);
 }
 
-// PICCOLO CSS PER ANIMAZIONE DEL BUTTON
 .fade-button {
   display: inline-block;
 }
 
-// SFOCATURA TESTO SOTTO IMMAGINE
+// ─────────────────────────────────────────
+// SFOCATURA TESTO HERO
+// ─────────────────────────────────────────
+
 .text-area {
   position: relative;
   padding: 2rem;
@@ -157,17 +166,9 @@ h1 {
   filter: none;
 }
 
-.text-area h1 {
-  color: #111;
-}
-
-.text-area p {
-  color: black;
-}
-
-.text-area a {
-  color: #111;
-}
+.text-area h1 { color: #111; }
+.text-area p  { color: black; }
+.text-area a  { color: #111; }
 
 .text-area h1,
 .text-area p {
@@ -178,22 +179,17 @@ h1 {
     -1px -1px 0 #fefadc;
 }
 
-// CONTENITORI PER DIV ALL'INTERNO DI CONT4
+// ─────────────────────────────────────────
+// CONT4 — sezioni interne
+// ─────────────────────────────────────────
+
 .contDiv1 {
   padding-top: 25vh !important;
   padding-bottom: 25vh !important;
-  /*background-image: url("/assets/Pippi/pippiFantasia.png");
-  background-size: cover;
-  background-position: left center;
-  background-repeat: no-repeat;*/
 }
 
 .contDiv2 {
   @extend .contDiv1;
-  /*background-image: url("/assets/Pippi/pippiLibreria.png");
-  background-size: cover;
-  background-position: left center;
-  background-repeat: no-repeat;*/
 }
 
 .contDiv3 {
@@ -201,6 +197,10 @@ h1 {
   background-image: none;
   margin-bottom: 50px;
 }
+
+// ─────────────────────────────────────────
+// CARD GUADAGNA / SUPPORTO
+// ─────────────────────────────────────────
 
 .contDivCard {
   padding: 80px;
@@ -213,12 +213,10 @@ h1 {
   background: var(--tropicalThemeYellow);
 }
 
-// ANIMAZIONI PER DIV CONT4
 .reveal-item {
   will-change: transform, opacity, filter;
 }
 
-// singole card per cont4
 .singleCard {
   position: relative;
   overflow: hidden;
@@ -253,7 +251,55 @@ h1 {
   z-index: 2;
 }
 
-// SLIDER BOTTONI
+// ─────────────────────────────────────────
+// ICONE COMMUNITY CARD
+// ─────────────────────────────────────────
+
+.comm-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--tropicalTheme-45deg-reverse);
+  display: none; // nascosta su desktop, visibile solo mobile
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 0.25rem;
+
+  svg {
+    width: 21px;
+    height: 21px;
+    stroke: var(--tropicalThemeYellow);
+    fill: none;
+    stroke-width: 1.8px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// ─────────────────────────────────────────
+// COMMUNITY SCROLL WRAPPER (desktop: grid 2x2)
+// ─────────────────────────────────────────
+
+.community-scroll-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+  padding: 0 0.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+// Dots — nascosti su desktop
+.community-dots {
+  display: none;
+}
+
+// ─────────────────────────────────────────
+// SLIDER GENERI
+// ─────────────────────────────────────────
+
 .genreWrapper {
   position: relative;
   width: 100%;
@@ -276,21 +322,9 @@ h1 {
   display: none;
 }
 
-.btnGeneri {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  border: none;
-  border-radius: 999px;
-  padding: 0.9rem 1.6rem;
-  font-size: 1rem;
-  font-weight: 700;
-  min-width: max-content;
-}
-
 .genreWrapper .slider-arrow {
   position: absolute;
   top: 50%;
-  //transform: translateY(-50%);
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -299,22 +333,12 @@ h1 {
   color: white;
   font-size: 22px;
   cursor: pointer;
-  //transition: all 0.2s ease;
-  &:hover {
-    background: rgba(0, 0, 0, 0.9);
-    //transform: translateY(-50%) scale(1.1);
-  }
 
-  &.left {
-    left: 10px;
-  }
-
-  &.right {
-    right: 10px;
-  }
+  &:hover { background: rgba(0, 0, 0, 0.9); }
+  &.left  { left: 10px; }
+  &.right { right: 10px; }
 }
 
-// BOTTONI PER PARTE DEI GENERI
 .btnGeneri {
   outline: none;
   cursor: pointer;
@@ -322,7 +346,6 @@ h1 {
   padding: 0.9rem 2rem;
   margin: 0;
   font-family: inherit;
-  font-size: inherit;
   position: relative;
   display: inline-block;
   letter-spacing: 0.05rem;
@@ -332,6 +355,9 @@ h1 {
   overflow: hidden;
   background: var(--buttonRomance);
   color: ghostwhite;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-width: max-content;
 }
 
 .btnGeneri span {
@@ -340,25 +366,17 @@ h1 {
   transition: color 0.4s;
 }
 
-.btnGeneri:hover span {
-  color: black;
-}
-
-.btnGeneri::before,
-.btnGeneri::after {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
+.btnGeneri:hover span { color: black; }
 
 .btnGeneri::before {
   content: "";
-  background: #2b2a2a;
-  width: 120%;
+  position: absolute;
+  top: 0;
   left: -10%;
+  width: 120%;
+  height: 100%;
+  z-index: 0;
+  background: #2b2a2a;
   transform: skew(30deg);
   transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
 }
@@ -367,10 +385,11 @@ h1 {
   transform: translate3d(100%, 0, 0);
 }
 
-// SLIDER IMMAGINI
-.genres-section {
-  padding-inline: 0;
-}
+// ─────────────────────────────────────────
+// SLIDER LIBRI
+// ─────────────────────────────────────────
+
+.genres-section { padding-inline: 0; }
 
 .genres-section h1 {
   margin-bottom: 2.5rem !important;
@@ -400,14 +419,10 @@ h1 {
   overflow-y: visible;
 }
 
-.imgSlider::-webkit-scrollbar {
-  display: none;
-}
+.imgSlider::-webkit-scrollbar { display: none; }
 
 .imgSlider,
-.genreSlider {
-  min-width: 0;
-}
+.genreSlider { min-width: 0; }
 
 .imgCard {
   flex: 0 0 auto;
@@ -435,7 +450,7 @@ h1 {
   transform: translateY(-6px) scale(1.02);
 }
 
-// FRECCE SLIDER
+// Frecce slider
 .slider-arrow {
   position: absolute;
   top: 50%;
@@ -452,25 +467,24 @@ h1 {
   transition: background 0.2s;
 }
 
-.slider-arrow:hover {
-  background: rgba(0, 0, 0, 0.8);
-}
+.slider-arrow:hover { background: rgba(0, 0, 0, 0.8); }
+.slider-arrow.left  { left: 0.25rem; }
+.slider-arrow.right { right: 0.25rem; }
 
-.slider-arrow.left {
-  left: 0.25rem;
-}
+// ─────────────────────────────────────────
+// RESPONSIVE — breakpoint 1399px
+// ─────────────────────────────────────────
 
-.slider-arrow.right {
-  right: 0.25rem;
-}
-
-// MEDIA QUERY PER RESPONSIVE
 @media (max-width: 1399px) {
   .imgCard {
     flex: 0 0 170px;
     width: 170px;
   }
 }
+
+// ─────────────────────────────────────────
+// RESPONSIVE — breakpoint 992px
+// ─────────────────────────────────────────
 
 @media (max-width: 992px) {
   .imgCard {
@@ -484,95 +498,14 @@ h1 {
   }
 }
 
-@media (max-width: 768px) {
-  .imgCard {
-    flex: 0 0 130px;
-    width: 130px;
-  }
-
-  .imgSlider {
-    gap: 0.7rem;
-    padding: 0 1rem;
-  }
-
-  .slider-arrow {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .imgCard {
-    flex: 0 0 115px;
-    width: 115px;
-  }
-
-  .imgSlider {
-    gap: 0.6rem;
-    padding: 0 0.75rem;
-  }
-}
+// ─────────────────────────────────────────
+// RESPONSIVE — breakpoint 768px (mobile)
+// ─────────────────────────────────────────
 
 @media (max-width: 768px) {
-  /*.cont1-3 {
-    padding: 10vh 1rem 8vh !important;
-  }*/
 
-  .genreSlider {
-    padding: 0 2.2rem;
-    gap: 0.6rem;
-  }
-
-  .imgSlider {
-    padding: 0 2.2rem;
-    gap: 0.8rem;
-  }
-
-  .btnGeneri {
-    padding: 0.75rem 1.2rem;
-    font-size: 0.85rem;
-  }
-
-  .imgCard {
-    flex: 0 0 42vw;
-    width: 42vw;
-  }
-
-  .slider-arrow {
-    display: none;
-  }
-
-  .genre-reveal .btnCont {
-    width: 100%;
-    max-width: 320px;
-  }
-}
-
-@media (max-width: 480px) {
-  .imgCard {
-    flex: 0 0 52vw;
-    width: 52vw;
-  }
-
-  .genreSlider {
-    padding: 0 1rem;
-  }
-
-  .imgSlider {
-    padding: 0 1rem;
-  }
-
-  .btnGeneri {
-    padding: 0.7rem 1rem;
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .cont1-3 {
-    min-height: auto;
-    //padding-top: 5.5rem !important;
-    //padding-bottom: 5rem !important;
-  }
+  // Generi
+  .cont1-3 { min-height: auto; }
 
   .genres-section h1 {
     font-size: clamp(2rem, 8vw, 2.7rem);
@@ -610,13 +543,9 @@ h1 {
     border-radius: 16px;
   }
 
-  .imgCard img {
-    border-radius: 16px;
-  }
+  .imgCard img { border-radius: 16px; }
 
-  .ctaGenres {
-    margin-top: 2rem !important;
-  }
+  .ctaGenres { margin-top: 2rem !important; }
 
   .ctaGenres .btnCont {
     width: min(100%, 270px);
@@ -625,16 +554,158 @@ h1 {
   }
 
   .slider-arrow {
-    width: 34px;
-    height: 34px;
-    font-size: 18px;
+    display: none;
   }
 
-  .slider-arrow.left {
-    left: 6px;
+  // ── Card "Guadagna / Supporto" ──────────
+  // Immagine sempre sopra (staccata), card sempre sotto
+  // Entrambe con border-radius completo (non attaccate)
+
+  .sectionCard .row {
+    flex-direction: column;
+    gap: 1.25rem; // spazio tra immagine e card
   }
 
-  .slider-arrow.right {
-    right: 6px;
+  // col-md-7 contiene sempre l'immagine → va in cima
+  .sectionCard .col-md-7 {
+    order: -1;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 1rem !important;
+    margin: 0 !important;
+  }
+
+  // col-md-5 contiene sempre la card → va in fondo
+  .sectionCard .col-md-5 {
+    order: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  // Immagine: bordi arrotondati su tutti i lati
+  .gain-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 20px !important;
+    display: block;
+  }
+
+  // Card: bordi arrotondati su tutti i lati
+  .contDivCard {
+    border-radius: 20px !important;
+    padding: 1.75rem 1.5rem 2rem !important;
+    margin: 0 1rem !important;
+  }
+
+  .contDivCard h2 {
+    font-size: 1.75rem !important;
+    text-align: center;
+  }
+
+  .contDivCard p {
+    font-size: 0.92rem;
+    text-align: center;
+  }
+
+  // ── Card "Community" — una per volta ────
+  // Scroll snap orizzontale, icona visibile
+
+  .community-scroll-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-template-columns: none !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.75rem;
+    padding: 0 1rem 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 0;
+    width: 100%;
+  }
+
+  .community-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .contDivCardComunity {
+    flex: 0 0 calc(100% - 2rem) !important;
+    width: calc(100% - 2rem) !important;
+    max-width: calc(100% - 2rem) !important;
+    scroll-snap-align: center;
+    border-radius: 20px !important;
+    padding: 1.5rem !important;
+    margin: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  .contDivCardComunity h2 {
+    font-size: 1.35rem !important;
+    text-align: left !important;
+    line-height: 1.3;
+  }
+
+  .contDivCardComunity p {
+    font-size: 0.88rem !important;
+    text-align: left !important;
+    line-height: 1.5;
+  }
+
+  .contDivCardComunity button {
+    align-self: flex-start !important;
+    font-size: 0.82rem;
+    padding: 0.5rem 1.1rem;
+  }
+
+  // Icona — visibile solo su mobile
+  .comm-icon-wrap {
+    display: flex;
+    margin-bottom: 0.6rem;
+  }
+
+  // Dots indicatori
+  .community-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 0.75rem 0 1.5rem;
+    width: 100%;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .dot.active {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.25);
+  }
+}
+
+// ─────────────────────────────────────────
+// RESPONSIVE — breakpoint 480px
+// ─────────────────────────────────────────
+
+@media (max-width: 480px) {
+  .imgCard {
+    flex: 0 0 52vw;
+    width: 52vw;
+  }
+
+  .genreSlider { padding: 0 1rem; }
+  .imgSlider   { padding: 0 1rem; }
+
+  .btnGeneri {
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
   }
 }
