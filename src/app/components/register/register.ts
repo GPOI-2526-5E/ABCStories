@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +16,7 @@ export class Register implements AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
+    private authService: AuthService
   ) {}
 
   ngAfterViewInit(): void {
@@ -29,9 +31,9 @@ export class Register implements AfterViewInit {
   gsap.to(elements, {
     opacity: 1,
     y: 0,
-    duration: 0.8,      
-    ease: 'power3.out', 
-    stagger: 0.12      
+    duration: 0.8,
+    ease: 'power3.out',
+    stagger: 0.12
   });
 
   const rightImage = document.querySelector('.image-right');
@@ -42,15 +44,20 @@ export class Register implements AfterViewInit {
     gsap.to(rightImage, {
       opacity: 1,
       x: 0,
-      duration: 0.9, 
+      duration: 0.9,
       ease: 'power2.out',
-      delay: 0.2        
+      delay: 0.2
     });
   }
 }
 
   onRegister(event: Event) {
     event.preventDefault();
+
+    const email = (document.getElementById('email') as HTMLInputElement)?.value ?? '';
+    const username = (document.getElementById('username') as HTMLInputElement)?.value ?? '';
+    this.authService.login(email, username);
+
     this.router.navigate(['/home']);
   }
 }

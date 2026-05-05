@@ -50,6 +50,9 @@
   }
 }
 
+// INPUT BARRA RICERCA DOPO LOGIN
+
+
 // SOTTOLINEATURA
 .link {
   position: relative;
@@ -458,7 +461,11 @@
   justify-content: center;
   overflow: hidden;
 
-  img { width: 30px; height: 30px; object-fit: contain; }
+  img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
 }
 
 .mn-logo-text {
@@ -497,9 +504,18 @@
 }
 
 .mn-burger--active {
-  span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-  span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-  span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
 }
 
 // ── DRAWER ───────────────────────────────────────────────────────────────────
@@ -541,7 +557,9 @@
     width: 100%;
     font-family: inherit;
 
-    &::placeholder { color: #777; }
+    &::placeholder {
+      color: #777;
+    }
   }
 }
 
@@ -565,7 +583,9 @@
   transition: background 0.18s;
   user-select: none;
 
-  &:hover { background: rgba(255, 255, 255, 0.28); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
 }
 
 .mn-row-label {
@@ -577,7 +597,10 @@
   color: #1a1a1a;
 }
 
-.mn-row-icon { font-size: 16px; line-height: 1; }
+.mn-row-icon {
+  font-size: 16px;
+  line-height: 1;
+}
 
 // ── CHEVRON ──────────────────────────────────────────────────────────────────
 
@@ -592,7 +615,9 @@
   margin-right: 2px;
 }
 
-.mn-chevron--up { transform: rotate(-135deg); }
+.mn-chevron--up {
+  transform: rotate(-135deg);
+}
 
 // ── PANNELLO GENERI ───────────────────────────────────────────────────────────
 
@@ -605,11 +630,15 @@
   padding-left: 8px;
 }
 
-.mn-genres-panel--open { max-height: 1000px; }
+.mn-genres-panel--open {
+  max-height: 1000px;
+}
 
 // ── SINGOLO GENERE ────────────────────────────────────────────────────────────
 
-.mn-genre-item { margin-bottom: 2px; }
+.mn-genre-item {
+  margin-bottom: 2px;
+}
 
 .mn-genre-header {
   display: flex;
@@ -624,9 +653,13 @@
   color: #1a1a1a;
   user-select: none;
 
-  &:hover { background: rgba(255, 255, 255, 0.32); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.32);
+  }
 
-  span { flex: 1; }
+  span {
+    flex: 1;
+  }
 }
 
 .mn-genre-icon {
@@ -650,7 +683,9 @@
   flex-shrink: 0;
 }
 
-.mn-genre-chevron--up { transform: rotate(-135deg); }
+.mn-genre-chevron--up {
+  transform: rotate(-135deg);
+}
 
 // ── PANNELLO LIBRI DI UN GENERE ───────────────────────────────────────────────
 
@@ -660,7 +695,9 @@
   transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.mn-genre-panel--open { max-height: 260px; }
+.mn-genre-panel--open {
+  max-height: 260px;
+}
 
 // ── RIGA ORIZZONTALE COPERTINE ────────────────────────────────────────────────
 
@@ -672,7 +709,9 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .mn-book {
@@ -691,7 +730,9 @@
     display: block;
     transition: transform 0.25s ease;
 
-    &:hover { transform: scale(1.06); }
+    &:hover {
+      transform: scale(1.06);
+    }
   }
 }
 
@@ -707,7 +748,9 @@
   background: rgba(255, 255, 255, 0.38);
   transition: background 0.18s;
 
-  &:hover { background: rgba(255, 255, 255, 0.55); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
 }
 
 // ── LINK PRINCIPALI ──────────────────────────────────────────────────────────
@@ -725,7 +768,9 @@
   transition: background 0.18s;
   cursor: pointer;
 
-  &:hover { background: rgba(255, 255, 255, 0.28); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
 }
 
 // ── AUTH BUTTONS ─────────────────────────────────────────────────────────────
@@ -749,7 +794,9 @@
   display: block;
   transition: opacity 0.18s, transform 0.15s;
 
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 .mn-btn--outline {
@@ -860,6 +907,119 @@
   opacity: 1;
   filter: blur(0px);
   transform: translateX(8px);
+}
+
+// ── ICONE DESKTOP (loggato) ──────────────────────────────────────────────────
+
+.nav-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  position: relative;
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+  }
+}
+
+.nav-notif-btn {
+  .nav-notif-dot {
+    width: 9px;
+    height: 9px;
+    background: var(--tropicalThemeRed, #e05a30);
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+  }
+}
+
+.nav-scrivi-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 12px;
+  width: 150px;
+  height: 50px;
+  //font-weight: 500;
+  color: #1a1a1a;
+  text-decoration: none;
+  background: var(--tropicalThemeYellow);
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  //border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 30px;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  transition: all 0.3s ease 0s !important;
+
+  &:hover {
+    background: var(--buttonGialli);
+    box-shadow: 0px 15px 20px var(--tropicalThemeYellow);
+    color: black;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ── ICONE MOBILE (loggato) ──────────────────────────────────────────────────
+
+.mn-auth-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.mn-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.18s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.mn-notif-btn {
+  .mn-notif-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--tropicalThemeRed, #e05a30);
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+  }
+}
+
+.mn-btn--scrivi {
+  font-size: 13px !important;
+  letter-spacing: 0.5px;
 }
 
 // BOTTONI PRINCIPALI

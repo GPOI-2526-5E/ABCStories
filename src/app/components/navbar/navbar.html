@@ -1,12 +1,21 @@
+<!-- ═══════════════════════════ DESKTOP ═══════════════════════════ -->
 <nav class="navbar navbar-expand-lg fixed-top d-none d-lg-block">
   <div class="container mt-1 mb-1" style="padding: 0 40px;">
-    <a [routerLink]="['/']"><img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" id="logo" class="me-3" /></a>
+
+    <!-- Logo: punta a /home se loggato, a / altrimenti -->
+    <a [routerLink]="authService.isLoggedIn() ? '/home' : '/'">
+      <img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" id="logo" class="me-3" />
+    </a>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <!-- GENERI — invariato -->
         <li class="nav-item dropdown">
           <a class="nav-link link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
             aria-expanded="false">
@@ -49,7 +58,6 @@
                 </div>
 
                 <hr class="dropdown-divider" />
-
                 <div class="mega-item">
                   <a class="dropdown-item" href="#"><img src="assets/Icone/western.png" height="25px"> Western</a>
                   <div class="mega-right">
@@ -77,58 +85,51 @@
 
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Fantasy</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>fantasy 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Thriller</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>thriller 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Romanzo</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>romanzo 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Storico</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>storico 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Fantascienza</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>fantascienza 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Avventura</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>avventura 1</div>
                   </div>
                 </div>
                 <hr class="dropdown-divider" />
                 <div class="mega-item">
-                  <a class="dropdown-item" href="#">Western</a>
+                  <a class="dropdown-item" href="#">Biografia</a>
                   <div class="mega-right">
-                    <div>western 1</div>
-                    <div>western 2</div>
+                    <div>biografia 1</div>
                   </div>
                 </div>
 
@@ -136,56 +137,120 @@
             </div>
           </ul>
         </li>
+
         <li class="nav-item">
           <a class="nav-link active link" href="#"><span>Community</span></a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link link active" href="#"><span>Scrivi</span></a>
-        </li>
+
+        <!-- Scrivi nel menu sinistra: solo quando NON loggato -->
+
+        @if (authService.isLoggedIn()) {
         <li class="nav-item">
           <a class="nav-link link active" href="#"><span>Supporto</span></a>
         </li>
+        }
       </ul>
-      <div class="d-flex align-items-center">
-        <div class="container-input me-3">
+
+      <!-- ── Sezione destra ── -->
+      <div class="d-flex align-items-center gap-2">
+
+        <!-- Barra di ricerca — sempre visibile -->
+        <div class="container-input me-2">
           <input type="text" placeholder="Search" name="text" class="input" />
           <svg fill="#000000" width="20px" height="20px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M790.588 1468.235c-373.722 0-677.647-303.924-677.647-677.647 0-373.722 303.925-677.647 677.647-677.647 373.723 0 677.647 303.925 677.647 677.647 0 373.723-303.924 677.647-677.647 677.647Zm596.781-160.715c120.396-138.692 193.807-319.285 193.807-516.932C1581.176 354.748 1226.428 0 790.588 0S0 354.748 0 790.588s354.748 790.588 790.588 790.588c197.647 0 378.24-73.411 516.932-193.807l516.028 516.142 79.963-79.963-516.142-516.028Z"
-              fill-rule="evenodd"></path>
+            <path d="M790.588 1468.235c-373.722 0-677.647-303.924-677.647-677.647
+              0-373.722 303.925-677.647 677.647-677.647 373.723 0 677.647 303.925
+              677.647 677.647 0 373.723-303.924 677.647-677.647 677.647Zm596.781-160.715
+              c120.396-138.692 193.807-319.285 193.807-516.932C1581.176 354.748
+              1226.428 0 790.588 0S0 354.748 0 790.588s354.748 790.588 790.588
+              790.588c197.647 0 378.24-73.411 516.932-193.807l516.028 516.142
+              79.963-79.963-516.142-516.028Z" fill-rule="evenodd" />
           </svg>
         </div>
+
+        <!-- NON loggato: testo Login + Registrati -->
+        @if (!authService.isLoggedIn()) {
         <a [routerLink]="['/register']" class="text-decoration-none text-black link"
           style="padding: 8px;"><span>Registrati</span></a>
         <a [routerLink]="['/login']" class="text-decoration-none text-black link"
           style="padding: 8px;"><span>Login</span></a>
+        }
+
+        <!-- Loggato: icona utente + campanella (logout) + pulsante Scrivi -->
+        @if (authService.isLoggedIn()) {
+        <a routerLink="/scrivi" class="nav-scrivi-btn d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          Scrivi
+        </a>
+
+        <button class="nav-icon-btn nav-notif-btn" title="Esci" (click)="onLogout()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5">
+            <path d="M18 8A6 6 0 0 1 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span class="nav-notif-dot"></span>
+        </button>
+
+        <button class="nav-icon-btn" title="Profilo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </button>
+
+        }
+
       </div>
     </div>
   </div>
 </nav>
 
 
-<!-- ═══════════════════════════════════════════════════════════════════════
-     MOBILE NAVBAR — completamente nuova, zero Bootstrap JS, solo su mobile
-     ════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════ MOBILE ═══════════════════════════ -->
 <div class="mn-root d-block d-lg-none mt-2" [class.mn-open]="mobileNavOpen">
-
-  <!-- Pill glassmorphism card -->
   <div class="mn-card">
 
-    <!-- Top bar: logo + hamburger -->
+    <!-- Top bar -->
     <div class="mn-topbar">
-      <a [routerLink]="['/']" class="mn-logo">
+
+      <!-- Logo: /home se loggato, / altrimenti -->
+      <a [routerLink]="authService.isLoggedIn() ? '/home' : '/'" class="mn-logo">
         <img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" class="ms-2" />
       </a>
+
+      <!-- Icone utente/notifica visibili solo da loggato (sopra il drawer) -->
+      @if (authService.isLoggedIn()) {
+      <div class="mn-auth-icons">
+        <button class="mn-icon-btn" title="Profilo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </button>
+        <button class="mn-icon-btn mn-notif-btn" title="Esci" (click)="onLogout()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5">
+            <path d="M18 8A6 6 0 0 1 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span class="mn-notif-dot"></span>
+        </button>
+      </div>
+      }
+
       <button class="mn-burger" [class.mn-burger--active]="mobileNavOpen" (click)="toggleMobileNav()" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
       </button>
     </div>
 
-    <!-- Drawer: si apre verso il basso -->
+    <!-- Drawer -->
     <div class="mn-drawer" [class.mn-drawer--open]="mobileNavOpen">
       <div class="mn-drawer-inner">
 
@@ -198,22 +263,18 @@
           <input type="text" placeholder="Cerca libri, autori..." />
         </div>
 
-        <!-- Divisore -->
         <div class="mn-divider"></div>
 
-        <!-- ── GENERI ── -->
+        <!-- GENERI accordion -->
         <div class="mn-section-row" (click)="toggleMobileGenresPanel()">
           <div class="mn-row-label">
-            <span class="mn-row-icon">📖</span>
             <span>Generi</span>
           </div>
           <div class="mn-chevron" [class.mn-chevron--up]="mobileGenresOpen"></div>
         </div>
 
-        <!-- Lista generi accordion -->
         <div class="mn-genres-panel" [class.mn-genres-panel--open]="mobileGenresOpen">
 
-          <!-- HORROR -->
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('horror')">
               <div class="mn-genre-icon" style="background: rgba(80,20,100,0.12)">👻</div>
@@ -222,30 +283,17 @@
             </div>
             <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('horror')">
               <div class="mn-books-row">
-                <div class="mn-book" style="background: linear-gradient(135deg,#2c0a3e,#5c1a6e)">
-                  <img src="assets/Presentazione/gattopardo.jpg" alt="Il Gattopardo" />
-                </div>
-                <div class="mn-book" style="background: linear-gradient(135deg,#1a0a2e,#3a1a5e)">
-                  <img src="assets/Presentazione/la-strada.jpg" alt="La Strada" />
-                </div>
-                <div class="mn-book" style="background: linear-gradient(135deg,#0a2040,#204080)">
-                  <img src="assets/Presentazione/dune.jpg" alt="Dune" />
-                </div>
-                <div class="mn-book" style="background: linear-gradient(135deg,#2e1a0a,#5e3a1a)">
-                  <img src="assets/Presentazione/hp1.jpg" alt="HP1" />
-                </div>
-                <div class="mn-book" style="background: linear-gradient(135deg,#0a3020,#206040)">
-                  <img src="assets/Presentazione/metamorfosi.jpg" alt="Metamorfosi" />
-                </div>
-                <div class="mn-book" style="background: linear-gradient(135deg,#3e200a,#7a4010)">
-                  <img src="assets/Presentazione/promessi-sposi.jpg" alt="Promessi Sposi" />
-                </div>
+                <div class="mn-book"><img src="assets/Presentazione/gattopardo.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/la-strada.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/dune.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/hp1.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/metamorfosi.jpg" alt="" /></div>
+                <div class="mn-book"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" /></div>
               </div>
               <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
             </div>
           </div>
 
-          <!-- WESTERN -->
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('western')">
               <div class="mn-genre-icon" style="background: rgba(100,70,20,0.12)">🤠</div>
@@ -263,7 +311,6 @@
             </div>
           </div>
 
-          <!-- FANTASY -->
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('fantasy')">
               <div class="mn-genre-icon" style="background: rgba(20,60,120,0.12)">🧙</div>
@@ -279,7 +326,6 @@
             </div>
           </div>
 
-          <!-- ROMANZO -->
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('romanzo')">
               <div class="mn-genre-icon" style="background: rgba(160,20,80,0.12)">❤️</div>
@@ -295,7 +341,6 @@
             </div>
           </div>
 
-          <!-- THRILLER -->
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('thriller')">
               <div class="mn-genre-icon" style="background: rgba(20,20,20,0.10)">🔪</div>
@@ -311,31 +356,42 @@
           </div>
 
         </div>
-        <!-- fine lista generi -->
 
         <div class="mn-divider"></div>
 
-        <!-- Link principali -->
         <a href="#" class="mn-link-row">
-          <span class="mn-row-icon">🌐</span>
           <span>Community</span>
         </a>
-        <a href="#" class="mn-link-row">
-          <span class="mn-row-icon">✏️</span>
+
+        <!-- Scrivi nel drawer solo da loggato -->
+        @if (authService.isLoggedIn()) {
+        <a routerLink="/scrivi" class="mn-link-row">
           <span>Scrivi</span>
         </a>
+        }
+
         <a href="#" class="mn-link-row">
-          <span class="mn-row-icon">💬</span>
           <span>Supporto</span>
         </a>
 
         <div class="mn-divider"></div>
 
-        <!-- Auth buttons -->
+        <!-- Auth row: solo quando NON loggato -->
+        @if (!authService.isLoggedIn()) {
         <div class="mn-auth-row">
           <a [routerLink]="['/register']" class="mn-btn mn-btn--outline">Registrati</a>
           <a [routerLink]="['/login']" class="mn-btn mn-btn--solid">Login</a>
         </div>
+        }
+
+        <!-- Loggato: bottone Scrivi prominente nel drawer -->
+        @if (authService.isLoggedIn()) {
+        <div class="mn-auth-row">
+          <a routerLink="/scrivi" class="mn-btn mn-btn--solid mn-btn--scrivi">
+            Inizia a scrivere
+          </a>
+        </div>
+        }
 
       </div>
     </div>

@@ -203,7 +203,7 @@ export class Presentazione implements AfterViewInit {
     /*tl.to('.fade-bg', {
       opacity: 1,
       scale: 1,
-      duration: 1.2, 
+      duration: 1.2,
       ease: 'power3.out',
     });*/
 
@@ -213,9 +213,9 @@ export class Presentazione implements AfterViewInit {
         y: 60,
         opacity: 0,
         filter: 'blur(10px)',
-        duration: 0.9, 
+        duration: 0.9,
         ease: 'power3.out',
-        stagger: 0.18, 
+        stagger: 0.18,
       },
       '-=0.6',
     );
@@ -286,7 +286,7 @@ export class Presentazione implements AfterViewInit {
         x: 0,
         y: 0,
         filter: 'blur(0px)',
-        duration: 0.8, 
+        duration: 0.8,
         ease: 'power3.out',
         stagger: 0.12,
       });
@@ -362,7 +362,7 @@ export class Presentazione implements AfterViewInit {
       opacity: 1,
       y: 0,
       filter: 'blur(0px)',
-      duration: 1.0, 
+      duration: 1.0,
       ease: 'power3.out',
       scrollTrigger: {
         trigger: '.main-title',

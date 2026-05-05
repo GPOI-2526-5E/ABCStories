@@ -25,12 +25,6 @@ export class BookSlider {
   constructor(private router: Router) { }
 
   onBookClick(book: any, index: number) {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'instant' // <-- Questo ignora il 'smooth' del CSS
-    });
-    
     this.router.navigate(['/book', index], {
       state: { book }
     });

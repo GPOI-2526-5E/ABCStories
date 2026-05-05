@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
 import { BookSlider } from '../book-slider/book-slider';
 import { FormsModule } from '@angular/forms';
+import { Footer } from '../footer/footer';
 
 export interface Reply {
   id: string;
@@ -35,7 +36,7 @@ const VISIBLE_STEP = 4;
 
 @Component({
   selector: 'app-book-detail',
-  imports: [CommonModule, Navbar, BookSlider, FormsModule],
+  imports: [CommonModule, Navbar, BookSlider, FormsModule, Footer],
   templateUrl: './book-detail.html',
   styleUrl: './book-detail.scss',
 })
@@ -127,13 +128,13 @@ export class BookDetail implements OnInit {
     },
   ];
 
-   get visibleComments(): Comment[] {
+  get visibleComments(): Comment[] {
     return this.comments.slice(0, this.visibleCount);
   }
 
-// ────────────────────────────────────────────────────────────
-// METODI da aggiungere in BookDetail
-// ────────────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────
+  // METODI da aggiungere in BookDetail
+  // ────────────────────────────────────────────────────────────
 
 
   addComment(): void {
@@ -141,18 +142,18 @@ export class BookDetail implements OnInit {
     if (!text) return;
 
     const newComment: Comment = {
-      id:           crypto.randomUUID(),
-      author:       this.currentUserName,
-      handle:       this.currentUserHandle,
-      timeAgo:      'adesso',
+      id: crypto.randomUUID(),
+      author: this.currentUserName,
+      handle: this.currentUserHandle,
+      timeAgo: 'adesso',
       text,
-      tags:         [],
-      likes:        0,
-      liked:        false,
-      replies:      [],
-      repliesOpen:  false,
+      tags: [],
+      likes: 0,
+      liked: false,
+      replies: [],
+      repliesOpen: false,
       replyBoxOpen: false,
-      replyDraft:   '',
+      replyDraft: '',
     };
 
     this.comments.unshift(newComment);
@@ -167,26 +168,26 @@ export class BookDetail implements OnInit {
     if (!text) return;
 
     const reply: Reply = {
-      id:      crypto.randomUUID(),
-      author:  this.currentUserName,
-      handle:  this.currentUserHandle,
+      id: crypto.randomUUID(),
+      author: this.currentUserName,
+      handle: this.currentUserHandle,
       timeAgo: 'adesso',
       text,
-      likes:   0,
-      liked:   false,
+      likes: 0,
+      liked: false,
     };
 
     comment.replies.push(reply);
-    comment.repliesOpen  = true;
+    comment.repliesOpen = true;
     comment.replyBoxOpen = false;
-    comment.replyDraft   = '';
+    comment.replyDraft = '';
 
     // TODO: persistere su backend
     // this.commentService.createReply(comment.id, reply).subscribe();
   }
 
   toggleLike(item: Comment | Reply): void {
-    item.liked  = !item.liked;
+    item.liked = !item.liked;
     item.likes += item.liked ? 1 : -1;
 
     // TODO: sincronizzare con backend
@@ -229,6 +230,14 @@ export class BookDetail implements OnInit {
       this.book = navState;
     } else if (isPlatformBrowser(this.platformId)) {
       this.book = history.state?.book ?? null;
+    }
+
+    if (isPlatformBrowser(this.platformId)) {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant' // <-- Questo ignora il 'smooth' del CSS
+      });
     }
   }
 

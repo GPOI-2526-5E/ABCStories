@@ -4,11 +4,12 @@ import { Login } from './components/login/login';
 import { Home } from './components/home/home';
 import { Register } from './components/register/register';
 import { BookDetail } from './components/book-detail/book-detail';
+import { authGuard } from './services/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: Presentazione },
   { path: 'login', component: Login },
   { path: 'home', component: Home },
-  { path: 'register', component: Register},
+  { path: 'register', component: Register },
   { path: 'book/:id', component: BookDetail }
 ];
