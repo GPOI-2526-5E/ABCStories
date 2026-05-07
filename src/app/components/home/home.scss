@@ -991,7 +991,7 @@
     &:hover {
       width: 290px;
 
-      .card-bg { filter: brightness(0.45); }
+      .card-bg { filter: none; }
       .card-fade { opacity: 1; }
       .card-title-always { opacity: 0; }
       .card-hover-content { opacity: 1; pointer-events: auto; }
@@ -999,16 +999,13 @@
 
     // Stato sempre attivo su mobile (no hover richiesto)
     .card-bg {
-      filter: brightness(0.45);
+      filter: none;
     }
 
     .card-fade {
       opacity: 1;
       // Gradiente dal basso verso l'alto per leggibilità testo
-      background: linear-gradient(to top,
-        rgba(0, 0, 0, 0.92) 0%,
-        rgba(0, 0, 0, 0.55) 55%,
-        rgba(0, 0, 0, 0.0) 100%);
+      background: none;
     }
 
     // Nascondi il titolo fisso (sostituito dal contenuto sempre visibile)
