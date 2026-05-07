@@ -14,9 +14,8 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(90px, 15vh, 140px) 0 4rem;
-  //padding-bottom: 6rem;
   margin-bottom: 0;
-  content-visibility: auto; // Gestisce meglio il rendering iniziale
+  content-visibility: auto;
   contain: paint;
 
   @media (max-width: 1024px) {
@@ -31,13 +30,12 @@
 .hero-bottom-fade {
   position: absolute;
   left: 0;
-  bottom: -1px; // 1px di overlap per evitare linee fantasma
+  bottom: -1px;
   width: 100%;
   height: 220px;
   z-index: 2;
   pointer-events: none;
 
-  // Il background replica il tropicalTheme
   background: linear-gradient(
     90deg,
     hsla(141, 81%, 87%, 1) 0%,
@@ -59,22 +57,17 @@
   background-position: center;
   filter: blur(80px) saturate(160%) brightness(0.9);
   transform: scale(1.4);
-  will-change: background-image, opacity; // Avvisa il browser di tenersi pronto
-  transform: translateZ(0); // Forza il rendering 3D (GPU layer)
+  will-change: background-image, opacity;
+  transform: translateZ(0);
   transition: background-image 1.2s ease-in-out, opacity 0.8s ease;
   z-index: -1;
 }
 
 @media (max-width: 768px) {
   .ambient-bg {
-    // Su mobile aumentiamo ancora di più la scala per "pescare"
-    // i colori dai bordi dell'immagine originale
     transform: scale(1.5) translateZ(0);
-
-    // Riduciamo leggermente il blur su mobile per non disperdere troppo il colore
     filter: blur(60px) saturate(180%);
-
-    opacity: 0.9; // Più opaco su mobile per compensare lo schermo piccolo
+    opacity: 0.9;
   }
 }
 
@@ -285,24 +278,23 @@
 
 @media (max-width: 768px) {
   .hero-slider {
-    padding: 105px 0 3rem; // Riduciamo il padding superiore
+    padding: 105px 0 3rem;
   }
 
   .slider-shell {
-    padding: 0; // Eliminiamo padding laterale per usare tutto lo schermo
+    padding: 0;
     gap: 0;
   }
 
   .slider-viewport {
-    height: 450px; // Aumentiamo l'altezza: i testi hanno bisogno di spazio verticale
+    height: 450px;
   }
 
   .slide {
-    width: 92%; // Quasi a tutto schermo
+    width: 92%;
     height: 100%;
-    border-radius: 1.5rem; // Arrotondamento leggermente minore
+    border-radius: 1.5rem;
 
-    // Overlay più scuro su mobile per leggere meglio il testo bianco
     &::after {
       content: '';
       position: absolute;
@@ -315,12 +307,12 @@
   .slide-content {
     left: 0;
     right: 0;
-    bottom: 2rem; // Posizionato in basso
+    bottom: 2rem;
     top: auto;
-    transform: none; // Rimuoviamo il centramento verticale
+    transform: none;
     max-width: 100%;
     padding: 0 1.5rem;
-    text-align: center; // Testo centrato per un look più moderno su mobile
+    text-align: center;
     z-index: 5;
 
     .badge {
@@ -339,31 +331,29 @@
       line-height: 1.4;
       display: -webkit-box;
       line-clamp: 3;
-      -webkit-line-clamp: 3; // Taglia il testo se troppo lungo (max 3 righe)
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
     .btnCont {
-      width: 100%; // Bottone a larghezza piena su mobile è più facile da cliccare
+      width: 100%;
       max-width: 200px;
     }
   }
 
-  // Nascondiamo o rimpiccioliamo le frecce per non coprire il testo
   .nav-btn {
     position: absolute;
     width: 35px;
     height: 35px;
     font-size: 1.2rem;
     background: rgba(0, 0, 0, 0.3);
-    top: 40%; // Alzate rispetto al testo
+    top: 40%;
 
     &.prev { left: 5px; }
     &.next { right: 5px; }
   }
 
-  // Gestione slide adiacenti: le allontaniamo per non sovrapporle al testo centrale
   .slide.prev-slide {
     transform: scale(0.8) translateX(-105%);
     opacity: 0.2;
@@ -393,27 +383,16 @@
   z-index: 1;
 }
 
+// =============================================
 // CLASSIFICA
+// =============================================
+
 @keyframes borderFlow {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  25% {
-    background-position: 100% 50%;
-  }
-
-  50% {
-    background-position: 100% 100%;
-  }
-
-  75% {
-    background-position: 0% 100%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 100% 50%; }
+  50%  { background-position: 100% 100%; }
+  75%  { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
 }
 
 .book-card {
@@ -493,11 +472,17 @@
   flex-direction: column;
   gap: 40px;
   background: var(--tropicalTheme);
+
+  @media (max-width: 768px) {
+    padding: 20px 1rem 50px;
+    gap: 24px;
+  }
 }
 
+// --- PODIO DESKTOP ---
 .podium-display {
   display: flex;
-  flex-direction: column; // Su mobile: uno sopra l'altro
+  flex-direction: column;
   align-items: center;
   gap: 2rem;
   padding: 1rem;
@@ -510,11 +495,11 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 200px; // Dimensione base per mobile
+    max-width: 200px;
 
     .book-cover {
       width: 100%;
-      aspect-ratio: 2 / 3; // Mantiene le proporzioni della copertina
+      aspect-ratio: 2 / 3;
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 
       img {
@@ -529,37 +514,83 @@
       text-align: center;
       margin-top: 1rem;
 
-      .book-title {
-        font-weight: bold;
-        margin-bottom: 0.2rem;
-      }
+      .book-title { font-weight: bold; margin-bottom: 0.2rem; }
     }
 
-    // Gestione Ordine e Dimensioni su Desktop
-    &.first { order: 1; max-width: 240px; }
+    &.first  { order: 1; max-width: 240px; }
     &.second { order: 2; max-width: 210px; }
-    &.third { order: 3; max-width: 190px; }
+    &.third  { order: 3; max-width: 190px; }
   }
 
-  // --- Breakpoint Desktop ---
-  @media (min-width: 768px) {
+  @media (min-width: 769px) {
     flex-direction: row;
     align-items: flex-end;
     justify-content: center;
 
     .podium-item {
-      &.first {
-        order: 2; // Il primo va al centro
-        max-width: 260px;
+      &.first  { order: 2; max-width: 260px; }
+      &.second { order: 1; max-width: 220px; }
+      &.third  { order: 3; max-width: 200px; }
+    }
+  }
+}
+
+// --- PODIO MOBILE: tre card affiancate compatte ---
+@media (max-width: 768px) {
+  .podium-display {
+    flex-direction: row !important; // forza riga orizzontale
+    align-items: flex-end !important;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+
+    .podium-item {
+      flex: 1;
+      max-width: none !important;
+
+      // Ordine podio: 2° - 1° - 3°
+      &.first  { order: 2; }
+      &.second { order: 1; }
+      &.third  { order: 3; }
+
+      // Altezze proporzionali per effetto podio visivo
+      &.first .book-cover  { aspect-ratio: 2/3; }
+      &.second .book-cover { aspect-ratio: 2/3; transform: scale(0.9); transform-origin: bottom center; }
+      &.third .book-cover  { aspect-ratio: 2/3; transform: scale(0.82); transform-origin: bottom center; }
+
+      .book-info {
+        margin-top: 0.5rem;
+
+        .book-title {
+          font-size: 0.72rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 90px;
+          margin: 0 auto;
+        }
+
+        .book-author {
+          font-size: 0.65rem;
+        }
       }
-      &.second {
-        order: 1; // Il secondo va a sinistra
-        max-width: 220px;
-      }
-      &.third {
-        order: 3; // Il terzo va a destra
-        max-width: 200px;
-      }
+    }
+  }
+
+  // Badge di posizione più piccolo su mobile
+  .rank-badge {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+    top: -8px;
+    left: -6px;
+
+    &.small {
+      width: 26px;
+      height: 26px;
+      font-size: 0.65rem;
+      top: -7px;
+      left: -7px;
     }
   }
 }
@@ -584,9 +615,7 @@
     padding: 24px 2rem;
     margin: -24px 0;
 
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    &::-webkit-scrollbar { display: none; }
   }
 
   .slider-track {
@@ -600,6 +629,27 @@
       .book-cover {
         width: 185px;
         height: 255px;
+      }
+    }
+  }
+
+  // Su mobile: card più piccole e leggibili
+  @media (max-width: 768px) {
+    .rank-scroll-outer {
+      padding: 20px 1rem;
+      margin: -20px 0;
+    }
+
+    .slider-track {
+      gap: 0.9rem;
+
+      .book-card {
+        flex: 0 0 130px;
+
+        .book-cover {
+          width: 130px;
+          height: 185px;
+        }
       }
     }
   }
@@ -620,7 +670,6 @@
     transform: translateY(-50%);
     transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
 
-    // stile solido e visibile
     background: #2c1a0e;
     color: #fefadc;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -630,13 +679,8 @@
       height: 22px;
     }
 
-    &.prev {
-      left: 0.75rem;
-    }
-
-    &.next {
-      right: 0.75rem;
-    }
+    &.prev { left: 0.75rem; }
+    &.next { right: 0.75rem; }
 
     &:hover {
       background: #4a2f18;
@@ -647,6 +691,11 @@
     &.hidden {
       opacity: 0;
       pointer-events: none;
+    }
+
+    // Frecce nascoste su mobile: si swipe direttamente
+    @media (max-width: 768px) {
+      display: none;
     }
   }
 }
@@ -678,7 +727,9 @@
   }
 }
 
+// =============================================
 // SEZIONE GENERI
+// =============================================
 
 .genres-section {
   padding: 2rem 1.5rem 2.5rem;
@@ -753,7 +804,10 @@
   }
 }
 
+// =============================================
 // SEZIONE NUOVI TALENTI
+// =============================================
+
 .talents-section {
   padding: 2rem 0 2.5rem;
 }
@@ -778,12 +832,11 @@
     cursor: pointer;
     transition: color 0.2s ease;
 
-    &:hover {
-      color: #fff;
-    }
+    &:hover { color: #fff; }
   }
 }
 
+// --- DESKTOP: slider orizzontale con espansione al hover ---
 .slider-outer {
   width: 100vw;
   position: relative;
@@ -797,13 +850,8 @@
   margin: -24px 0;
   cursor: grab;
 
-  &:active {
-    cursor: grabbing;
-  }
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &:active { cursor: grabbing; }
+  &::-webkit-scrollbar { display: none; }
 }
 
 .slider-row {
@@ -833,22 +881,10 @@
       width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
       z-index 0s 0s;
 
-    .card-bg {
-      filter: brightness(0.4);
-    }
-
-    .card-fade {
-      opacity: 1;
-    }
-
-    .card-title-always {
-      opacity: 0;
-    }
-
-    .card-hover-content {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .card-bg { filter: brightness(0.4); }
+    .card-fade { opacity: 1; }
+    .card-title-always { opacity: 0; }
+    .card-hover-content { opacity: 1; pointer-events: auto; }
   }
 }
 
@@ -907,7 +943,6 @@
   z-index: 6;
 
   .tag {
-    //font-size: 0.67rem;
     font-weight: 700;
     color: var(--tropicalThemeYellow);
     text-transform: uppercase;
@@ -915,14 +950,12 @@
   }
 
   h3 {
-    //font-size: 1.05rem;
     font-weight: 700;
     color: #fff;
     line-height: 1.25;
   }
 
   p {
-    //font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.68);
     line-height: 1.55;
     display: -webkit-box;
@@ -933,12 +966,108 @@
   }
 }
 
+// --- MOBILE NUOVI TALENTI: layout a card verticali con info sempre visibili ---
+@media (max-width: 768px) {
+  .talents-section {
+    padding: 1rem 0 2rem;
+  }
+
+  .slider-outer {
+    padding: 16px 1rem;
+    margin: -16px 0;
+    cursor: default;
+  }
+
+  .slider-row {
+    gap: 10px;
+  }
+
+  .talent-card {
+    width: 290px;
+    height: 320px;
+    border-radius: 12px;
+
+    // Disabilita completamente l'espansione su touch
+    &:hover {
+      width: 290px;
+
+      .card-bg { filter: brightness(0.45); }
+      .card-fade { opacity: 1; }
+      .card-title-always { opacity: 0; }
+      .card-hover-content { opacity: 1; pointer-events: auto; }
+    }
+
+    // Stato sempre attivo su mobile (no hover richiesto)
+    .card-bg {
+      filter: brightness(0.45);
+    }
+
+    .card-fade {
+      opacity: 1;
+      // Gradiente dal basso verso l'alto per leggibilità testo
+      background: linear-gradient(to top,
+        rgba(0, 0, 0, 0.92) 0%,
+        rgba(0, 0, 0, 0.55) 55%,
+        rgba(0, 0, 0, 0.0) 100%);
+    }
+
+    // Nascondi il titolo fisso (sostituito dal contenuto sempre visibile)
+    .card-title-always {
+      opacity: 0;
+    }
+
+    // Contenuto sempre visibile su mobile, posizionato in basso
+    .card-hover-content {
+      opacity: 1;
+      pointer-events: auto;
+      width: 100%;
+      height: auto;
+      top: auto;
+      bottom: 0;
+      left: 0;
+      padding: 0.9rem 0.85rem 1rem;
+      justify-content: flex-end;
+      gap: 0.25rem;
+      background: none;
+
+      .tag {
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+      }
+
+      h3 {
+        font-size: 20px;
+        line-height: 1.2;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      // Descrizione nascosta su mobile per non sovraffollare
+      p { display: none; }
+
+      // Bottone "Leggi Ora" ridotto
+      button {
+        width: 100% !important;
+        padding: 0.45rem 0.6rem !important;
+        font-size: 0.75rem !important;
+        margin-top: 0.4rem;
+      }
+    }
+  }
+}
+
+// =============================================
 // SEZIONE DEGLI ARTISTI
+// =============================================
+
 .artists-section {
   padding: 2rem 0 5rem;
   overflow: visible;
 }
-
 
 .slider-outer {
   width: 100vw;
@@ -951,9 +1080,7 @@
   padding: 30px 1.5rem;
   margin: -30px 0;
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 }
 
 .slider-row {
@@ -1010,36 +1137,20 @@
     transform: translateY(-6px) scale(1.08);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
 
-    &::before {
-      opacity: 1;
-    }
-
-    img {
-      filter: brightness(1.1);
-    }
+    &::before { opacity: 1; }
+    img { filter: brightness(1.1); }
   }
 
-  .artist-name {
-    color: var(--tropicalThemeRed)
-  }
-
-  .artist-followers {
-    color: #bbb;
-  }
+  .artist-name { color: var(--tropicalThemeRed); }
+  .artist-followers { color: #bbb; }
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .artist-name {
-  //font-size: 0.8rem;
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
@@ -1057,7 +1168,10 @@
   transition: color 0.25s ease;
 }
 
-// OVERRIDE FORZATO DEL COLORE DEL FOOTER
+// =============================================
+// OVERRIDE FOOTER
+// =============================================
+
 :host ::ng-deep {
   .footerSection {
     background: var(--tropicalTheme) !important;

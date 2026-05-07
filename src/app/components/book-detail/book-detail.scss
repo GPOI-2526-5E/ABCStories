@@ -154,6 +154,11 @@ $text-faint: rgba(20, 20, 10, 0.35);
   align-items: center !important;
   justify-content: center !important;
 
+  @media (max-width: 1600px) {
+    padding-top: 9.5rem; // laptop
+    padding-bottom: 4rem;
+  }
+
   @media (max-width: 768px) {
     padding-top: 7.5rem;
     padding-left: 1.5rem;
@@ -315,7 +320,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
 .stat-divider {
   width: 1px;
   height: 48px;
-  background: transparent; 
+  background: transparent;
   flex-shrink: 0;
 }
 
@@ -340,7 +345,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   padding: 3rem 0 4rem;
   padding-top: 0rem;
   padding-bottom: 6rem;
-  
+
   @media (max-width: 768px) {
     padding-top: 2rem;
   }

@@ -12,6 +12,10 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
+
+  p {
+    margin-bottom: 0; // riduce lo spazio tra subtitle e slider
+  }
 }
 
 .slider-outer {
@@ -31,7 +35,12 @@
   }
   scrollbar-width: none;
   -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch; // scroll per mobile
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    padding: 30px 0 40px; // spazio ridotto sopra e sotto su mobile
+    margin-top: -10px;
+  }
 }
 
 .slider-track {
@@ -70,6 +79,18 @@
     height: 100%;
     object-fit: cover;
   }
+
+  // Su mobile le icone sono sempre visibili senza bisogno di hover
+  @media (max-width: 768px) {
+    .action-icon {
+      opacity: 1;
+    }
+
+    &:hover {
+      transform: none;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+  }
 }
 
 .action-icon {
@@ -104,6 +125,18 @@
     animation: iconPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49);
     svg { stroke-width: 0; }
   }
+
+  // Su mobile: dimensioni leggermente più grandi per il touch
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    bottom: 8px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
 
 .bookmark-icon {
@@ -137,7 +170,6 @@
 }
 
 .book-title {
-  //font-size: 0.82rem;
   font-weight: 700;
   color: #2c1a0e;
   margin: 0 0 2px;
@@ -193,4 +225,9 @@
   &.hidden { opacity: 0; pointer-events: none; }
   &.nav-left { left: 0.5rem; }
   &.nav-right { right: 0.5rem; }
+
+  // Nascondi frecce su mobile: si swipe direttamente
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
