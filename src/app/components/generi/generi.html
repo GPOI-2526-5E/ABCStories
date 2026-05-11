@@ -1,36 +1,43 @@
 <app-navbar></app-navbar>
-
 <section class="generi-page">
 
-    <!-- ── Hero ── -->
-    <div class="generi-hero">
-        <h1 class="generi-hero__title">Tutti i Generi</h1>
-        <p class="generi-hero__sub">
-            Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
-        </p>
-    </div>
+  <!-- ── Hero ── -->
+  <div class="generi-hero">
+    <p class="generi-hero__eyebrow">Esplora</p>
+    <h1 class="generi-hero__title">Tutti i Generi</h1>
+    <p class="generi-hero__sub">
+      Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
+    </p>
+  </div>
 
-    <!-- ── Lista card ── -->
-    <div class="generi-container">
-        <div class="generi-list">
-            <div *ngFor="let g of generi" class="generi-card" (click)="goToGenere(g.slug)"
-                (keydown.enter)="goToGenere(g.slug)" tabindex="0" role="button"
-                [attr.aria-label]="'Vai al genere ' + g.nome">
-                <!-- Immagine: si dissolve verso destra tramite mask-image -->
-                <div class="generi-card__img" [style.background-image]="'url(' + g.imageUrl + ')'"></div>
+  <!-- ── Griglia 2 colonne ── -->
+  <div class="generi-grid">
+    <div
+      *ngFor="let g of generi"
+      class="generi-card"
+      (click)="goToGenere(g.slug)"
+      (keydown.enter)="goToGenere(g.slug)"
+      tabindex="0"
+      role="button"
+      [attr.aria-label]="'Vai al genere ' + g.nome"
+    >
+      <!-- Immagine con mask-image fade verso destra -->
+      <div
+        class="generi-card__img"
+        [style.background-image]="'url(' + g.imageUrl + ')'"
+      ></div>
 
-                <!-- Contenuto testuale + freccia -->
-                <div class="generi-card__body">
-                    <div class="generi-card__content">
-                        <span class="generi-card__count">{{ g.count }} storie</span>
-                        <h2 class="generi-card__nome">{{ g.nome }}</h2>
-                        <p class="generi-card__desc">{{ g.descrizione }}</p>
-                    </div>
-                    <div class="generi-card__cta" aria-hidden="true">→</div>
-                </div>
-            </div>
+      <!-- Contenuto + freccia -->
+      <div class="generi-card__body">
+        <div class="generi-card__content">
+          <span class="generi-card__count">{{ g.count }} storie</span>
+          <h2 class="generi-card__nome">{{ g.nome }}</h2>
+          <p class="generi-card__desc">{{ g.descrizione }}</p>
         </div>
+        <div class="generi-card__cta" aria-hidden="true">→</div>
+      </div>
     </div>
+  </div>
 
 </section>
 

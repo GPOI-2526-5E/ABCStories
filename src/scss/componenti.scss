@@ -1102,6 +1102,23 @@
   color: black;
 }
 
+.btnContGlass {
+  @extend .btnCont;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(30px) saturate(400%);
+  -webkit-backdrop-filter: blur(20px) saturate(400%);
+  color: white;
+}
+
+.btnContGlass:hover {
+  @extend .btnContGlass;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0px 15px 20px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px) saturate(500%);
+  -webkit-backdrop-filter: blur(20px) saturate(500%);
+  color: white;
+}
+
 // PARTE RESPONSIVE FOOTER
 @media (max-width: 992px) {
   .footerLinksArea {

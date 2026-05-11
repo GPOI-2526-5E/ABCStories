@@ -8,9 +8,10 @@
   <div class="hero-bottom-fade"></div>
 
   <div class="slider-shell">
-    <button class="nav-btn prev" (click)="prevSlide($event)">&#10094;</button>
+    <button class="nav-btn prev" (click)="prevSlide($event)" aria-label="Slide precedente">&#10094;</button>
 
-    <div class="slider-viewport">
+    <div class="slider-viewport" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd($event)" (touchcancel)="onTouchCancel()">
       @for (slide of books; track slide.title; let i = $index) {
       <div class="slide" [class.active]="i === current"
         [class.prev-slide]="i === (current - 1 + slidesCount) % slidesCount"
@@ -18,20 +19,19 @@
 
         <img [src]="slide.img" [alt]="slide.title" loading="lazy" />
 
-        <!-- ABBIAMO SOSTITUITO *ngIf CON @if -->
         @if (i === current) {
         <div class="slide-content">
           <span class="badge">{{slide.tag}}</span>
           <h1>{{slide.title}}</h1>
           <p>{{slide.desc}}</p>
-          <button class="btnCont mt-4">Scopri</button>
+          <button class="btnContGlass mt-4">Scopri</button>
         </div>
         }
       </div>
       }
     </div>
 
-    <button class="nav-btn next" (click)="nextSlide($event)">&#10095;</button>
+    <button class="nav-btn next" (click)="nextSlide($event)" aria-label="Slide successiva">&#10095;</button>
   </div>
 
   <div class="dots-wrapper">

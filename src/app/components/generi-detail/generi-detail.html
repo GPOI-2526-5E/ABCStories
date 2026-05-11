@@ -1,3 +1,115 @@
 <app-navbar></app-navbar>
 
-<p>generi-detail works!</p>
+<section class="gd-page" *ngIf="genereInfo; else notFound">
+
+  <!-- ── Hero centrato ── -->
+  <div class="gd-hero">
+    <p class="gd-hero__eyebrow">Genere</p>
+    <h1 class="gd-hero__title">{{ genereInfo.nome }}</h1>
+    <p class="gd-hero__desc">{{ genereInfo.descrizione }}</p>
+  </div>
+
+  <!-- ── Toolbar centrata: ricerca + dropdown custom ── -->
+  <div class="gd-toolbar">
+
+    <!-- Search -->
+    <div class="gd-search">
+      <svg class="gd-search__icon" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input
+        class="gd-search__input"
+        type="text"
+        placeholder="Cerca titolo o autore…"
+        [(ngModel)]="searchQuery"
+      />
+      <button *ngIf="searchQuery" class="gd-search__clear" (click)="searchQuery=''">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Custom dropdown ordinamento -->
+    <div class="gd-dropdown" [class.gd-dropdown--open]="dropdownOpen">
+
+      <button class="gd-dropdown__trigger" (click)="toggleDropdown()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M6 12h12M9 18h6"/>
+        </svg>
+        <span>{{ currentSortLabel }}</span>
+        <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+
+      <div class="gd-dropdown__menu">
+        <button
+          class="gd-dropdown__item"
+          *ngFor="let opt of sortOptions"
+          [class.gd-dropdown__item--active]="sortBy === opt[0]"
+          (click)="selectSort(opt[0])"
+        >
+          <svg *ngIf="sortBy === opt[0]" class="gd-dropdown__check"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12l5 5L20 7"/>
+          </svg>
+          <span>{{ opt[1] }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Contatore risultati -->
+  <p class="gd-count" *ngIf="filteredBooks.length > 0">
+    {{ filteredBooks.length }} storie trovate
+  </p>
+
+  <!-- Nessun risultato -->
+  <div class="gd-empty" *ngIf="filteredBooks.length === 0">
+    <span class="gd-empty__icon">📭</span>
+    <p>Nessuna storia trovata per "<strong>{{ searchQuery }}</strong>"</p>
+  </div>
+
+  <!-- ── Griglia libri ── -->
+  <div class="gd-grid" *ngIf="filteredBooks.length > 0">
+    <div
+      class="book-card"
+      *ngFor="let book of filteredBooks"
+      (click)="onBookClick(book)"
+    >
+      <div class="book-cover">
+        <img [src]="book.img" [alt]="book.title" loading="lazy" />
+
+        <div class="action-icon bookmark-icon" [class.active]="book.bookmarked"
+             (click)="toggleBookmark(book, $event)">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+          </svg>
+        </div>
+        <div class="action-icon heart-icon" [class.active]="book.liked"
+             (click)="toggleLike(book, $event)">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="book-info">
+        <p class="book-title">{{ book.title }}</p>
+        <p class="book-author">{{ book.author }}</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<ng-template #notFound>
+  <div class="gd-not-found"><p>Genere non trovato.</p></div>
+</ng-template>
+
+<app-footer></app-footer>

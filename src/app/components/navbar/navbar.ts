@@ -147,7 +147,7 @@ export class Navbar implements AfterViewInit {
   }
 
   toggleMobileGenre(name: string): void {
-    this.activeMobileGenre = this.activeMobileGenre === name ? null : name;
+    this.router.navigate(['/generi', name]);
   }
 
   isMobileOpen(name: string): boolean {

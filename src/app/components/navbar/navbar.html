@@ -277,81 +277,64 @@
 
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('horror')">
-              <div class="mn-genre-icon" style="background: rgba(80,20,100,0.12)">👻</div>
+              <div class="mn-genre-icon" ><img src="assets/Icone/horror.png" height="25px"></div>
               <span>Horror</span>
-              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('horror')"></div>
-            </div>
-            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('horror')">
-              <div class="mn-books-row">
-                <div class="mn-book"><img src="assets/Presentazione/gattopardo.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/la-strada.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/dune.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/hp1.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/metamorfosi.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" /></div>
-              </div>
-              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
             </div>
           </div>
 
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('western')">
-              <div class="mn-genre-icon" style="background: rgba(100,70,20,0.12)">🤠</div>
+              <div class="mn-genre-icon" ><img src="assets/Icone/western.png" height="25px"></div>
               <span>Western</span>
-              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('western')"></div>
-            </div>
-            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('western')">
-              <div class="mn-books-row">
-                <div class="mn-book"><img src="assets/Presentazione/codice-da-vinci.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/hp1.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/metamorfosi.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" /></div>
-              </div>
-              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
             </div>
           </div>
 
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('fantasy')">
-              <div class="mn-genre-icon" style="background: rgba(20,60,120,0.12)">🧙</div>
+              <div class="mn-genre-icon" ><img src="assets/Icone/fantasy.png" height="25px"></div>
               <span>Fantasy</span>
-              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('fantasy')"></div>
-            </div>
-            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('fantasy')">
-              <div class="mn-books-row">
-                <div class="mn-book"><img src="assets/Presentazione/siddhartha.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/dune.jpg" alt="" /></div>
-              </div>
-              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('romanzo')">
-              <div class="mn-genre-icon" style="background: rgba(160,20,80,0.12)">❤️</div>
-              <span>Romanzo</span>
-              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('romanzo')"></div>
-            </div>
-            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('romanzo')">
-              <div class="mn-books-row">
-                <div class="mn-book"><img src="assets/Presentazione/gattopardo.jpg" alt="" /></div>
-                <div class="mn-book"><img src="assets/Presentazione/la-strada.jpg" alt="" /></div>
-              </div>
-              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
             </div>
           </div>
 
           <div class="mn-genre-item">
             <div class="mn-genre-header" (click)="toggleMobileGenre('thriller')">
-              <div class="mn-genre-icon" style="background: rgba(20,20,20,0.10)">🔪</div>
+              <div class="mn-genre-icon" ><img src="assets/Icone/thriller.png" height="25px"></div>
               <span>Thriller</span>
-              <div class="mn-genre-chevron" [class.mn-genre-chevron--up]="isMobileOpen('thriller')"></div>
             </div>
-            <div class="mn-genre-panel" [class.mn-genre-panel--open]="isMobileOpen('thriller')">
-              <div class="mn-books-row">
-                <div class="mn-book"><img src="assets/Presentazione/codice-da-vinci.jpg" alt="" /></div>
-              </div>
-              <a href="#" class="mn-explore-link">Esplora il catalogo →</a>
+          </div>
+
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('romanzo')">
+              <div class="mn-genre-icon" ><img src="assets/Icone/romanzo.png" height="25px"></div>
+              <span>Romanzo</span>
+            </div>
+          </div>
+
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('storico')">
+              <div class="mn-genre-icon" ><img src="assets/Icone/storico.png" height="25px"></div>
+              <span>Storico</span>
+            </div>
+          </div>
+
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('fantascienza')">
+              <div class="mn-genre-icon" ><img src="assets/Icone/fantascienza.png" height="25px"></div>
+              <span>Fantascienza</span>
+            </div>
+          </div>
+
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('avventura')">
+              <div class="mn-genre-icon" ><img src="assets/Icone/avventura.png" height="25px"></div>
+              <span>Avventura</span>
+            </div>
+          </div>
+
+          <div class="mn-genre-item">
+            <div class="mn-genre-header" (click)="toggleMobileGenre('biografia')">
+              <div class="mn-genre-icon" ><img src="assets/Icone/biografia.png" height="25px"></div>
+              <span>Biografia</span>
             </div>
           </div>
 

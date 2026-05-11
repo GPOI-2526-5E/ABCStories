@@ -1,238 +1,209 @@
 @use "../../../scss/colori.scss";
 
-// --- Variabili Personalizzate ---
-$glass-bg: rgba(255, 255, 255, 0.18);
-$glass-border: transparent;
-$glass-hover: rgba(255, 255, 255, 0.28);
-$text-dark: rgba(20, 20, 10, 0.85);
-$text-muted: rgba(20, 20, 10, 0.50);
-$text-faint: rgba(20, 20, 10, 0.35);
+:host { display: block; }
 
-:host {
-    display: block;
-}
-
-/* ── Pagina ── */
 .generi-page {
-    min-height: 100vh;
-    padding-bottom: 100px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding-top: 100px;
-    background: var(--tropicalTheme);
+  min-height: 100vh;
+  padding-bottom: 90px;
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--tropicalTheme);
 }
 
 /* ── Hero ── */
 .generi-hero {
-    padding: 76px 40px 66px;
-    text-align: center;
+  padding: 166px 40px 36px;
+  text-align: center;
 
-    &__title {
-        font-size: clamp(2.2rem, 4.5vw, 3rem);
-        font-weight: 800;
-        color: $text-dark;
-        letter-spacing: -.02em;
-        line-height: 1.1;
-        margin: 0 0 12px;
-    }
+  &__eyebrow {
+    font-size: 11px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(80, 50, 20, .5);
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
 
-    &__sub {
-        font-size: 14px;
-        color: $text-muted;
-        max-width: 440px;
-        margin: 0 auto;
-        line-height: 1.65;
-    }
-}
+  &__title {
+    font-size: clamp(2.2rem, 4.5vw, 3rem);
+    font-weight: 800;
+    color: #2d1f0f;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    margin: 0 0 12px;
+  }
 
-// Contenitore lista
-.generi-container {
-    width: 100%;
-    max-width: 1650px; // regola qui la larghezza ideale
+  &__sub {
+    font-size: 14px;
+    color: rgba(60, 35, 10, .5);
+    max-width: 440px;
     margin: 0 auto;
-    padding-left: 5px;
-    padding-right: 5px;
+    line-height: 1.65;
+  }
 }
 
-/* ── Lista ── */
-.generi-list {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin: 0 auto;
-    padding: 0 32px;
-    //max-width: 900px; // Aggiunto un limite per pulizia visiva
+/* ── Griglia 2 colonne ── */
+.generi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 1400px;   /* più largo per riempire meglio i monitor grandi */
+  margin: 0 auto;
+  padding: 0 40px;     /* margini laterali ridotti */
 }
 
-/* ── Card (Glassmorphism evoluto) ── */
+/* ── Card ── */
 .generi-card {
-    position: relative;
-    height: 320px;
-    border-radius: 24px;
-    overflow: hidden;
-    cursor: pointer;
-    outline: none;
+  position: relative;
+  height: 145px;       /* più alta rispetto a prima (era 118px) */
+  border-radius: 22px;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, .7);
 
-    // Effetto Glassmorphism potenziato
-    background: $glass-bg;
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
+  background: rgba(255, 255, 255, .3);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 
-    transition:
-        transform .3s cubic-bezier(.22, 1, .36, 1),
-        background .3s ease,
-        box-shadow .3s ease;
+  transition:
+    transform .26s cubic-bezier(.22, 1, .36, 1),
+    box-shadow .26s ease;
 
-    /* Shimmer riflesso per dare profondità senza usare bordi */
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        background: linear-gradient(135deg,
-                rgba(255, 255, 255, 0.3) 0%,
-                rgba(255, 255, 255, 0) 40%);
-    }
-
-    &:hover,
-    &:focus {
-        transform: translateY(-5px);
-        background: $glass-hover;
-
-        // Shadow più morbida, rimosso il bordo bianco (spread 1.5px)
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-
-        .generi-card__cta {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateX(4px);
-        }
-    }
-}
-
-/* ── Immagine ── */
-.generi-card__img {
+  &::before {
+    content: '';
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
-    z-index: 1;
-    opacity: 0.85;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, .45) 0%,
+      rgba(255, 255, 255, 0)   55%
+    );
+  }
 
-    -webkit-mask-image: linear-gradient(to right,
-            black 0%,
-            black 20%,
-            transparent 80%);
-    mask-image: linear-gradient(to right,
-            black 0%,
-            black 20%,
-            transparent 80%);
+  &:hover,
+  &:focus {
+    transform: translateY(-4px) scale(1.005);
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, .13),
+      0 0 0 1.5px rgba(255, 255, 255, .9);
+
+    .generi-card__cta {
+      background: rgba(255, 255, 255, .88);
+      transform: translateX(4px);
+    }
+  }
+}
+
+/* ── Immagine con dissolve mask-image ── */
+.generi-card__img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 30%, transparent 60%);
+  mask-image:         linear-gradient(to right, black 0%, black 30%, transparent 60%);
 }
 
 /* ── Contenuto ── */
 .generi-card__body {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    padding: 0 32px 0 45%;
-    gap: 16px;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  padding: 0 26px 0 42%;
+  gap: 14px;
 }
 
-.generi-card__content {
-    flex: 1;
-}
+.generi-card__content { flex: 1; }
 
 .generi-card__count {
-    display: block;
-    //font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    //color: $text-faint;
-    margin-bottom: 6px;
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(50, 28, 8, .4);
+  margin-bottom: 5px;
 }
 
 .generi-card__nome {
-    //font-size: 24px;
-    font-weight: 800;
-    color: $text-dark;
-    letter-spacing: -.015em;
-    line-height: 1.1;
-    margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e1208;
+  letter-spacing: -.015em;
+  line-height: 1.1;
+  margin: 0 0 6px;
 }
 
 .generi-card__desc {
-    //font-size: 13.5px;
-    //color: $text-muted;
-    line-height: 1.5;
-    margin: 0;
-    max-width: 90%;
+  font-size: 12.5px;
+  color: rgba(45, 25, 5, .52);
+  line-height: 1.5;
+  margin: 0;
 }
 
-/* ── Bottone freccia ── */
+/* ── Freccia CTA ── */
 .generi-card__cta {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.4);
-    border: none; // Rimosso bordo
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: $text-dark;
-    transition: all .25s ease;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, .55);
+  border: 1.5px solid rgba(255, 255, 255, .85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #3d2008;
+  transition: background .2s, transform .22s ease;
 }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
-    .generi-list {
-        padding: 0 16px;
-        gap: 12px;
-    }
-
-    .generi-card {
-        height: 110px;
-        border-radius: 20px;
-
-        &__body {
-            padding-left: 40%;
-            padding-right: 16px;
-        }
-
-        &__nome {
-            font-size: 18px;
-        }
-
-        &__desc {
-            display: none;
-        }
-
-        &__cta {
-            width: 34px;
-            height: 34px;
-            font-size: 14px;
-        }
-    }
-
-    .generi-card__count {
-        font-size: 11px;
-    }
-
-    .generi-card__nome {
-        font-size: 24px;
-    }
+@media (max-width: 900px) {
+  .generi-grid { padding: 0 24px; gap: 14px; }
+  .generi-card { height: 130px; }
 }
 
-// OVERRIDE FOOTER
-:host ::ng-deep {
-    .footerSection {
-        background: var(--tropicalTheme) !important;
-    }
+@media (max-width: 760px) {
+  .generi-grid {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+  }
 
-    .divCentrale {
-        background: var(--tropicalThemeYellow) !important;
-    }
+  .generi-hero { padding: 40px 20px 24px; }
+
+  .generi-card {
+    height: 110px;
+    &__body { padding-left: 42%; padding-right: 16px; }
+    &__nome { font-size: 19px; }
+    &__desc { display: none; }
+    &__cta  { width: 34px; height: 34px; font-size: 15px; }
+  }
+}
+
+@media (max-width: 380px) {
+  .generi-card {
+    height: 95px;
+    &__body { padding-left: 38%; }
+    &__nome { font-size: 17px; }
+  }
+}
+
+// =============================================
+// OVERRIDE FOOTER
+// =============================================
+
+:host ::ng-deep {
+  .footerSection {
+    background: var(--tropicalTheme) !important;
+  }
+
+  .divCentrale {
+    background: var(--tropicalThemeYellow) !important;
+  }
 }
