@@ -6,6 +6,7 @@ import { Register } from './components/register/register';
 import { BookDetail } from './components/book-detail/book-detail';
 import { Generi } from './components/generi/generi';
 import { GeneriDetail } from './components/generi-detail/generi-detail';
+import { User } from './components/user/user';
 
 export const routes: Routes = [
   { path: '', component: Presentazione },
@@ -15,4 +16,5 @@ export const routes: Routes = [
   { path: 'book/:id', component: BookDetail },
   { path: 'generi', component: Generi },
   { path: 'generi/:slug',  component: GeneriDetail  },
+  { path: 'user', component: User }
 ];

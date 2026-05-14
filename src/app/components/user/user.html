@@ -1,0 +1,314 @@
+<app-navbar></app-navbar>
+
+<div class="layout">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-avatar">MR</div>
+      <div class="brand-meta">
+        <span class="brand-name">Marco Rossi</span>
+        <span class="brand-handle">&#64;marcorossi_writer</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let item of navItems"
+        class="nav-btn"
+        [class.nav-btn--active]="activeSection() === item.id"
+        (click)="setSection(item.id)"
+      >
+        <span class="nav-btn__icon">{{ item.icon }}</span>
+        <span class="nav-btn__label">{{ item.label }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-stat">
+        <strong>142</strong>
+        <span>Seguiti</span>
+      </div>
+      <div class="sidebar-stat">
+        <strong>89</strong>
+        <span>Seguaci</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <!-- ── PROFILO ── -->
+    <section class="section" *ngIf="activeSection() === 'profilo'">
+      <!-- Hero: immagine + sfumatura come pagina libro -->
+      <div class="profile-hero">
+        <div class="profile-hero__bg"></div>
+        <div class="profile-hero__fade"></div>
+        <div class="profile-hero__content">
+          <div class="profile-avatar">MR</div>
+          <h1 class="profile-hero__name">Marco Rossi</h1>
+          <p class="profile-hero__handle">&#64;marcorossi_writer</p>
+          <div class="profile-hero__tags">
+            <span class="tag">Horror</span>
+            <span class="tag">Fantasy</span>
+            <span class="tag">Thriller</span>
+            <span class="tag">Racconti</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats bar glassmorphism (come la pagina libro) -->
+      <div class="stats-bar glass">
+        <div class="stats-bar__item">
+          <span class="stars">★★★★<span class="star-empty">★</span></span>
+          <span class="stats-bar__sub">4.8 / 5.0</span>
+        </div>
+        <div class="stats-bar__divider"></div>
+        <div class="stats-bar__item">
+          <strong>1.2k</strong>
+          <span class="stats-bar__sub">lettori</span>
+        </div>
+        <div class="stats-bar__divider"></div>
+        <div class="stats-bar__item">
+          <strong>3</strong>
+          <span class="stats-bar__sub">storie</span>
+        </div>
+        <div class="stats-bar__divider"></div>
+        <div class="stats-bar__item">
+          <strong>234</strong>
+          <span class="stats-bar__sub">mi piace</span>
+        </div>
+      </div>
+
+      <!-- Bio e dettagli -->
+      <div class="profile-body">
+        <p class="profile-bio">
+          Appassionato di narrativa horror e fantasy. Scrivo storie dal 2018 e amo esplorare i confini
+          tra reale e immaginario. Attualmente sto lavorando alla mia prima raccolta di racconti brevi. ☕📚
+        </p>
+        <div class="profile-meta-row">
+          <span>📍 Milano, Italia</span>
+          <span>📅 Iscritto a Marzo 2021</span>
+          <span>🌐 marcorossi.it</span>
+        </div>
+        <div class="activity-grid">
+          <div class="activity-card glass">
+            <span class="activity-card__label">Ultima attività</span>
+            <span class="activity-card__val">Oggi, 14:32</span>
+            <span class="activity-card__sub">Cap. 8 di <em>Ombre nell'Alba</em></span>
+          </div>
+          <div class="activity-card glass">
+            <span class="activity-card__label">Livello scrittore</span>
+            <span class="activity-card__val">⭐ Pro</span>
+            <span class="activity-card__badge">Top 15% community</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MI PIACE ── -->
+    <section class="section section--padded" *ngIf="activeSection() === 'mipiace'">
+      <h2 class="section-title">Mi piace</h2>
+      <p class="section-sub">I libri che hai apprezzato con un cuore ❤️</p>
+      <div class="books-grid">
+        <div class="book-card glass" *ngFor="let book of likedBooks">
+          <div class="book-card__cover" [style.background]="book.coverGradient">
+            {{ book.coverEmoji }}
+          </div>
+          <div class="book-card__info">
+            <span class="book-card__title">{{ book.title }}</span>
+            <span class="book-card__author">{{ book.author }}</span>
+            <span class="book-card__stat">❤️ {{ book.likes }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PREFERITI ── -->
+    <section class="section section--padded" *ngIf="activeSection() === 'preferiti'">
+      <h2 class="section-title">Preferiti</h2>
+      <p class="section-sub">Le letture salvate a cui tieni di più 🔖</p>
+      <div class="books-grid">
+        <div class="book-card glass" *ngFor="let book of favoriteBooks">
+          <div class="book-card__cover" [style.background]="book.coverGradient">
+            {{ book.coverEmoji }}
+          </div>
+          <div class="book-card__info">
+            <span class="book-card__title">{{ book.title }}</span>
+            <span class="book-card__author">{{ book.author }}</span>
+            <ng-container *ngIf="book.completed; else progressTpl">
+              <span class="book-card__done">✓ Completato</span>
+            </ng-container>
+            <ng-template #progressTpl>
+              <div class="progress-wrap">
+                <div class="progress-bar" [style.width.%]="book.progress"></div>
+              </div>
+              <span class="book-card__stat">{{ book.progress }}% letto</span>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AUTORI SEGUITI ── -->
+    <section class="section section--padded" *ngIf="activeSection() === 'autori'">
+      <h2 class="section-title">Autori seguiti</h2>
+      <p class="section-sub">Gli scrittori di cui non vuoi perdere gli aggiornamenti ✍️</p>
+      <div class="authors-list">
+        <div class="author-card glass" *ngFor="let author of followedAuthors">
+          <div class="author-card__avatar" [style.background]="author.avatarGradient">
+            {{ author.initials }}
+          </div>
+          <div class="author-card__body">
+            <span class="author-card__name">{{ author.name }}</span>
+            <span class="author-card__desc">{{ author.description }}</span>
+          </div>
+          <div class="author-card__stories">
+            <strong>{{ author.stories }}</strong>
+            <span>storie</span>
+          </div>
+          <button
+            class="follow-btn"
+            [class.follow-btn--active]="author.following"
+            (click)="toggleFollow(author)"
+          >
+            {{ author.following ? '✓ Seguendo' : '+ Segui' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── IMPOSTAZIONI ── -->
+    <section class="section section--padded" *ngIf="activeSection() === 'impostazioni'">
+      <h2 class="section-title">Impostazioni</h2>
+      <p class="section-sub">Gestisci il tuo account e le preferenze ⚙️</p>
+
+      <div class="settings-stack">
+
+        <!-- Info personali -->
+        <div class="settings-card glass">
+          <h3 class="settings-card__title">Informazioni personali</h3>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Nome utente</span>
+              <small>Il tuo nome visualizzato sulla piattaforma</small>
+            </div>
+            <input class="setting-input" type="text" [(ngModel)]="settings.nome" />
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Handle</span>
+              <small>Il tuo &#64;identificativo univoco</small>
+            </div>
+            <input class="setting-input" type="text" [(ngModel)]="settings.handle" />
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Email</span>
+              <small>Email associata all'account</small>
+            </div>
+            <input class="setting-input" type="email" [(ngModel)]="settings.email" />
+          </div>
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Posizione</span>
+              <small>Città o paese (facoltativo)</small>
+            </div>
+            <input class="setting-input" type="text" [(ngModel)]="settings.posizione" />
+          </div>
+        </div>
+
+        <!-- Notifiche -->
+        <div class="settings-card glass">
+          <h3 class="settings-card__title">Notifiche</h3>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Nuovi commenti</span>
+              <small>Ricevi notifiche per i commenti alle tue storie</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.commenti" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Nuovi seguaci</span>
+              <small>Avviso quando qualcuno inizia a seguirti</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.seguaci" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Aggiornamenti storie</span>
+              <small>Notifica quando gli autori seguiti pubblicano</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Newsletter ABCStories</span>
+              <small>Ricevi i consigli di lettura mensili</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.newsletter" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Privacy -->
+        <div class="settings-card glass">
+          <h3 class="settings-card__title">Privacy</h3>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Profilo pubblico</span>
+              <small>Il tuo profilo è visibile a tutti gli utenti</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.privacy.profiloPubblico" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Mostra libreria</span>
+              <small>Rendi visibili i tuoi libri preferiti</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.privacy.mostraLibreria" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Indicizza su motori di ricerca</span>
+              <small>Consenti a Google di indicizzare il tuo profilo</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.privacy.indicizza" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="settings-actions">
+          <button class="btn-save" (click)="saveSettings()">
+            {{ savedFeedback ? '✅ Salvato!' : '💾 Salva modifiche' }}
+          </button>
+          <button class="btn-danger">🗑️ Elimina account</button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>

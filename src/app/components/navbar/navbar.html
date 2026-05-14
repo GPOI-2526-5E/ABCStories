@@ -196,7 +196,7 @@
           <span class="nav-notif-dot"></span>
         </button>
 
-        <button class="nav-icon-btn" title="Profilo">
+        <button class="nav-icon-btn" title="Profilo" (click)="onUserClick()">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="1.5">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -227,7 +227,7 @@
       <!-- Icone utente/notifica visibili solo da loggato (sopra il drawer) -->
       @if (authService.isLoggedIn()) {
       <div class="mn-auth-icons">
-        <button class="mn-icon-btn" title="Profilo">
+        <button class="mn-icon-btn" title="Profilo" (click)="onUserClick()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="1.5">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

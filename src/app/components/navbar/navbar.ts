@@ -24,6 +24,10 @@ export class Navbar implements AfterViewInit {
     this.router.navigate(['/']);
   }
 
+  onUserClick(): void {
+    this.router.navigate(['/user']);
+  }
+
   // ── Mobile nav state ─────────────────────────────────────────────
   private activeMobileGenre: string | null = null;
   mobileNavOpen = false;
