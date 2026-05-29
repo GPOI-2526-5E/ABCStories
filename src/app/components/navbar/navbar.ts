@@ -4,8 +4,10 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, NgForOf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { Api } from '../../services/api';
+import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-navbar',
@@ -13,7 +15,8 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar implements AfterViewInit {
+export class Navbar implements AfterViewInit, OnInit {
+  users: any[] = [];
 
   // ── Auth ─────────────────────────────────────────────────────────
   authService = inject(AuthService);
@@ -33,7 +36,14 @@ export class Navbar implements AfterViewInit {
   mobileNavOpen = false;
   mobileGenresOpen = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private api: Api) { }
+
+  ngOnInit(): void {
+    this.api.getUsers().subscribe((data: any) => {
+      this.users = data;
+      console.log(this.users);
+    });
+  }
 
   // ── Slider desktop (invariato) ────────────────────────────────────
   ngAfterViewInit(): void {

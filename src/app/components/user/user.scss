@@ -36,7 +36,7 @@ $muted: #7a5a38;
   flex-direction: column;
   z-index: 100;
   padding-top: 100px;
-  
+
   background: var(--tropicalThemeYellow) !important;
   @include glass(0.40, 28px, 0.55);
   border-right: 1.5px solid rgba(255, 255, 255, 0.55);

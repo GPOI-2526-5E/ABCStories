@@ -2,8 +2,9 @@ import { Injectable, signal, computed, Inject, PLATFORM_ID } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 
 export interface AuthUser {
+  id: string;
   email: string;
-  username?: string;
+  username: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,8 +25,7 @@ export class AuthService {
     }
   }
 
-  login(email: string, username?: string): void {
-    const user: AuthUser = { email, username };
+  login(user: AuthUser): void {
     this._user.set(user);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));

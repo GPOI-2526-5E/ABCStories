@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { Api } from '../../services/api';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,7 @@ import { AuthService } from '../../services/auth.service';
 })
 
 export class Login implements AfterViewInit {
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router, private authService: AuthService) { }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router, private authService: AuthService, private api: Api) { }
 
   private readonly validEmail = 'a@a.com';
   private readonly validPassword = 'a';
@@ -56,15 +57,21 @@ export class Login implements AfterViewInit {
     }
   }
 
+
   onLogin(event: Event) {
     event.preventDefault();
 
-    if (this.email === this.validEmail && this.password === this.validPassword) {
-      this.authService.login(this.email); // ← AGGIUNTO (era solo router.navigate)
-      this.router.navigate(['/home']);
-      console.log("ok");
-    } else {
-      alert('Email o password errati');
-    }
+    this.api.login(this.email, this.password).subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          this.authService.login(response.user);
+          this.router.navigate(['/home']);
+        }
+      },
+      error: (error: any) => {
+        console.error('Login failed:', error);
+        alert('Email o password errati');
+      }
+    });
   }
 }

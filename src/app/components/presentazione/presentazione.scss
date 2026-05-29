@@ -60,7 +60,7 @@ h1 {
   overflow: hidden;
   width: 100%;
 
-  
+
 }
 
 .cont1 {
@@ -188,10 +188,15 @@ h1 {
 .contDiv1 {
   padding-top: 25vh !important;
   padding-bottom: 25vh !important;
+  background-image: url("/assets/Pippi/1.png");
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
 }
 
 .contDiv2 {
   @extend .contDiv1;
+  background-image: none;
 }
 
 .contDiv3 {

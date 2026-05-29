@@ -5,10 +5,10 @@
   <!-- ═══════════════ SIDEBAR ═══════════════ -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-avatar">MR</div>
+      <div class="brand-avatar">{{ userInitials() }}</div>
       <div class="brand-meta">
-        <span class="brand-name">Marco Rossi</span>
-        <span class="brand-handle">&#64;marcorossi_writer</span>
+        <span class="brand-name">{{ currentUser()?.username }}</span>
+        <span class="brand-handle">{{ currentUser()?.email }}</span>
       </div>
     </div>
 
@@ -46,9 +46,9 @@
         <div class="profile-hero__bg"></div>
         <div class="profile-hero__fade"></div>
         <div class="profile-hero__content">
-          <div class="profile-avatar">MR</div>
-          <h1 class="profile-hero__name">Marco Rossi</h1>
-          <p class="profile-hero__handle">&#64;marcorossi_writer</p>
+          <div class="profile-avatar">{{ userInitials() }}</div>
+          <h1 class="profile-hero__name">{{ currentUser()?.username }}</h1>
+          <p class="profile-hero__handle">{{ currentUser()?.email }}</p>
           <div class="profile-hero__tags">
             <span class="tag">Horror</span>
             <span class="tag">Fantasy</span>

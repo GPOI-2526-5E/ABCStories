@@ -7,14 +7,16 @@ import { BookDetail } from './components/book-detail/book-detail';
 import { Generi } from './components/generi/generi';
 import { GeneriDetail } from './components/generi-detail/generi-detail';
 import { User } from './components/user/user';
+import { authGuard } from './services/auth.guard';
+import { guestGuard } from './services/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: Presentazione },
-  { path: 'login', component: Login },
-  { path: 'home', component: Home },
-  { path: 'register', component: Register },
-  { path: 'book/:id', component: BookDetail },
-  { path: 'generi', component: Generi },
-  { path: 'generi/:slug',  component: GeneriDetail  },
-  { path: 'user', component: User }
+  { path: '',        component: Presentazione, canActivate: [guestGuard] },
+  { path: 'login',   component: Login,         canActivate: [guestGuard] },
+  { path: 'register',component: Register,      canActivate: [guestGuard] },
+  { path: 'home',    component: Home,          canActivate: [authGuard]  },
+  { path: 'book/:id',        component: BookDetail,    canActivate: [authGuard] },
+  { path: 'generi',          component: Generi,        canActivate: [authGuard] },
+  { path: 'generi/:slug',    component: GeneriDetail,  canActivate: [authGuard] },
+  { path: 'user',            component: User,          canActivate: [authGuard] },
 ];

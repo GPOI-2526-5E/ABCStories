@@ -3,7 +3,7 @@
 
     <!-- Colonna sinistra  -->
     <div class="col-md-6 d-flex justify-content-center align-items-start animate-left col-scrollable"
-         style="height: 100vh; overflow-y: auto;">
+      style="height: 100vh; overflow-y: auto;">
       <div class="w-75" style="max-width: 500px; padding: 2rem 0;">
         <div class="d-flex justify-content-center align-items-center mb-4 logo-wrapper mt-5">
           <a [routerLink]="['/']">
@@ -17,30 +17,42 @@
           Entra a far parte della nostra famiglia. Milioni di storie e utenti ti stanno aspettando.
         </p>
 
-        <form class="w-100 form-wrapper" (ngSubmit)="onRegister($event)">
-          <div class="inputGroup mb-3">
-            <input type="text" required autocomplete="off" id="email" name="email">
-            <label for="email">Inserisci la tua email</label>
+        <form class="w-100 form-wrapper" (ngSubmit)="onRegister($event)" novalidate>
+
+          <div class="mb-3">
+            <div class="inputGroup">
+              <input type="text" autocomplete="off" id="email" name="email" [(ngModel)]="email">
+              <label for="email">Inserisci la tua email</label>
+            </div>
+            <div *ngIf="errors['email']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['email'] }}</div>
           </div>
-          <div class="inputGroup mb-3">
-            <input type="text" required autocomplete="off" id="username" name="username">
-            <label for="username">Inserisci il tuo nome utente</label>
+
+          <div class="mb-3">
+            <div class="inputGroup">
+              <input type="text" autocomplete="off" id="username" name="username" [(ngModel)]="username">
+              <label for="username">Inserisci il tuo nome utente</label>
+            </div>
+            <div *ngIf="errors['username']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['username'] }}
+            </div>
           </div>
-          <div class="inputGroup mb-3">
-            <input type="number" required autocomplete="off" id="telefono" name="telefono">
-            <label for="telefono">Inserisci il tuo numero di telefono</label>
+
+          <div class="mb-3">
+            <div class="inputGroup">
+              <input type="password" autocomplete="off" id="password" name="password" [(ngModel)]="password">
+              <label for="password">Inserisci una password</label>
+            </div>
+            <div *ngIf="errors['password']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['password'] }}
+            </div>
           </div>
-          <div class="inputGroup mb-3">
-            <input type="text" required autocomplete="off" id="dataNascita" name="dataNascita">
-            <label for="dataNascita">Inserisci la tua data di nascita</label>
-          </div>
-          <div class="inputGroup mb-3">
-            <input type="password" required autocomplete="off" id="password" name="password">
-            <label for="password">Inserisci una password</label>
-          </div>
-          <div class="inputGroup mb-3">
-            <input type="password" required autocomplete="off" id="confirm-password" name="confirm-password">
-            <label for="confirm-password">Ripeti la password</label>
+
+          <div class="mb-3">
+            <div class="inputGroup">
+              <input type="password" autocomplete="off" id="confirm-password" name="confirmPassword"
+                [(ngModel)]="confirmPassword">
+              <label for="confirm-password">Ripeti la password</label>
+            </div>
+            <div *ngIf="errors['confirmPassword']" class="text-danger small mt-1 ps-1 animate-fade-in">{{
+              errors['confirmPassword'] }}</div>
           </div>
 
           <button class="btnCont5 mt-3 w-100 submit-btn" type="submit">Registrati</button>
@@ -51,7 +63,7 @@
             <span></span>
           </div>
 
-          <button class="btnCont3 w-100 d-flex align-items-center justify-content-center google-btn" type="submit">
+          <button class="btnCont3 w-100 d-flex align-items-center justify-content-center google-btn" type="button">
             <span class="me-2">
               <img src="assets/Icone/google.png" alt="" height="25px">
             </span>
@@ -66,11 +78,9 @@
       </div>
     </div>
 
-    <div class="col-md-6 d-none d-md-block animate-right"
-         style="height: 100vh; position: relative;">
-      <img src="assets/Presentazione/provaRegister.jpg"
-           alt="Preview" class="w-100 h-100 object-fit-cover image-right"
-           style="position: sticky; top: 0;">
+    <div class="col-md-6 d-none d-md-block animate-right" style="height: 100vh; position: relative;">
+      <img src="assets/Presentazione/provaRegister.jpg" alt="Preview" class="w-100 h-100 object-fit-cover image-right"
+        style="position: sticky; top: 0;">
     </div>
 
   </div>
