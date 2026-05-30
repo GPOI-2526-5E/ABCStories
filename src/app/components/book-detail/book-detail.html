@@ -18,8 +18,11 @@
         <h1>{{ book.title }}</h1>
         <p class="detail-author">{{ book.author }}</p>
         <p class="detail-desc">{{ book.desc }}</p>
-        <button class="btnContGlass mt-4 fade-button">
-          Inizia a Leggere
+        <button class="btnContGlass mt-4 fade-button" (click)="startReading()">
+          {{ readButtonLabel }}
+          @if (overallProgress > 0 && overallProgress < 100) {
+            <span class="read-progress-badge">{{ overallProgress }}%</span>
+          }
         </button>
       </div>
 
@@ -28,13 +31,11 @@
     <div class="detail-stats">
       <div class="stat-item">
         <div class="stars">
-          <span class="star filled">★</span>
-          <span class="star filled">★</span>
-          <span class="star filled">★</span>
-          <span class="star filled">★</span>
-          <span class="star">★</span>
+          @for (s of getStars(book.rating); track $index) {
+          <span class="star" [class.filled]="s === 'filled'">★</span>
+          }
         </div>
-        <span class="stat-label">4.0 / 5.0</span>
+        <span class="stat-label">{{ book.rating ? (book.rating | number:'1.1-1') : 'N/A' }} / 5.0</span>
       </div>
 
       <div class="stat-divider"></div>
@@ -46,7 +47,7 @@
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
-        <span class="stat-value">12.4k</span>
+        <span class="stat-value">{{ book.readers || 0 }}</span>
         <span class="stat-label">lettori</span>
       </div>
 
@@ -57,7 +58,7 @@
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         </svg>
-        <span class="stat-value">24</span>
+        <span class="stat-value">{{ book.chaptersCount || chapters.length || 0 }}</span>
         <span class="stat-label">capitoli</span>
       </div>
     </div>
@@ -83,7 +84,7 @@
               </svg>
               Genere
             </span>
-            <span class="dd-detail-value">{{ book?.genre || 'Distopico, Politico' }}</span>
+            <span class="dd-detail-value">{{ book?.genre || book?.tag || 'Romanzo' }}</span>
           </div>
 
           <div class="dd-detail-item">
@@ -96,7 +97,7 @@
               </svg>
               Lunghezza
             </span>
-            <span class="dd-detail-value">{{ book?.pages || '328' }} pagine</span>
+            <span class="dd-detail-value">{{ book?.pages || 'N/A' }} pagine</span>
           </div>
 
           <div class="dd-detail-item">
@@ -107,9 +108,9 @@
                 <line x1="8" y1="2" x2="8" y2="6" />
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
-              Edizione
+              Anno
             </span>
-            <span class="dd-detail-value">{{ book?.year || '2009' }}</span>
+            <span class="dd-detail-value">{{ book?.year || 'N/A' }}</span>
           </div>
 
           <div class="dd-detail-item">
@@ -132,14 +133,15 @@
     <!-- CAPITOLI -->
     <section class="dd-section">
       <h2 class="text-center mb-4">Capitoli</h2>
+      @if (chapters.length > 0) {
       <div class="dd-chapters-grid">
-        @for (chapter of visibleChapters; track chapter.num) {
-        <div class="dd-chapter-card">
+        @for (chapter of visibleChapters; track chapter.id) {
+        <div class="dd-chapter-card" (click)="goToChapter(chapter.id)">
           <div class="dd-chapter-img-wrap">
-            <img [src]="chapter.img" [alt]="chapter.title" class="dd-chapter-img" />
+            <img [src]="book?.img || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80'" [alt]="chapter.title" class="dd-chapter-img" />
           </div>
           <div class="dd-chapter-body">
-            <div class="dd-chapter-num">{{ chapter.num }}</div>
+            <div class="dd-chapter-num">{{ chapter.order_index }}</div>
             <div class="dd-chapter-name">{{ chapter.title }}</div>
           </div>
         </div>
@@ -151,6 +153,9 @@
           <polyline [attr.points]="showAllChapters ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
         </svg>
       </button>
+      } @else {
+      <p class="text-center" style="color: var(--muted)">Capitoli in caricamento...</p>
+      }
     </section>
 
     <hr class="dd-divider">

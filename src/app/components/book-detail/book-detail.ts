@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
@@ -6,6 +6,8 @@ import { BookSlider } from '../book-slider/book-slider';
 import { FormsModule } from '@angular/forms';
 import { Footer } from '../footer/footer';
 import { BookService } from '../../services/book';
+import { BOOK_UUID_MAP } from '../../services/book-uuid-map';
+import { Api } from '../../services/api';
 
 export interface Reply {
   id: string;
@@ -43,6 +45,10 @@ const VISIBLE_STEP = 4;
 
 export class BookDetail implements OnInit {
   book: any = null;
+  chapters: any[] = [];
+  readingProgress: any[] = []; // progresso per capitolo
+  firstUnreadChapter: any = null;  // capitolo da cui riprendere
+  overallProgress = 0; // % totale lettura
 
   booksD = [
     { id: 34, title: 'Orgoglio e Pregiudizio', author: 'Jane Austen', desc: 'Elizabeth Bennet e Mr. Darcy si scontrano tra pregiudizi sociali e orgoglio ferito, in un romanzo che ha definito il genere sentimentale moderno.', img: '/assets/Presentazione/romance/romance1.jpg', liked: false, bookmarked: false },
@@ -222,39 +228,150 @@ export class BookDetail implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookService: BookService,
+    private api: Api,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
+  /** Mappa un oggetto storia dal DB nel formato usato dal template */
+  private mapDbBook(s: any): any {
+    return {
+      id: s.id,
+      title: s.title ?? '',
+      author: s.author_name ?? s.author_id ?? 'Autore sconosciuto',
+      desc: s.description ?? s.desc ?? '',
+      img: s.image_url ?? s.img ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
+      genre: s.genre ?? '',
+      tag: s.tag ?? s.genre ?? '',
+      pages: s.pages ?? 0,
+      year: s.release_year ?? s.year ?? 0,
+      rating: s.rating ? parseFloat(s.rating) : 0,
+      readers: s.readers_count ? String(s.readers_count) : (s.readers ?? '0'),
+      chaptersCount: s.chapters_count ?? s.chaptersCount ?? 0,
+      liked: s.liked ?? false,
+      bookmarked: s.bookmarked ?? false,
+    };
+  }
+
   ngOnInit(): void {
+    // Map booksD ids to UUIDs
+    if (this.booksD) {
+      this.booksD.forEach(book => {
+        const uuid = BOOK_UUID_MAP[book.title.toLowerCase().trim()];
+        if (uuid) {
+          book.id = uuid as any;
+        }
+      });
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
 
-    if (id) {
-      this.book = this.bookService.getById(id);
+    // Pre-caricamento ottimistico: mostra subito il libro dallo state se disponibile
+    // (es. click da slider) — ma chiamiamo SEMPRE l'API per sicurezza
+    const navState = isPlatformBrowser(this.platformId)
+      ? (history.state as any)?.book
+      : null;
+
+    if (navState && navState.id) {
+      // Mostra subito il libro dallo state mentre l'API carica
+      this.book = this.mapDbBook(navState);
+    }
+
+    // Chiama sempre l'API con l'UUID nell'URL
+    const storyId = id ?? navState?.id;
+    if (storyId) {
+      this.api.getStory(storyId).subscribe({
+        next: (story) => {
+          if (story) {
+            this.book = this.mapDbBook(story);
+          } else if (!this.book) {
+            this.book = this.bookService.getById(storyId);
+          }
+          this.cdr.detectChanges();
+          this.loadChaptersAndProgress(storyId);
+        },
+        error: (err) => {
+          console.error("Errore fetch storia:", err);
+          if (!this.book) {
+            this.book = this.bookService.getById(storyId);
+            this.cdr.detectChanges();
+          }
+          this.loadChaptersAndProgress(storyId);
+        }
+      });
     }
 
     if (isPlatformBrowser(this.platformId)) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
+  }
+
+  /** Carica capitoli e progresso di lettura */
+  private loadChaptersAndProgress(storyId: string): void {
+    this.api.getChapters(storyId).subscribe({
+      next: (chapters) => {
+        this.chapters = chapters;
+        const user = (this as any).auth?.currentUser?.() ||
+          JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+        if (user) {
+          this.api.getReadingProgress(user.id, storyId).subscribe({
+            next: (prog) => {
+              this.readingProgress = prog;
+              // Calcola % globale
+              if (prog.length > 0 && chapters.length > 0) {
+                const total = prog.reduce((s: number, p: any) => s + p.progress_pct, 0);
+                this.overallProgress = Math.round(total / chapters.length);
+              }
+              // Trova il primo capitolo non completato (< 100%)
+              const readMap = new Map(prog.map((p: any) => [p.chapter_id, p.progress_pct]));
+              this.firstUnreadChapter = chapters.find(
+                c => !readMap.has(c.id) || (readMap.get(c.id) ?? 0) < 100
+              ) ?? chapters[0];
+              this.cdr.detectChanges();
+            }
+          });
+        } else {
+          this.firstUnreadChapter = chapters[0] ?? null;
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  }
+
+  /** Naviga al Reader */
+  startReading(): void {
+    if (!this.book?.id) return;
+    const chapter = this.firstUnreadChapter ?? this.chapters[0];
+    if (!chapter) return;
+    // Registra visualizzazione
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    this.api.recordView(this.book.id, user?.id).subscribe();
+    this.router.navigate(['/reader', this.book.id, chapter.id]);
+  }
+
+  goToChapter(chapterId: string): void {
+    if (!this.book?.id || !chapterId) return;
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    this.api.recordView(this.book.id, user?.id).subscribe();
+    this.router.navigate(['/reader', this.book.id, chapterId]);
+  }
+
+  /** Label dinamica del bottone */
+  get readButtonLabel(): string {
+    if (!this.chapters.length) return 'Inizia a Leggere';
+    if (this.overallProgress > 0 && this.overallProgress < 100) {
+      return `Continua a Leggere (${this.overallProgress}%)`;
+    }
+    if (this.overallProgress >= 100) return 'Rileggi';
+    return 'Inizia a Leggere';
   }
 
   goBack() {
     this.router.navigate(['/home']);
   }
 
-  chapters = [
-    { num: 1, title: 'Introduzione', img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80' },
-    { num: 2, title: 'Fondamenti', img: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80' },
-    { num: 3, title: 'Struttura', img: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400&q=80' },
-    { num: 4, title: 'Approfondimento', img: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=80' },
-    { num: 5, title: 'Esempi pratici', img: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80' },
-    { num: 6, title: 'Conclusione', img: 'https://images.unsplash.com/photo-1471970471555-19d4b113e9ed?w=400&q=80' },
-    { num: 7, title: 'Analisi critica', img: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80' },
-    { num: 8, title: 'Note finali', img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&q=80' },
-  ];
+  // La lista capitoli è caricata dall'API in loadChaptersAndProgress()
+  // La vecchia lista statica è stata rimossa
 
   reviews = [
     { name: 'Luca', rating: 5, text: 'Un classico imperdibile, attuale e inquietante.' },
@@ -282,6 +399,7 @@ export class BookDetail implements OnInit {
   showAllReviews = false;
 
   get visibleChapters() {
+    // Usa i capitoli dall'API se disponibili, altrimenti array vuoto
     return this.showAllChapters ? this.chapters : this.chapters.slice(0, 4);
   }
 

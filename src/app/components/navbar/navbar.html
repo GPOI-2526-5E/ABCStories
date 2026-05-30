@@ -51,7 +51,7 @@
                     </div>
                     <hr class="dropdown-divider" />
                     <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <a [routerLink]="['/generi', 'horror']" style="text-decoration: none; color:black;"
+                      <a [routerLink]="['/generi', 'horror']" style="text-decoration: none; color: var(--text-primary);"
                         class="link arrow">
                         Esplora il catalogo <i class="bi bi-arrow-right"></i>
                       </a>
@@ -79,7 +79,7 @@
                     </div>
                     <hr class="dropdown-divider" />
                     <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <a [routerLink]="['/generi', 'western']" style="text-decoration: none; color:black;"
+                      <a [routerLink]="['/generi', 'western']" style="text-decoration: none; color: var(--text-primary);"
                         class="link arrow">
                         Esplora il catalogo <i class="bi bi-arrow-right"></i>
                       </a>
@@ -168,7 +168,7 @@
         <!-- Barra di ricerca — sempre visibile -->
         <div class="container-input me-2">
           <input type="text" placeholder="Search" name="text" class="input" />
-          <svg fill="#000000" width="20px" height="20px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+          <svg style="fill: var(--text-primary);" width="20px" height="20px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
             <path d="M790.588 1468.235c-373.722 0-677.647-303.924-677.647-677.647
               0-373.722 303.925-677.647 677.647-677.647 373.723 0 677.647 303.925
               677.647 677.647 0 373.723-303.924 677.647-677.647 677.647Zm596.781-160.715
@@ -181,10 +181,10 @@
 
         <!-- NON loggato: testo Login + Registrati -->
         @if (!authService.isLoggedIn()) {
-        <a [routerLink]="['/register']" class="text-decoration-none text-black link"
-          style="padding: 8px;"><span>Registrati</span></a>
-        <a [routerLink]="['/login']" class="text-decoration-none text-black link"
-          style="padding: 8px;"><span>Login</span></a>
+        <a [routerLink]="['/register']" class="text-decoration-none link"
+          style="padding: 8px; color: var(--text-primary);"><span>Registrati</span></a>
+        <a [routerLink]="['/login']" class="text-decoration-none link"
+          style="padding: 8px; color: var(--text-primary);"><span>Login</span></a>
         }
 
         <!-- Loggato: icona utente + campanella (logout) + pulsante Scrivi -->
@@ -267,9 +267,9 @@
 
         <!-- Search -->
         <div class="mn-search">
-          <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-            <circle cx="8.5" cy="8.5" r="5.5" stroke="#555" stroke-width="1.8" />
-            <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#555" stroke-width="1.8" stroke-linecap="round" />
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style="color: var(--text-muted);">
+            <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8" />
+            <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg>
           <input type="text" placeholder="Cerca libri, autori..." />
         </div>

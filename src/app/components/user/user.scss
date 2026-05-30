@@ -6,17 +6,17 @@ $sidebar-w: 220px;
 $accent: #e8a030;
 $accent2: #5bbf8a;
 $danger: #e05050;
-$text: #2a1a08;
-$muted: #7a5a38;
+$text: var(--text-primary);
+$muted: var(--text-muted);
 
 // ─── Glassmorphism mixin ──────────────────────────────────
 @mixin glass($alpha: 0.45, $blur: 22px, $border-alpha: 0.75) {
-  background: rgba(255, 255, 255, $alpha);
+  background: rgba(var(--glass-rgb), $alpha);
   backdrop-filter: blur($blur) saturate(160%);
   -webkit-backdrop-filter: blur($blur) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, $border-alpha);
-  box-shadow: 0 8px 32px rgba(120, 60, 10, 0.14),
-              inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(var(--glass-border-rgb), $border-alpha);
+  box-shadow: var(--glass-shadow),
+              inset 0 1px 0 rgba(var(--glass-rgb), 0.6);
 }
 
 // ─── Layout root ─────────────────────────────────────────
@@ -361,7 +361,7 @@ $muted: #7a5a38;
 .profile-bio {
   font-size: 15px;
   line-height: 1.7;
-  color: darken($muted, 10%);
+  color: var(--text-muted-dark);
   max-width: 560px;
   margin-bottom: 18px;
 }
@@ -452,6 +452,64 @@ $muted: #7a5a38;
     align-items: center;
     justify-content: center;
     font-size: 42px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .action-icon {
+    position: absolute;
+    bottom: 12px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 5;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+    }
+
+    &:hover {
+      transform: scale(1.15);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    &.active {
+      background: white;
+      svg {
+        stroke-width: 0;
+      }
+    }
+  }
+
+  .bookmark-icon {
+    left: 12px;
+    &.active svg {
+      fill: #f1c40f;
+    }
+  }
+
+  .heart-icon {
+    right: 12px;
+    &.active svg {
+      fill: #e74c3c;
+    }
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   &__info {
@@ -756,4 +814,14 @@ $muted: #7a5a38;
   transition: background 0.18s;
 
   &:hover { background: rgba(224,80,80,0.22); }
+}
+
+// Empty state
+.empty-state {
+  text-align: center;
+  font-size: 15px;
+  color: $muted;
+  padding: 48px 24px;
+  line-height: 1.7;
+  opacity: 0.75;
 }

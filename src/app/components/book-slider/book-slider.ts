@@ -1,7 +1,8 @@
-import { Component, Input, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, HostListener, ViewChild, ElementRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Book } from '../../services/book';
+import { InteractionsService } from '../../services/interactions.service';
 
 @Component({
   selector: 'app-book-slider',
@@ -9,12 +10,14 @@ import { Book } from '../../services/book';
   templateUrl: './book-slider.html',
   styleUrl: './book-slider.scss',
 })
-export class BookSlider {
+export class BookSlider implements OnInit {
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() books: any[] = [];
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
+
+  readonly interactions = inject(InteractionsService);
 
   canScrollLeft = false;
   canScrollRight = true;
@@ -24,6 +27,12 @@ export class BookSlider {
   currentIndex = 0;
 
   constructor(private router: Router) { }
+
+  ngOnInit(): void {
+    // Avvia il caricamento delle interazioni (se non già fatto).
+    // Ora è idempotente e non usa setTimeout.
+    this.interactions.loadUserInteractions().subscribe();
+  }
 
   onBookClick(book: any, index: number) {
     this.router.navigate(
@@ -74,6 +83,15 @@ export class BookSlider {
     else this.prev();
   }
 
-  toggleLike(book: any) { book.liked = !book.liked; }
-  toggleBookmark(book: any) { book.bookmarked = !book.bookmarked; }
+  toggleLike(book: any) {
+    if (book.id) {
+      this.interactions.toggleLike(book.id);
+    }
+  }
+
+  toggleBookmark(book: any) {
+    if (book.id) {
+      this.interactions.toggleBookmark(book.id);
+    }
+  }
 }

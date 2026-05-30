@@ -13,11 +13,17 @@ body {
 * {
   font-family: 'Roboto', sans-serif;
   letter-spacing: 0.8px;
+  transition: background-color 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body {
   min-height: 100vh;
   background-color: var(--pastelThemeWhite) !important;
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  color: var(--text-primary);
 }
 
 .default { // classe di default per i temi

@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,8 @@ import { Book } from '../../services/book';
 import { Navbar } from '../navbar/navbar';
 import { Router } from '@angular/router';
 import { Footer } from '../footer/footer';
+import { InteractionsService } from '../../services/interactions.service';
+import { Api } from '../../services/api';
 
 interface GenereInfo {
   nome: string;
@@ -103,11 +105,17 @@ export class GeneriDetail implements OnInit {
   toggleBookmark(book: Book, event: Event): void {
     event.stopPropagation();
     book.bookmarked = !book.bookmarked;
+    if (book.id) {
+      this.interactions.toggleBookmark(String(book.id));
+    }
   }
 
   toggleLike(book: Book, event: Event): void {
     event.stopPropagation();
     book.liked = !book.liked;
+    if (book.id) {
+      this.interactions.toggleLike(String(book.id));
+    }
   }
 
   onBookClick(book: Book): void {
@@ -124,13 +132,60 @@ export class GeneriDetail implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private bookService: BookService,
-    private el: ElementRef
+    private el: ElementRef,
+    private interactions: InteractionsService,
+    private api: Api,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.interactions.loadUserInteractions();
+
     this.route.paramMap.subscribe(params => {
       this.slug = params.get('slug') ?? '';
-      this.allBooks = this.bookService.getBySlug(this.slug);
+      
+      this.api.getStoriesByGenre(this.slug).subscribe({
+        next: (stories) => {
+          this.allBooks = stories.map(s => this.mapDbBook(s));
+          this.syncBookStates();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error("Errore fetch generi:", err);
+          // Fallback a libri statici
+          this.allBooks = this.bookService.getBySlug(this.slug);
+          this.syncBookStates();
+          this.cdr.detectChanges();
+        }
+      });
     });
+  }
+
+  private mapDbBook(s: any): any {
+    return {
+      id: s.id,
+      title: s.title ?? '',
+      author: s.author_name ?? s.author_id ?? 'Autore sconosciuto',
+      desc: s.description ?? s.desc ?? '',
+      img: s.image_url ?? s.img ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
+      genre: s.genre ?? '',
+      tag: s.tag ?? s.genre ?? '',
+      pages: s.pages ?? 0,
+      year: s.release_year ?? s.year ?? 0,
+      rating: s.rating ? parseFloat(s.rating) : 0,
+      readers: s.readers_count ? String(s.readers_count) : (s.readers ?? '0'),
+      chaptersCount: s.chapters_count ?? s.chaptersCount ?? 0,
+      liked: false,
+      bookmarked: false,
+    };
+  }
+
+  private syncBookStates(): void {
+    for (const book of this.allBooks) {
+      if (book.id) {
+        book.liked = this.interactions.isLiked(String(book.id));
+        book.bookmarked = this.interactions.isBookmarked(String(book.id));
+      }
+    }
   }
 }

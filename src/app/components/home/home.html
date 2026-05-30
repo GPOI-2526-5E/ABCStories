@@ -24,7 +24,7 @@
           <span class="badge">{{slide.tag}}</span>
           <h1>{{slide.title}}</h1>
           <p>{{slide.desc}}</p>
-          <button class="btnContGlass mt-4">Scopri</button>
+          <button class="btnContGlass mt-4" (click)="goToBookDetail(slide)">Scopri</button>
         </div>
         }
       </div>
@@ -46,47 +46,49 @@
 </section>
 
 <div class="divStart">
-  <app-book-slider [title]="'Riprendi a leggere'" subtitle="Scorri per scoprire tutti i titoli" [books]="booksA">
-  </app-book-slider>
+  @if (booksA && booksA.length > 0) {
+    <app-book-slider [title]="'Riprendi a leggere'" subtitle="Scorri per scoprire tutti i titoli" [books]="booksA">
+    </app-book-slider>
+  }
 
   <app-book-slider [title]="'Popolari'" subtitle="I libri più famosi del momento" [books]="booksB">
   </app-book-slider>
 
   <!-- Aggiungere immagine a sfondo della classifica -->
   <h2 class="text-center">Classifica</h2>
-  <p class="text-center">I libri migliori del momento</p>
+  <p class="text-center">I libri più letti questa settimana</p>
   <section class="ranking-container">
     <div class="podium-display">
       <div class="book-card podium-item second">
         <div class="rank-badge">2°</div>
         <div class="book-cover">
-          <img [src]="booksB[1]?.img" [alt]="booksB[1]?.title">
+          <img [src]="(trendingBooks[1] || booksB[1])?.img" [alt]="(trendingBooks[1] || booksB[1])?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{booksB[1]?.title}}</p>
-          <p class="book-author">{{booksB[1]?.author}}</p>
+          <p class="book-title">{{(trendingBooks[1] || booksB[1])?.title}}</p>
+          <p class="book-author">{{(trendingBooks[1] || booksB[1])?.author}}</p>
         </div>
       </div>
 
       <div class="book-card podium-item first">
         <div class="rank-badge">1°</div>
         <div class="book-cover">
-          <img [src]="booksB[0]?.img" [alt]="booksB[0]?.title">
+          <img [src]="(trendingBooks[0] || booksB[0])?.img" [alt]="(trendingBooks[0] || booksB[0])?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{booksB[0]?.title}}</p>
-          <p class="book-author">{{booksB[0]?.author}}</p>
+          <p class="book-title">{{(trendingBooks[0] || booksB[0])?.title}}</p>
+          <p class="book-author">{{(trendingBooks[0] || booksB[0])?.author}}</p>
         </div>
       </div>
 
       <div class="book-card podium-item third">
         <div class="rank-badge">3°</div>
         <div class="book-cover">
-          <img [src]="booksB[2]?.img" [alt]="booksB[2]?.title">
+          <img [src]="(trendingBooks[2] || booksB[2])?.img" [alt]="(trendingBooks[2] || booksB[2])?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{booksB[2]?.title}}</p>
-          <p class="book-author">{{booksB[2]?.author}}</p>
+          <p class="book-title">{{(trendingBooks[2] || booksB[2])?.title}}</p>
+          <p class="book-author">{{(trendingBooks[2] || booksB[2])?.author}}</p>
         </div>
       </div>
     </div>
@@ -100,11 +102,11 @@
           <div class="book-card">
             <div class="rank-badge small">{{index + 1}}°</div>
             <div class="book-cover">
-              <img [src]="booksB[index]?.img" [alt]="booksB[index]?.title">
+              <img [src]="(trendingBooks[index] || booksB[index])?.img" [alt]="(trendingBooks[index] || booksB[index])?.title">
             </div>
             <div class="book-info">
-              <p class="book-title">{{booksB[index]?.title}}</p>
-              <p class="book-author">{{booksB[index]?.author}}</p>
+              <p class="book-title">{{(trendingBooks[index] || booksB[index])?.title}}</p>
+              <p class="book-author">{{(trendingBooks[index] || booksB[index])?.author}}</p>
             </div>
           </div>
           }

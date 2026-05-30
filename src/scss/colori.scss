@@ -1,5 +1,13 @@
 :root {
   --black: black;
+  --text-primary: #2a1a08;
+  --text-muted: #7a5a38;
+  --text-muted-dark: #5c442a;
+  --text-inverse: #ffffff;
+  --glass-rgb: 255, 255, 255;
+  --glass-border-rgb: 255, 255, 255;
+  --glass-shadow: rgba(120, 60, 10, 0.14);
+  --shadow-rgb: 0, 0, 0;
   --tropicalTheme: linear-gradient(90deg, hsla(141, 81%, 87%, 1) 0%, hsla(41, 88%, 75%, 1) 50%, hsla(358, 82%, 71%, 1) 100%);
   --tropicalTheme180deg: linear-gradient(180deg, hsla(141, 81%, 87%, 1) 0%, hsla(41, 88%, 75%, 1) 50%, hsla(358, 82%, 71%, 1) 100%);
   --tropicalTheme45deg: linear-gradient(45deg, hsla(141, 81%, 87%, 1) 0%, hsla(41, 88%, 75%, 1) 50%, hsla(358, 82%, 71%, 1) 100%);
@@ -31,4 +39,68 @@
   --buttonFantasy: hsla(141, 60%, 70%, 1);
   --gradient-warm: linear-gradient(135deg, #ff8a65 0%, #ec4899 50%, #a855f7 100%);
   --gradient-soft: linear-gradient(135deg, #ffd3b6, #ffaaa5, #ff8b94, #c7b8ea, #a8e6cf);
+}
+
+:root[data-theme="dark"] {
+  --pastelThemeWhite: #121212;
+  --tropicalTheme: linear-gradient(90deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme180deg: linear-gradient(180deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme45deg: linear-gradient(45deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme-reverse: linear-gradient(90deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme45deg-reverse: linear-gradient(45deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme-45deg-reverse: linear-gradient(-45deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme-90deg-reverse: linear-gradient(-90deg, #1e1e1e 0%, #2c2c2c 50%, #1e1e1e 100%);
+  --tropicalTheme2: linear-gradient(-90deg, #1e1e1e 0%, #2c2c2c 50%);
+  --tropicalThemeGreen: #1f1f1f; 
+  --tropicalThemeYellow: #242424; 
+  --tropicalThemeRed: #2a2a2a; 
+  --pastelTheme: linear-gradient(180deg, #121212 0%, #1e1e1e 50%, #2a2a2a 100%);
+  --pastelThemeYellow: #1e1e1e;
+  --pastelThemeOrange: #2a2a2a;
+  --pastelTheme45deg: linear-gradient(45deg, #121212 0%, #1e1e1e 50%, #2a2a2a 100%);
+  --pastelTheme45deg-reverse: linear-gradient(45deg, #2a2a2a 0%, #1e1e1e 50%, #121212 100%);
+  --pastelTheme90deg: linear-gradient(90deg, #121212 0%, #1e1e1e 50%, #2a2a2a 100%);
+  --pastelTheme2: linear-gradient(90deg, #1e1e1e 0%, #121212 50%);
+  --pastelTheme2-reverse: linear-gradient(90deg, #121212 0%, #1e1e1e 50%);
+  
+  --text-primary: #f5f5f5;
+  --text-muted: #aaaaaa;
+  --text-muted-dark: #dddddd;
+  --text-inverse: #111111;
+  --glass-rgb: 0, 0, 0;
+  --glass-border-rgb: 255, 255, 255;
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  --shadow-rgb: 255, 255, 255;
+}
+
+:root[data-theme="light"] {
+  --pastelThemeWhite: #ffffff;
+  --tropicalTheme: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+  --tropicalTheme180deg: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+  --tropicalTheme45deg: linear-gradient(45deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+  --tropicalTheme-reverse: linear-gradient(90deg, #d0d0d0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  --tropicalTheme45deg-reverse: linear-gradient(45deg, #d0d0d0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  --tropicalTheme-45deg-reverse: linear-gradient(-45deg, #d0d0d0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  --tropicalTheme-90deg-reverse: linear-gradient(-90deg, #d0d0d0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  --tropicalTheme2: linear-gradient(-90deg, #f0f0f0 0%, #e0e0e0 50%);
+  --tropicalThemeGreen: #f0f0f0; 
+  --tropicalThemeYellow: #e0e0e0; 
+  --tropicalThemeRed: #d0d0d0; 
+  --pastelTheme: linear-gradient(180deg, #ffffff 0%, #f5f5f5 50%, #eaeaea 100%);
+  --pastelThemeYellow: #f5f5f5;
+  --pastelThemeOrange: #eaeaea;
+  --pastelTheme45deg: linear-gradient(45deg, #ffffff 0%, #f5f5f5 50%, #eaeaea 100%);
+  --pastelTheme45deg-reverse: linear-gradient(45deg, #eaeaea 0%, #f5f5f5 50%, #ffffff 100%);
+  --pastelTheme90deg: linear-gradient(90deg, #ffffff 0%, #f5f5f5 50%, #eaeaea 100%);
+  --pastelTheme2: linear-gradient(90deg, #f5f5f5 0%, #ffffff 50%);
+  --pastelTheme2-reverse: linear-gradient(90deg, #ffffff 0%, #f5f5f5 50%);
+  
+  --text-primary: #111111;
+  --text-muted: #555555;
+  --text-muted-dark: #333333;
+  --text-inverse: #ffffff;
+  --glass-rgb: 255, 255, 255;
+  --glass-border-rgb: 255, 255, 255;
+  --glass-shadow: rgba(0, 0, 0, 0.1);
+  --shadow-rgb: 0, 0, 0;
 }

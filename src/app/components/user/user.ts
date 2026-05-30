@@ -3,18 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { AuthService } from '../../services/auth.service';
+import { Api } from '../../services/api';
+import { InteractionsService } from '../../services/interactions.service';
+import { ThemeService, Theme } from '../../services/theme.service';
 
 export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni';
 
-export interface Book {
-  id: number;
+export interface UserBook {
+  id: string;
   title: string;
-  author: string;
-  coverGradient: string;
-  coverEmoji: string;
-  likes?: string;
-  progress?: number;
-  completed?: boolean;
+  author_id: string;
+  description: string;
+  genre: string;
+  image_url: string;
+  rating: number;
+  readers_count: string;
+  pages: number;
+  release_year: number;
 }
 
 export interface Author {
@@ -38,6 +43,9 @@ export interface Author {
 export class User implements OnInit {
 
   private authService = inject(AuthService);
+  private api = inject(Api);
+  private interactions = inject(InteractionsService);
+  public themeService = inject(ThemeService);
 
   /** Utente loggato (segnale) */
   currentUser = this.authService.currentUser;
@@ -58,21 +66,9 @@ export class User implements OnInit {
     { id: 'impostazioni', label: 'Impostazioni', icon: '⚙️' },
   ];
 
-  likedBooks: Book[] = [
-    { id: 1, title: 'La Foresta Silenziosa', author: '@elenaverdi', coverGradient: 'linear-gradient(135deg,#b8e8c8,#5bbf8a)', coverEmoji: '🌲', likes: '4.8k' },
-    { id: 2, title: 'Il Cristallo del Tempo', author: '@fantasista99', coverGradient: 'linear-gradient(135deg,#f0d870,#e8a030)', coverEmoji: '🔮', likes: '2.1k' },
-    { id: 3, title: 'Buio Pesto', author: '@darkwriter88', coverGradient: 'linear-gradient(135deg,#f0a860,#f08878)', coverEmoji: '🔪', likes: '9.3k' },
-    { id: 4, title: 'Sogni di Carta', author: '@lunascrittrice', coverGradient: 'linear-gradient(135deg,#d4a0f0,#a060d0)', coverEmoji: '🌙', likes: '6.7k' },
-    { id: 5, title: 'Marea Infinita', author: '@oceanwriter', coverGradient: 'linear-gradient(135deg,#a0d8f8,#3098d8)', coverEmoji: '🌊', likes: '3.5k' },
-    { id: 6, title: "L'Eco di Roma", author: '@historicus', coverGradient: 'linear-gradient(135deg,#f8c0a0,#e87840)', coverEmoji: '🏛️', likes: '11k' },
-  ];
+  likedBooks: UserBook[] = [];
 
-  favoriteBooks: Book[] = [
-    { id: 1, title: 'Radici Profonde', author: '@naturawriter', coverGradient: 'linear-gradient(135deg,#c8e8b0,#78c840)', coverEmoji: '🌿', progress: 72 },
-    { id: 2, title: 'Sole di Mezzanotte', author: '@auroraink', coverGradient: 'linear-gradient(135deg,#f8d8a0,#f0a020)', coverEmoji: '☀️', progress: 35 },
-    { id: 3, title: 'Petali di Sangue', author: '@rosaviolet', coverGradient: 'linear-gradient(135deg,#e8b0d0,#c050a0)', coverEmoji: '🌸', progress: 100, completed: true },
-    { id: 4, title: 'Fulmine Nero', author: '@stormteller', coverGradient: 'linear-gradient(135deg,#a0b8e8,#4060c8)', coverEmoji: '⚡', progress: 8 },
-  ];
+  favoriteBooks: UserBook[] = [];
 
   followedAuthors: Author[] = [
     { id: 1, initials: 'EV', name: 'Elena Verdi', handle: '@elenaverdi', description: 'Narratrice fantasy con un tocco di magia celtica. Pubblica ogni domenica.', stories: 18, avatarGradient: 'linear-gradient(135deg,#5bbf8a,#2a8a5a)', following: true },
@@ -87,6 +83,7 @@ export class User implements OnInit {
     handle: '',
     email: '',
     posizione: '',
+    tema: 'tropical' as Theme,
     notifiche: { commenti: true, seguaci: true, aggiornamenti: false, newsletter: true },
     privacy: { profiloPubblico: true, mostraLibreria: false, indicizza: true },
   };
@@ -98,6 +95,23 @@ export class User implements OnInit {
     if (u) {
       this.settings.nome  = u.username;
       this.settings.email = u.email;
+
+      this.settings.tema = this.themeService.currentTheme();
+
+      // Carica le interazioni in memoria
+      this.interactions.loadUserInteractions();
+
+      // Carica storie liked dal DB
+      this.api.getLikedStories(u.id).subscribe({
+        next: (stories) => this.likedBooks = stories,
+        error: (err) => console.warn('Errore caricamento liked:', err)
+      });
+
+      // Carica storie bookmarked dal DB
+      this.api.getBookmarkedStories(u.id).subscribe({
+        next: (stories) => this.favoriteBooks = stories,
+        error: (err) => console.warn('Errore caricamento bookmarks:', err)
+      });
     }
   }
 
@@ -110,7 +124,24 @@ export class User implements OnInit {
   }
 
   saveSettings(): void {
+    this.themeService.setTheme(this.settings.tema);
     this.savedFeedback = true;
     setTimeout(() => (this.savedFeedback = false), 2000);
+  }
+
+  removeLike(book: UserBook, event: Event): void {
+    event.stopPropagation();
+    if (book.id) {
+      this.interactions.toggleLike(book.id);
+      this.likedBooks = this.likedBooks.filter(b => b.id !== book.id);
+    }
+  }
+
+  removeBookmark(book: UserBook, event: Event): void {
+    event.stopPropagation();
+    if (book.id) {
+      this.interactions.toggleBookmark(book.id);
+      this.favoriteBooks = this.favoriteBooks.filter(b => b.id !== book.id);
+    }
   }
 }

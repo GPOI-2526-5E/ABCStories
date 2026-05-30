@@ -111,44 +111,50 @@
     <section class="section section--padded" *ngIf="activeSection() === 'mipiace'">
       <h2 class="section-title">Mi piace</h2>
       <p class="section-sub">I libri che hai apprezzato con un cuore ❤️</p>
-      <div class="books-grid">
+
+      <div class="books-grid" *ngIf="likedBooks.length > 0; else noLikes">
         <div class="book-card glass" *ngFor="let book of likedBooks">
-          <div class="book-card__cover" [style.background]="book.coverGradient">
-            {{ book.coverEmoji }}
+          <div class="book-card__cover">
+            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
+            <div class="action-icon heart-icon active" (click)="removeLike(book, $event)">
+              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
           </div>
           <div class="book-card__info">
             <span class="book-card__title">{{ book.title }}</span>
-            <span class="book-card__author">{{ book.author }}</span>
-            <span class="book-card__stat">❤️ {{ book.likes }}</span>
+            <span class="book-card__author">{{ book.genre }}</span>
+            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
           </div>
         </div>
       </div>
+      <ng-template #noLikes>
+        <p class="empty-state">Non hai ancora messo mi piace a nessuna storia. Esplora la home e clicca sul ❤️!</p>
+      </ng-template>
     </section>
 
     <!-- ── PREFERITI ── -->
     <section class="section section--padded" *ngIf="activeSection() === 'preferiti'">
       <h2 class="section-title">Preferiti</h2>
       <p class="section-sub">Le letture salvate a cui tieni di più 🔖</p>
-      <div class="books-grid">
+
+      <div class="books-grid" *ngIf="favoriteBooks.length > 0; else noFavorites">
         <div class="book-card glass" *ngFor="let book of favoriteBooks">
-          <div class="book-card__cover" [style.background]="book.coverGradient">
-            {{ book.coverEmoji }}
+          <div class="book-card__cover">
+            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
+            <div class="action-icon bookmark-icon active" (click)="removeBookmark(book, $event)">
+              <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+            </div>
           </div>
           <div class="book-card__info">
             <span class="book-card__title">{{ book.title }}</span>
-            <span class="book-card__author">{{ book.author }}</span>
-            <ng-container *ngIf="book.completed; else progressTpl">
-              <span class="book-card__done">✓ Completato</span>
-            </ng-container>
-            <ng-template #progressTpl>
-              <div class="progress-wrap">
-                <div class="progress-bar" [style.width.%]="book.progress"></div>
-              </div>
-              <span class="book-card__stat">{{ book.progress }}% letto</span>
-            </ng-template>
+            <span class="book-card__author">{{ book.genre }}</span>
+            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
           </div>
         </div>
       </div>
+      <ng-template #noFavorites>
+        <p class="empty-state">Non hai ancora salvato nessuna storia nei preferiti. Clicca sul 🔖 per salvarne una!</p>
+      </ng-template>
     </section>
 
     <!-- ── AUTORI SEGUITI ── -->
@@ -216,6 +222,22 @@
               <small>Città o paese (facoltativo)</small>
             </div>
             <input class="setting-input" type="text" [(ngModel)]="settings.posizione" />
+          </div>
+        </div>
+
+        <!-- Tema -->
+        <div class="settings-card glass">
+          <h3 class="settings-card__title">Aspetto</h3>
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Tema dell'applicazione</span>
+              <small>Scegli il tuo stile preferito</small>
+            </div>
+            <select class="setting-input" [(ngModel)]="settings.tema">
+              <option value="tropical">Tropicale (Predefinito)</option>
+              <option value="dark">Scuro (Nero)</option>
+              <option value="light">Chiaro</option>
+            </select>
           </div>
         </div>
 

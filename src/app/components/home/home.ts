@@ -6,6 +6,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BookSlider } from '../book-slider/book-slider';
 import { Footer } from "../footer/footer";
 import { Router } from '@angular/router';
+import { BOOK_UUID_MAP } from '../../services/book-uuid-map';
+import { Api } from '../../services/api';
+import { InteractionsService } from '../../services/interactions.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface Genre {
   name: string;
@@ -33,7 +38,7 @@ export interface Artist {
   styleUrl: './home.scss',
 })
 
-export class Home implements AfterViewInit, OnDestroy {
+export class Home implements AfterViewInit, OnDestroy, OnInit {
   private slides: NodeListOf<HTMLElement> = {} as NodeListOf<HTMLElement>;
   private prevBtn: HTMLButtonElement | null = null;
   private nextBtn: HTMLButtonElement | null = null;
@@ -60,6 +65,9 @@ export class Home implements AfterViewInit, OnDestroy {
 
   public currentBgImage: string = '';
   private intervalId: any = null;
+
+  /** Storie di tendenza (classifica settimanale) */
+  trendingBooks: any[] = [];
 
   booksA = [
     { id: 1, title: 'Il Nome della Rosa', author: 'U. Eco', desc: 'Un monaco francescano indaga su una serie di morti misteriose in un monastero medievale, tra labirinti di libri e segreti inconfessabili.', img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80', liked: false, bookmarked: false },
@@ -214,11 +222,134 @@ export class Home implements AfterViewInit, OnDestroy {
     this.readClicked.emit(book);
   }
 
+  goToBookDetail(book: any) {
+    if (!book || !book.id) return;
+    this.router.navigate(['/book', book.id], { state: { book } });
+  }
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef,
     private router: Router,
-  ) { this.slidesCount = this.books.length; }
+    private api: Api,
+    private interactions: InteractionsService,
+  ) {
+    this.mapHomeBookIds();
+    this.slidesCount = this.books.length;
+  }
+
+  /** Mappa i campi DB (snake_case) nel formato locale del book */
+  private mapDbBook(s: any): any {
+    return {
+      id: s.id,
+      title: s.title ?? '',
+      author: s.author_name ?? 'Autore sconosciuto',
+      desc: s.description ?? '',
+      img: s.image_url ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
+      genre: s.genre ?? '',
+      tag: s.tag ?? s.genre ?? '',
+      pages: s.pages ?? 0,
+      year: s.release_year ?? s.year ?? 0,
+      rating: s.rating ? parseFloat(s.rating) : 0,
+      readers: s.readers_count ? String(s.readers_count) : '0',
+      chaptersCount: s.chapters_count ?? 0,
+      liked: false,
+      bookmarked: false,
+    };
+  }
+
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const user = this.interactions['authService']?.currentUser?.() ??
+      JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+
+    // Carica interazioni, storie popolari, trending e tutte le storie in parallelo
+    forkJoin({
+      _interactions: this.interactions.loadUserInteractions().pipe(catchError(() => of(false))),
+      popular:  this.api.getPopularStories().pipe(catchError(() => of([]))),
+      trending: this.api.getTrendingStories().pipe(catchError(() => of([]))),
+      all:      this.api.getStories().pipe(catchError(() => of([]))),
+      continueReading: user
+        ? this.api.getContinueReading(user.id).pipe(catchError(() => of([])))
+        : of([])
+    }).subscribe({
+      next: ({ popular, trending, all, continueReading }) => {
+
+        const mapList = (list: any[]) => list.map(s => this.mapDbBook(s));
+
+        const popularMapped   = mapList(popular as any[]);
+        const trendingMapped  = mapList(trending as any[]);
+        const allMapped       = mapList(all as any[]);
+        const continueMapped  = mapList(continueReading as any[]);
+
+        // Suddividi "all" per genere per gli slider tematici
+        const romance = allMapped.filter(b =>
+          ['sentimentale', 'romance', 'romanzo'].some(g => (b.genre ?? '').toLowerCase().includes(g))
+        );
+        const horror  = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('horror'));
+        const fantasy = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('fantasy'));
+
+        // ── Slider contestualizzati ────────────────────────────
+        // booksA = "Riprendi a leggere" (solo libri con progresso incompleto)
+        this.booksA = continueMapped;
+
+        // booksB = "Popolari" (ordinati per views totali)
+        this.booksB = popularMapped.length ? popularMapped : allMapped.slice(9, 23);
+
+        // booksC = genere Romance (o slice generica)
+        this.booksC = romance.length ? romance : allMapped.slice(23, 33);
+
+        // booksD = genere Horror/Fantasy (o slice generica)
+        this.booksD = (horror.length || fantasy.length)
+          ? [...horror, ...fantasy]
+          : allMapped.slice(33, 48);
+
+        // Trending per la classifica
+        this.trendingBooks = trendingMapped.length ? trendingMapped : popularMapped;
+
+        // ── Slide dinamiche per la Hero (Cambiano ogni giorno) ──
+        if (popularMapped.length > 0) {
+          // Creiamo un generatore pseudo-casuale basato sulla data di oggi
+          const today = new Date();
+          let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+          
+          const randomSeeded = () => {
+            const x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+          };
+
+          const shuffled = [...popularMapped].sort(() => 0.5 - randomSeeded());
+          this.books = shuffled.slice(0, 5);
+          this.slidesCount = this.books.length;
+          this.current = 0;
+          this.updateAmbientBackground();
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.warn('Impossibile caricare storie dal server, uso dati statici.', err);
+      }
+    });
+  }
+
+  private mapHomeBookIds(): void {
+    const mapList = (list: any[]) => {
+      if (!list) return;
+      list.forEach(book => {
+        const uuid = BOOK_UUID_MAP[book.title.toLowerCase().trim()];
+        if (uuid) {
+          book.id = uuid;
+        }
+      });
+    };
+    mapList(this.booksA);
+    mapList(this.booksB);
+    mapList(this.booksC);
+    mapList(this.booksD);
+    mapList(this.books);
+  }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {

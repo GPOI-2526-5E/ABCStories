@@ -1,0 +1,108 @@
+<div class="reader-root">
+
+  <!-- ── BARRA SUPERIORE ───────────────────────────────────────── -->
+  <header class="reader-topbar">
+    <button class="reader-back-btn" (click)="goBack()" aria-label="Torna ai dettagli">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+
+    <div class="reader-topbar-info">
+      <span class="reader-story-title">{{ chapter?.story_title }}</span>
+      <span class="reader-chapter-label">Cap. {{ chapter?.order_index }} — {{ chapter?.title }}</span>
+    </div>
+
+    <button class="reader-chapters-btn" (click)="toggleSidebar()" aria-label="Lista capitoli">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="15" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ── BARRA DI PROGRESSO ───────────────────────────────────── -->
+  <div class="reader-progress-bar">
+    <div class="reader-progress-fill" [style.width.%]="globalPercent"></div>
+  </div>
+  <div class="reader-progress-label">{{ globalPercent }}% letto</div>
+
+  <!-- ── SIDEBAR CAPITOLI ─────────────────────────────────────── -->
+  <div class="reader-sidebar-overlay" [class.open]="sidebarOpen" (click)="toggleSidebar()"></div>
+  <aside class="reader-sidebar" [class.open]="sidebarOpen">
+    <div class="sidebar-header">
+      <h3>Capitoli</h3>
+      <button (click)="toggleSidebar()" class="sidebar-close">✕</button>
+    </div>
+    <ul class="sidebar-list">
+      @for (ch of chapters; track ch.id) {
+        <li class="sidebar-item"
+            [class.active]="ch.id === chapter?.id"
+            (click)="goToChapter(ch)">
+          <span class="sidebar-num">{{ ch.order_index }}</span>
+          <span class="sidebar-title">{{ ch.title }}</span>
+          @if (ch.id === chapter?.id) {
+            <span class="sidebar-pct">{{ scrollPercent() }}%</span>
+          }
+        </li>
+      }
+    </ul>
+  </aside>
+
+  <!-- ── CONTENUTO CAPITOLO ───────────────────────────────────── -->
+  <main class="reader-content">
+
+    @if (isLoading) {
+      <div class="reader-loading">
+        <div class="reader-spinner"></div>
+        <p>Caricamento capitolo...</p>
+      </div>
+    }
+
+    @if (error) {
+      <div class="reader-error">
+        <p>{{ error }}</p>
+        <button class="reader-btn-secondary" (click)="goBack()">Torna indietro</button>
+      </div>
+    }
+
+    @if (!isLoading && !error && chapter) {
+      <article class="reader-article">
+        <h1 class="reader-chapter-title">Capitolo {{ chapter.order_index }}: {{ chapter.title }}</h1>
+        <p class="reader-chapter-author">{{ chapter.story_title }} · {{ chapter.author_name }}</p>
+
+        <div class="reader-text">
+          @for (para of paragraphs; track $index) {
+            <p>{{ para }}</p>
+          }
+        </div>
+      </article>
+
+      <!-- ── NAVIGAZIONE CAPITOLI ────────────────────────────── -->
+      <nav class="reader-nav">
+        <button class="reader-nav-btn"
+                [disabled]="!hasPrev"
+                (click)="prevChapter()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Capitolo precedente
+        </button>
+
+        <span class="reader-nav-chapter">
+          {{ chapter.order_index }} / {{ chapter.total_chapters }}
+        </span>
+
+        <button class="reader-nav-btn reader-nav-next"
+                (click)="nextChapter()">
+          {{ isLastChapter ? 'Fine storia' : 'Capitolo successivo' }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </nav>
+    }
+  </main>
+
+</div>

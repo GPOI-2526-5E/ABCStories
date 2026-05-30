@@ -51,7 +51,7 @@
 // ── MIXIN GLASSMORPHISM ─────────────────────────────────────
 // Standard "vetro" condiviso in tutto il documento
 @mixin glass-card {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(var(--glass-rgb), 0.12);
   backdrop-filter: blur(15px) saturate(180%);
   -webkit-backdrop-filter: blur(15px) saturate(180%);
   border: none; // modificato da 1px solid rgba(255, 255, 255, 0.2)
@@ -59,12 +59,12 @@
 }
 
 // ── Variabili condivise ──────────────────────────────────────
-$glass-bg: rgba(255, 255, 255, 0.18);
+$glass-bg: rgba(var(--glass-rgb), 0.18);
 $glass-border: transparent; // modificato da rgba(255, 255, 255, 0.40)
-$glass-hover: rgba(255, 255, 255, 0.28);
-$text-dark: rgba(20, 20, 10, 0.85);
-$text-muted: rgba(20, 20, 10, 0.50);
-$text-faint: rgba(20, 20, 10, 0.35);
+$glass-hover: rgba(var(--glass-rgb), 0.28);
+$text-dark: var(--text-primary);
+$text-muted: var(--text-muted);
+$text-faint: var(--text-muted-dark);
 
 // ── STRUTTURA PAGINA ─────────────────────────────────────────
 .book-detail-page {
@@ -76,6 +76,10 @@ $text-faint: rgba(20, 20, 10, 0.35);
   justify-content: center;
   overflow: hidden;
   //animation: fadeInUp 0.5s ease-out;
+}
+
+h2 {
+  color: var(--text-primary) !important;
 }
 
 .ambient-bg {
@@ -115,10 +119,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   height: 550px;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(90deg,
-      hsla(141, 81%, 87%, 1) 0%,
-      hsla(41, 88%, 75%, 1) 50%,
-      hsla(358, 82%, 71%, 1) 100%);
+  background: var(--tropicalTheme);
 
   mask-image: linear-gradient(to bottom,
       transparent 0%,
@@ -237,7 +238,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--glass-rgb), 0.15);
   padding: 4px 12px;
   border-radius: 20px;
   width: fit-content;
@@ -266,9 +267,9 @@ $text-faint: rgba(20, 20, 10, 0.35);
   &::-webkit-scrollbar       { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(var(--glass-rgb), 0.35);
     border-radius: 99px;
-    &:hover { background: rgba(255, 255, 255, 0.55); }
+    &:hover { background: rgba(var(--glass-rgb), 0.55); }
   }
 
   // sfumatura in basso che sparisce all'hover
@@ -306,9 +307,9 @@ $text-faint: rgba(20, 20, 10, 0.35);
     box-shadow 0.4s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(28px) saturate(220%);
-    -webkit-backdrop-filter: blur(28px) saturate(220%);
+    background: rgba(255, 255, 255, 0.26);
+    backdrop-filter: blur(18px) saturate(190%);
+    -webkit-backdrop-filter: blur(18px) saturate(190%);
     border-color: transparent; // modificato da rgba(255, 255, 255, 0.38)
     box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
   }
@@ -367,8 +368,8 @@ $text-faint: rgba(20, 20, 10, 0.35);
   color: rgba(255, 255, 255, 0.25);
 
   &.filled {
-    color: var(--tropicalThemeYellow);
-    filter: drop-shadow(0 0 4px rgba(255, 200, 0, 0.3));
+    color: #c8862a;
+    filter: drop-shadow(0 0 4px rgba(200, 134, 42, 0.4));
   }
 }
 
@@ -396,7 +397,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   transition: background 0.3s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(var(--glass-rgb), 0.16);
   }
 }
 
@@ -515,7 +516,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
     }
 
     .dd-chapter-body {
-      background: rgba(255, 255, 255, 0.22);
+      background: rgba(var(--glass-rgb), 0.22);
       backdrop-filter: blur(22px) saturate(200%);
       -webkit-backdrop-filter: blur(22px) saturate(200%);
     }
@@ -549,7 +550,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   flex-direction: column;
   justify-content: center;
   padding: 14px 18px 16px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--glass-rgb), 0.15);
   backdrop-filter: blur(14px) saturate(180%);
   -webkit-backdrop-filter: blur(14px) saturate(180%);
   border-top: none; // modificato da 1px solid rgba(255, 255, 255, 0.28)
@@ -706,7 +707,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
 
 .dd-review-text {
   font-size: 13px;
-  color: black;
+  color: var(--text-primary);
   line-height: 1.5;
 }
 
@@ -802,7 +803,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   padding: 15px;
   font-size: 14px;
   font-family: inherit;
-  color: #1a1a1a;
+  color: var(--text-primary);
   resize: none;
   outline: none;
   transition: all 0.3s ease;
@@ -966,7 +967,7 @@ $text-faint: rgba(20, 20, 10, 0.35);
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: black;
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid transparent;
   cursor: pointer;

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
+import { BOOK_UUID_MAP } from './book-uuid-map';
 
 export interface Book {
-  id: number;
+  id: string | number;
   title: string;
   author: string;
   img: string;
@@ -22,6 +23,23 @@ export interface Book {
 
 @Injectable({ providedIn: 'root' })
 export class BookService {
+
+  constructor() {
+    this.initBookUuids();
+  }
+
+  private initBookUuids() {
+    for (const key of Object.keys(this.books)) {
+      this.books[key] = this.books[key].map(book => {
+        const uuid = BOOK_UUID_MAP[book.title.toLowerCase().trim()];
+        if (uuid) {
+          book.id = uuid;
+        }
+        return book;
+      });
+    }
+  }
+
 
   private books: Record<string, Book[]> = {
     booksA: [{
