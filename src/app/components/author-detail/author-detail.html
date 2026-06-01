@@ -1,0 +1,66 @@
+<app-navbar></app-navbar>
+
+<div class="author-layout" *ngIf="author">
+  <div class="author-container">
+    
+    <!-- Hero Profile Section -->
+    <section class="author-hero glass">
+      <div class="author-hero__bg">
+        <div class="author-hero__fade"></div>
+      </div>
+      <div class="author-hero__content">
+        <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="author-avatar" style="object-fit: cover; background: white;">
+        <div *ngIf="!author.avatar_url" class="author-avatar">{{ initials }}</div>
+        
+        <h1 class="author-hero__name">{{ author.username }}</h1>
+        <p class="author-hero__handle">{{ author.email }}</p>
+        
+        <p class="author-hero__bio" *ngIf="author.bio">{{ author.bio }}</p>
+        <p class="author-hero__bio" *ngIf="!author.bio">Questo autore preferisce mantenere un alone di mistero.</p>
+        
+        <div class="author-hero__stats">
+          <div class="stat">
+            <span class="stat__val">{{ author.stories_count || 0 }}</span>
+            <span class="stat__lbl">Storie</span>
+          </div>
+          <div class="stat" *ngIf="author.location">
+            <span class="stat__val">📍</span>
+            <span class="stat__lbl">{{ author.location }}</span>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="author-hero__actions" *ngIf="!isCurrentUser">
+          <button class="follow-btn" [class.follow-btn--active]="isFollowing" (click)="toggleFollow()">
+            {{ isFollowing ? '✓ Seguendo' : '+ Segui' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Author Stories Section -->
+    <section class="author-stories">
+      <h2 class="section-title">Opere pubblicate</h2>
+      
+      <div class="books-grid" *ngIf="stories.length > 0; else noStories">
+        <div class="book-card glass" *ngFor="let book of stories" [routerLink]="['/book', book.id]">
+          <div class="book-card__cover">
+            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
+          </div>
+          <div class="book-card__info">
+            <span class="book-card__title">{{ book.title }}</span>
+            <span class="book-card__author">{{ book.genre }}</span>
+            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noStories>
+        <div class="empty-state glass">
+          <p>Questo autore non ha ancora pubblicato nessuna storia.</p>
+        </div>
+      </ng-template>
+    </section>
+
+  </div>
+</div>

@@ -227,6 +227,13 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     this.router.navigate(['/book', book.id], { state: { book } });
   }
 
+  goToAuthor(authorId: string | undefined, event?: Event) {
+    if (event) event.stopPropagation();
+    if (authorId) {
+      this.router.navigate(['/author', authorId]);
+    }
+  }
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef,
@@ -244,6 +251,7 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
       id: s.id,
       title: s.title ?? '',
       author: s.author_name ?? 'Autore sconosciuto',
+      author_id: s.author_id,
       desc: s.description ?? '',
       img: s.image_url ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
       genre: s.genre ?? '',

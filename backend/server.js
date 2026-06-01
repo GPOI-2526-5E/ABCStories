@@ -39,6 +39,21 @@ app.get('/api/user', async (req, res) => {
   }
 });
 
+app.get('/api/user/:id', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id, username, email, avatar_url, bio, location, website_url, created_at,
+        (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
+      FROM users WHERE id = $1`, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.post('/api/user/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -138,6 +153,23 @@ app.get('/api/likes/:userId', async (req, res) => {
   }
 });
 
+// Recupera le recensioni di una specifica storia
+app.get('/api/stories/:storyId/reviews', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.id, r.content, r.rating, u.username as name
+       FROM reviews r
+       JOIN users u ON r.author_id = u.id
+       WHERE r.story_id = $1`,
+      [req.params.storyId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Restituisce le storie liked con tutti i dettagli (per il profilo utente)
 app.get('/api/likes/:userId/stories', async (req, res) => {
   try {
@@ -218,11 +250,12 @@ app.get('/api/bookmarks/:userId/stories', async (req, res) => {
 app.get('/api/stories', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
               s.readers_count, s.rating, s.pages, s.release_year,
               u.username AS author_name
        FROM stories s
        LEFT JOIN users u ON u.id = s.author_id
+       WHERE s.status = 'published'
        ORDER BY s.rating DESC`
     );
     res.json(result.rows);
@@ -238,13 +271,14 @@ app.get('/api/stories', async (req, res) => {
 app.get('/api/stories/popular', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              s.readers_count, s.rating, s.pages, s.release_year,
              u.username AS author_name,
              COUNT(sv.id) AS view_count
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
       LEFT JOIN story_views sv ON sv.story_id = s.id
+      WHERE s.status = 'published'
       GROUP BY s.id, u.username
       HAVING COUNT(sv.id) >= 0
       ORDER BY view_count DESC, s.rating DESC
@@ -261,7 +295,7 @@ app.get('/api/stories/popular', async (req, res) => {
 app.get('/api/stories/trending', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              s.readers_count, s.rating, s.pages, s.release_year,
              u.username AS author_name,
              COUNT(sv.id) AS week_views
@@ -270,6 +304,7 @@ app.get('/api/stories/trending', async (req, res) => {
       LEFT JOIN story_views sv
         ON sv.story_id = s.id
         AND sv.viewed_at >= NOW() - INTERVAL '7 days'
+      WHERE s.status = 'published'
       GROUP BY s.id, u.username
       ORDER BY week_views DESC, s.rating DESC
       LIMIT 15
@@ -286,12 +321,12 @@ app.get('/api/stories/genre/:genre', async (req, res) => {
   try {
     const genre = `%${req.params.genre}%`;
     const result = await pool.query(`
-      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              s.readers_count, s.rating, s.pages, s.release_year,
              u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
-      WHERE s.genre ILIKE $1
+      WHERE s.genre ILIKE $1 AND s.status = 'published'
       ORDER BY s.rating DESC
     `, [genre]);
     res.json(result.rows);
@@ -318,7 +353,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
         WHERE rp.user_id = $1
         ORDER BY c.story_id, rp.updated_at DESC
       )
-      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              s.readers_count, s.rating, s.pages, s.release_year,
              u.username AS author_name,
              lr.progress_pct,
@@ -329,7 +364,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
       FROM LastRead lr
       JOIN stories s ON s.id = lr.story_id
       LEFT JOIN users u ON u.id = s.author_id
-      WHERE NOT (
+      WHERE s.status = 'published' AND NOT (
         lr.progress_pct = 100 AND 
         lr.chapter_num = (SELECT MAX(order_index) FROM chapters WHERE story_id = lr.story_id)
       )
@@ -346,7 +381,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
 app.get('/api/stories/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
               s.readers_count, s.rating, s.pages, s.release_year,
               u.username AS author_name
        FROM stories s
@@ -454,6 +489,232 @@ app.get('/api/chapters/:id', async (req, res) => {
     `, [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Capitolo non trovato' });
     res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// ═══════════════ FOLLOWS & AUTHOR ═══════════════
+
+// Segui un utente
+app.post('/api/follows', async (req, res) => {
+  const { follower_id, followed_id } = req.body;
+  try {
+    const existing = await pool.query(
+      'SELECT 1 FROM follows WHERE follower_id = $1 AND followed_id = $2',
+      [follower_id, followed_id]
+    );
+    if (existing.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2)',
+        [follower_id, followed_id]
+      );
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Smetti di seguire un utente
+app.delete('/api/follows/:followerId/:followedId', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM follows WHERE follower_id = $1 AND followed_id = $2',
+      [req.params.followerId, req.params.followedId]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Ottieni gli autori seguiti da un utente
+app.get('/api/follows/:userId', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id, u.username as name, u.email as handle, u.avatar_url, u.bio as description,
+        (SELECT count(*) FROM stories WHERE author_id = u.id) as stories
+      FROM users u
+      JOIN follows f ON f.followed_id = u.id
+      WHERE f.follower_id = $1
+      ORDER BY f.created_at DESC
+    `, [req.params.userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Controlla se un utente ne segue un altro
+app.get('/api/follows/check/:followerId/:followedId', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT 1 FROM follows WHERE follower_id = $1 AND followed_id = $2',
+      [req.params.followerId, req.params.followedId]
+    );
+    res.json({ following: result.rows.length > 0 });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie di uno specifico autore
+app.get('/api/stories/author/:authorId', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+             s.readers_count, s.rating, s.pages, s.release_year,
+             u.username AS author_name
+      FROM stories s
+      JOIN users u ON u.id = s.author_id
+      WHERE s.author_id = $1 AND s.status = 'published'
+      ORDER BY s.rating DESC
+    `, [req.params.authorId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// ═══════════════ AUTHOR DASHBOARD & EDITOR ═══════════════
+
+// Recupera tutte le storie di un autore (incluse bozze)
+app.get('/api/author/my-stories/:userId', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.title, s.description, s.genre, s.image_url, s.status,
+             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS views_count
+      FROM stories s
+      WHERE s.author_id = $1
+      ORDER BY s.id DESC
+    `, [req.params.userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Crea una nuova storia (bozza)
+app.post('/api/stories', async (req, res) => {
+  const { author_id, title, genre } = req.body;
+  const defaultImage = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80';
+  try {
+    const result = await pool.query(`
+      INSERT INTO stories (author_id, title, genre, status, image_url)
+      VALUES ($1, $2, $3, 'draft', $4)
+      RETURNING *
+    `, [author_id, title, genre || 'Romanzo', defaultImage]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Aggiorna una storia
+app.put('/api/stories/:id', async (req, res) => {
+  let { title, description, genre, image_url, status } = req.body;
+  if (!image_url || image_url.trim() === '') {
+    image_url = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80';
+  }
+  try {
+    const result = await pool.query(`
+      UPDATE stories
+      SET title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          genre = COALESCE($3, genre),
+          image_url = COALESCE($4, image_url),
+          status = COALESCE($5, status)
+      WHERE id = $6
+      RETURNING *
+    `, [title, description, genre, image_url, status, req.params.id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Elimina una storia
+app.delete('/api/stories/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM chapters WHERE story_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM stories WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Recupera i capitoli di una storia (per l'editor - include bozze)
+app.get('/api/author/stories/:id/chapters', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM chapters WHERE story_id = $1 ORDER BY order_index ASC
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Crea un nuovo capitolo
+app.post('/api/chapters', async (req, res) => {
+  const { story_id, title, content, order_index } = req.body;
+  const defaultImage = 'https://images.unsplash.com/photo-1455390582262-044cdead2708?auto=format&fit=crop&w=800&q=80';
+  try {
+    const result = await pool.query(`
+      INSERT INTO chapters (story_id, title, content, order_index, status, image_url)
+      VALUES ($1, $2, $3, $4, 'published', $5)
+      RETURNING *
+    `, [story_id, title || 'Nuovo Capitolo', content || '', order_index || 1, defaultImage]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Aggiorna un capitolo
+app.put('/api/chapters/:id', async (req, res) => {
+  let { title, content, status, image_url } = req.body;
+  if (!image_url || image_url.trim() === '') {
+    image_url = 'https://images.unsplash.com/photo-1455390582262-044cdead2708?auto=format&fit=crop&w=800&q=80';
+  }
+  try {
+    const result = await pool.query(`
+      UPDATE chapters
+      SET title = COALESCE($1, title),
+          content = COALESCE($2, content),
+          status = COALESCE($3, status),
+          image_url = COALESCE($4, image_url)
+      WHERE id = $5
+      RETURNING *
+    `, [title, content, status, image_url, req.params.id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Elimina un capitolo
+app.delete('/api/chapters/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM chapters WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });

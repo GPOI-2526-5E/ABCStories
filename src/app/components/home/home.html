@@ -66,7 +66,7 @@
         </div>
         <div class="book-info">
           <p class="book-title">{{(trendingBooks[1] || booksB[1])?.title}}</p>
-          <p class="book-author">{{(trendingBooks[1] || booksB[1])?.author}}</p>
+          <p class="book-author" (click)="goToAuthor((trendingBooks[1] || booksB[1])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[1] || booksB[1])?.author}}</p>
         </div>
       </div>
 
@@ -77,7 +77,7 @@
         </div>
         <div class="book-info">
           <p class="book-title">{{(trendingBooks[0] || booksB[0])?.title}}</p>
-          <p class="book-author">{{(trendingBooks[0] || booksB[0])?.author}}</p>
+          <p class="book-author" (click)="goToAuthor((trendingBooks[0] || booksB[0])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[0] || booksB[0])?.author}}</p>
         </div>
       </div>
 
@@ -88,7 +88,7 @@
         </div>
         <div class="book-info">
           <p class="book-title">{{(trendingBooks[2] || booksB[2])?.title}}</p>
-          <p class="book-author">{{(trendingBooks[2] || booksB[2])?.author}}</p>
+          <p class="book-author" (click)="goToAuthor((trendingBooks[2] || booksB[2])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[2] || booksB[2])?.author}}</p>
         </div>
       </div>
     </div>
@@ -106,7 +106,7 @@
             </div>
             <div class="book-info">
               <p class="book-title">{{(trendingBooks[index] || booksB[index])?.title}}</p>
-              <p class="book-author">{{(trendingBooks[index] || booksB[index])?.author}}</p>
+              <p class="book-author" (click)="goToAuthor((trendingBooks[index] || booksB[index])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[index] || booksB[index])?.author}}</p>
             </div>
           </div>
           }

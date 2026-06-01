@@ -41,7 +41,6 @@ export class Navbar implements AfterViewInit, OnInit {
   ngOnInit(): void {
     this.api.getUsers().subscribe((data: any) => {
       this.users = data;
-      console.log(this.users);
     });
   }
 

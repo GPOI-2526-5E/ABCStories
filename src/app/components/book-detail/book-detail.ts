@@ -239,6 +239,7 @@ export class BookDetail implements OnInit {
       id: s.id,
       title: s.title ?? '',
       author: s.author_name ?? s.author_id ?? 'Autore sconosciuto',
+      author_id: s.author_id,
       desc: s.description ?? s.desc ?? '',
       img: s.image_url ?? s.img ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
       genre: s.genre ?? '',
@@ -299,6 +300,16 @@ export class BookDetail implements OnInit {
           this.loadChaptersAndProgress(storyId);
         }
       });
+
+      this.api.getStoryReviews(storyId).subscribe({
+        next: (reviews) => {
+          this.reviews = reviews;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error("Errore fetch recensioni:", err);
+        }
+      });
     }
 
     if (isPlatformBrowser(this.platformId)) {
@@ -356,6 +367,13 @@ export class BookDetail implements OnInit {
     this.router.navigate(['/reader', this.book.id, chapterId]);
   }
 
+  goToAuthor(authorId: string | undefined, event?: Event) {
+    if (event) event.stopPropagation();
+    if (authorId) {
+      this.router.navigate(['/author', authorId]);
+    }
+  }
+
   /** Label dinamica del bottone */
   get readButtonLabel(): string {
     if (!this.chapters.length) return 'Inizia a Leggere';
@@ -373,14 +391,7 @@ export class BookDetail implements OnInit {
   // La lista capitoli è caricata dall'API in loadChaptersAndProgress()
   // La vecchia lista statica è stata rimossa
 
-  reviews = [
-    { name: 'Luca', rating: 5, text: 'Un classico imperdibile, attuale e inquietante.' },
-    { name: 'Marta', rating: 5, text: 'Mi ha fatto riflettere molto sulla società moderna.' },
-    { name: 'Giorgio', rating: 4, text: 'Lettura densa ma necessaria. Ogni pagina sorprende.' },
-    { name: 'Sara', rating: 5, text: 'Spaventosamente attuale. Lo consiglio a tutti.' },
-    { name: 'Paolo', rating: 4, text: 'Prosa magistrale, storia indimenticabile.' },
-    { name: 'Elena', rating: 5, text: 'Uno dei libri più importanti che abbia mai letto.' },
-  ];
+  reviews: any[] = [];
 
   similarBooks = [
     { title: '1984', author: 'G. Orwell', img: 'assets/books/1984.jpg' },

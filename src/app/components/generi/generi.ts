@@ -12,17 +12,7 @@ export interface Genere {
   count: string;
 }
 
-@Component({
-  selector: 'app-generi',
-  standalone: true,
-  imports: [CommonModule, Navbar, Footer],
-  templateUrl: './generi.html',
-  styleUrls: ['./generi.scss'],
-})
-
-export class Generi {
-
-  generi: Genere[] = [
+export const TUTTI_GENERI: Genere[] = [
     {
       slug: 'horror',
       nome: 'Horror',
@@ -262,6 +252,20 @@ export class Generi {
       count: '2.460',
     },
   ];
+
+@Component({
+  selector: 'app-generi',
+  standalone: true,
+  imports: [CommonModule, Navbar, Footer],
+  templateUrl: './generi.html',
+  styleUrls: ['./generi.scss'],
+})
+
+export class Generi {
+
+  get generi() {
+    return TUTTI_GENERI;
+  }
 
   constructor(private router: Router) { }
 

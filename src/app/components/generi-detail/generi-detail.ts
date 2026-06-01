@@ -10,6 +10,8 @@ import { Footer } from '../footer/footer';
 import { InteractionsService } from '../../services/interactions.service';
 import { Api } from '../../services/api';
 
+import { Genere, TUTTI_GENERI } from '../generi/generi';
+
 interface GenereInfo {
   nome: string;
   descrizione: string;
@@ -44,20 +46,25 @@ export class GeneriDetail implements OnInit {
 
   private allBooks: Book[] = [];
 
-  private generiMap: Record<string, GenereInfo> = {
-    horror: { nome: 'Horror', descrizione: 'Paura, tensione e creature che abitano il buio. Lasciati travolgere dall\'oscurità.' },
-    fantasy: { nome: 'Fantasy', descrizione: 'Mondi magici, draghi e mappe che non finiscono mai. Ogni pagina è un portale.' },
-    thriller: { nome: 'Thriller', descrizione: 'Suspense al limite, ogni pagina è un colpo di scena. Il cuore accelera.' },
-    romanzo: { nome: 'Romanzo', descrizione: 'Storie d\'amore, passioni e cuori spezzati. Emozioni che restano.' },
-    fantascienza: { nome: 'Fantascienza', descrizione: 'Galassie lontane, androidi e futuro distopico. Il domani inizia qui.' },
-    storico: { nome: 'Storico', descrizione: 'Dal passato antico alle grandi guerre moderne. La storia si fa racconto.' },
-    western: { nome: 'Western', descrizione: 'Deserti, pistoleri e giustizia fai-da-te. Il west non dimentica.' },
-    avventura: { nome: 'Avventura', descrizione: 'Esploratori coraggiosi e missioni impossibili. L\'ignoto aspetta.' },
-    biografia: { nome: 'Biografia', descrizione: 'Vite straordinarie raccontate dall\'interno. Reale più del reale.' },
-  };
+  private generiMap: Record<string, GenereInfo> = {};
 
   get genereInfo(): GenereInfo | null {
     return this.generiMap[this.slug] ?? null;
+  }
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private bookService: BookService,
+    private el: ElementRef,
+    private interactions: InteractionsService,
+    private api: Api,
+    private cdr: ChangeDetectorRef
+  ) { 
+    // Popola la mappa dei generi dinamicamente
+    TUTTI_GENERI.forEach(g => {
+      this.generiMap[g.slug] = { nome: g.nome, descrizione: g.descrizione };
+    });
   }
 
   get currentSortLabel(): string {
@@ -127,16 +134,6 @@ export class GeneriDetail implements OnInit {
       }
     );
   }
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private bookService: BookService,
-    private el: ElementRef,
-    private interactions: InteractionsService,
-    private api: Api,
-    private cdr: ChangeDetectorRef
-  ) { }
 
   ngOnInit(): void {
     this.interactions.loadUserInteractions();

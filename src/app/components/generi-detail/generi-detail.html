@@ -72,7 +72,8 @@
   <!-- Nessun risultato -->
   <div class="gd-empty" *ngIf="filteredBooks.length === 0">
     <span class="gd-empty__icon">📭</span>
-    <p>Nessuna storia trovata per "<strong>{{ searchQuery }}</strong>"</p>
+    <p *ngIf="searchQuery">Nessuna storia trovata per "<strong>{{ searchQuery }}</strong>"</p>
+    <p *ngIf="!searchQuery">Nessun libro trovato per questo genere. Scrivine uno tu!</p>
   </div>
 
   <!-- ── Griglia libri ── -->

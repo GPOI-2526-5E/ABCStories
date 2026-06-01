@@ -1,0 +1,323 @@
+@use "../../../scss/colori.scss";
+
+$text : var(--text-primary);
+$muted : var(--text-muted);
+
+// ─── Glassmorphism mixin ─────────────────────────────────────────────────────
+@mixin glass($bg-opacity: 0.1) {
+  background: rgba(var(--glass-rgb), $bg-opacity);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(var(--glass-border-rgb), 0.25);
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+}
+
+// ─── Layout ──────────────────────────────────────────────────────────────────
+.dashboard-layout {
+  min-height: 100vh;
+  padding-top: 140px;
+  background: var(--tropicalTheme);
+  color: $text;
+}
+
+.dashboard-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+
+  .header-titles {
+
+    .title {
+      font-size: 44px;
+      font-weight: 800;
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: var(--text-primary);
+      text-shadow: none;
+
+      span {
+        font-style: italic;
+        color: var(--text-muted);
+      }
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 6px 0 0;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+  }
+}
+
+// ─── Button: new story ───────────────────────────────────────────────────────
+.btn-new-story {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  border-radius: 50px;
+  @include glass(0.2);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.1px;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    background: rgba(var(--glass-rgb), 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 25px 35px rgba(0, 0, 0, 0.2);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+// ─── Stories list ────────────────────────────────────────────────────────────
+.stories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// ─── Story card ──────────────────────────────────────────────────────────────
+.story-card {
+  @include glass(0.15);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 28px 32px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.22s, background 0.22s, box-shadow 0.22s;
+  overflow: hidden;
+
+  &:hover {
+    background: rgba(var(--glass-rgb), 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  // ── Cover ──
+  .story-cover {
+    width: 110px;
+    height: 155px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cover-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+          rgba(255, 255, 255, 0.28),
+          rgba(255, 255, 255, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+  }
+
+  // ── Info ──
+  .story-info {
+    flex: 1;
+    min-width: 0;
+
+    .story-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+
+      .story-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .story-meta {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0 0 6px;
+      font-weight: 500;
+    }
+
+    .story-desc {
+      font-size: 14px;
+      color: var(--text-primary);
+      opacity: 0.8;
+      margin: 0;
+      line-height: 1.6;
+    }
+  }
+
+  // ── Actions ──
+  .story-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
+// ─── Badges ──────────────────────────────────────────────────────────────────
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+
+  &-draft {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  &-published {
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.2);
+  }
+}
+
+// ─── Action buttons ───────────────────────────────────────────────────────────
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 50px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  svg {
+    display: block;
+  }
+
+  // Pubblica
+  &.btn-publish {
+    border: 1px solid #16a34a;
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+
+    &:hover {
+      background: #16a34a;
+      color: #fff;
+    }
+  }
+
+  // Rimuovi (Unpublish)
+  &.btn-unpublish {
+    border: 1px solid #ca8a04;
+    background: rgba(202, 138, 4, 0.1);
+    color: #ca8a04;
+
+    &:hover {
+      background: #ca8a04;
+      color: #fff;
+    }
+  }
+
+  // Elimina
+  &.btn-delete {
+    border: 1px solid rgba(220, 38, 38, 0.6);
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+
+    &:hover {
+      background: rgba(220, 38, 38, 0.9);
+      color: #fff;
+    }
+  }
+}
+
+// ─── Icon buttons ────────────────────────────────────────────────────────────
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #111;
+  }
+}
+
+// ─── Empty state ─────────────────────────────────────────────────────────────
+.empty-state {
+  text-align: center;
+  padding: 70px 20px;
+  color: var(--text-primary);
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: var(--text-muted);
+    background: rgba(var(--glass-rgb), 0.1);
+  }
+
+  p {
+    font-size: 16px;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .btn-new-story {
+    margin-top: 0;
+  }
+}

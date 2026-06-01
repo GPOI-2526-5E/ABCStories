@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "../../../scss/colori.scss";
 
 // ─── Tokens ───────────────────────────────────────────────
@@ -16,7 +17,7 @@ $muted: var(--text-muted);
   -webkit-backdrop-filter: blur($blur) saturate(160%);
   border: 1.5px solid rgba(var(--glass-border-rgb), $border-alpha);
   box-shadow: var(--glass-shadow),
-              inset 0 1px 0 rgba(var(--glass-rgb), 0.6);
+    inset 0 1px 0 rgba(var(--glass-rgb), 0.6);
 }
 
 // ─── Layout root ─────────────────────────────────────────
@@ -151,11 +152,19 @@ $muted: var(--text-muted);
     color: $text;
     font-weight: 600;
     border-left-color: $accent;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
-  &__icon { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
-  &__label { flex: 1; }
+  &__icon {
+    font-size: 17px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    flex: 1;
+  }
 }
 
 // ─── Main content ─────────────────────────────────────────
@@ -180,8 +189,15 @@ $muted: var(--text-muted);
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .section-title {
@@ -214,15 +230,24 @@ $muted: var(--text-muted);
   overflow: hidden;
   flex-shrink: 0;
 
+  &__ambient {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
+    z-index: 0;
+  }
+
   &__bg {
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(ellipse at 30% 40%, rgba(91,191,138,0.55) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 60%, rgba(240,168,96,0.55) 0%, transparent 60%),
-      radial-gradient(ellipse at 50% 20%, rgba(200,120,180,0.35) 0%, transparent 55%),
-      linear-gradient(160deg, #1a2a38 0%, #2a3a28 40%, #3a2a18 80%, #2a1810 100%);
-    // Simulates a "cover image" behind the user, like the book detail page
+    opacity: 0.8;
+    background-size: cover;
+    background-position: center;
+    filter: blur(80px) saturate(180%) brightness(0.9);
+    will-change: transform, opacity;
+    transform: translateZ(0) scale(1.4);
+    z-index: 0;
   }
 
   // The key: fade from the dark cover image downward into the page gradient
@@ -232,9 +257,8 @@ $muted: var(--text-muted);
     background: linear-gradient(
       to bottom,
       rgba(0,0,0,0)      0%,
-      rgba(0,0,0,0.10)  40%,
-      rgba(184,232,200,0.40) 75%,
-      rgba(184,232,200,0.85) 100%
+      rgba(0,0,0,0.15)  50%,
+      rgba(0,0,0,0.40) 100%
     );
   }
 
@@ -253,13 +277,13 @@ $muted: var(--text-muted);
     font-size: 34px;
     font-weight: 700;
     color: #fff;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.45);
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.45);
     margin-bottom: 4px;
   }
 
   &__handle {
     font-size: 14px;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255, 255, 255, 0.75);
     margin-bottom: 14px;
   }
 
@@ -276,29 +300,29 @@ $muted: var(--text-muted);
   height: 88px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f0d870, #f08878);
-  border: 4px solid rgba(255,255,255,0.90);
+  border: 4px solid rgba(255, 255, 255, 0.90);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 30px;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 8px 28px rgba(200,80,30,0.35),
-              0 0 0 8px rgba(255,255,255,0.15);
+  box-shadow: 0 8px 28px rgba(200, 80, 30, 0.35),
+    0 0 0 8px rgba(255, 255, 255, 0.15);
   margin-bottom: 14px;
   flex-shrink: 0;
 }
 
 .tag {
   display: inline-block;
-  background: rgba(255,255,255,0.22);
+  background: rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.45);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50px;
   padding: 4px 14px;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255,255,255,0.90);
+  color: rgba(255, 255, 255, 0.90);
 }
 
 // Stats bar
@@ -307,7 +331,7 @@ $muted: var(--text-muted);
   align-items: center;
   justify-content: center;
   gap: 0;
-  margin: -1px 40px 0;       // overlaps the hero bottom slightly
+  margin: -1px 40px 0; // overlaps the hero bottom slightly
   position: relative;
   z-index: 2;
   padding: 20px 28px;
@@ -347,7 +371,9 @@ $muted: var(--text-muted);
   letter-spacing: 2px;
 }
 
-.star-empty { color: rgba(120,80,30,0.30); }
+.star-empty {
+  color: rgba(120, 80, 30, 0.30);
+}
 
 // Profile body
 .profile-body {
@@ -412,8 +438,8 @@ $muted: var(--text-muted);
   }
 
   &__badge {
-    background: rgba(232,160,48,0.18);
-    color: darken($accent, 20%);
+    background: rgba(232, 160, 48, 0.18);
+    color: color.adjust($accent, $lightness: -20%);
     border-radius: 50px;
     font-size: 12px;
     font-weight: 600;
@@ -441,8 +467,8 @@ $muted: var(--text-muted);
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 16px 36px rgba(80,40,10,0.18),
-                inset 0 1px 0 rgba(255,255,255,0.65) !important;
+    box-shadow: 0 16px 36px rgba(80, 40, 10, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
   }
 
   &__cover {
@@ -486,6 +512,7 @@ $muted: var(--text-muted);
 
     &.active {
       background: white;
+
       svg {
         stroke-width: 0;
       }
@@ -494,6 +521,7 @@ $muted: var(--text-muted);
 
   .bookmark-icon {
     left: 12px;
+
     &.active svg {
       fill: #f1c40f;
     }
@@ -501,6 +529,7 @@ $muted: var(--text-muted);
 
   .heart-icon {
     right: 12px;
+
     &.active svg {
       fill: #e74c3c;
     }
@@ -538,21 +567,21 @@ $muted: var(--text-muted);
 
   &__stat {
     font-size: 11px;
-    color: darken($accent, 15%);
+    color: color.adjust($accent, $lightness: -15%);
     margin-top: 4px;
     font-weight: 500;
   }
 
   &__done {
     font-size: 11px;
-    color: darken($accent2, 10%);
+    color: color.adjust($accent2, $lightness: -10%);
     font-weight: 600;
     margin-top: 4px;
   }
 }
 
 .progress-wrap {
-  background: rgba(120,80,30,0.14);
+  background: rgba(120, 80, 30, 0.14);
   border-radius: 6px;
   height: 5px;
   margin-top: 6px;
@@ -578,17 +607,13 @@ $muted: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 18px 22px;
-  transition: transform 0.18s;
-  cursor: pointer;
-
-  &:hover { transform: translateY(-2px); }
+  padding: 18px;
 
   &__avatar {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    border: 2.5px solid rgba(255,255,255,0.80);
+    border: 2.5px solid rgba(255, 255, 255, 0.80);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -596,7 +621,7 @@ $muted: var(--text-muted);
     font-weight: 700;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
   }
 
   &__body {
@@ -642,14 +667,14 @@ $muted: var(--text-muted);
 
 .follow-btn {
   flex-shrink: 0;
-  border: 1.5px solid rgba(200,140,60,0.40);
+  border: 1.5px solid rgba(200, 140, 60, 0.40);
   border-radius: 50px;
   padding: 7px 18px;
   font-size: 12px;
   font-weight: 600;
   font-family: inherit;
-  background: rgba(255,255,255,0.70);
-  color: darken($accent, 15%);
+  background: rgba(255, 255, 255, 0.70);
+  color: color.adjust($accent, $lightness: -15%);
   cursor: pointer;
   transition: background 0.18s, color 0.18s, border-color 0.18s;
 
@@ -660,9 +685,9 @@ $muted: var(--text-muted);
   }
 
   &--active {
-    background: rgba(91,191,138,0.20);
-    border-color: rgba(91,191,138,0.50);
-    color: darken($accent2, 20%);
+    background: rgba(91, 191, 138, 0.20);
+    border-color: rgba(91, 191, 138, 0.50);
+    color: color.adjust($accent2, $lightness: -20%);
 
     &:hover {
       background: $danger;
@@ -703,27 +728,38 @@ $muted: var(--text-muted);
   justify-content: space-between;
   gap: 16px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(120,80,30,0.09);
+  border-bottom: 1px solid rgba(120, 80, 30, 0.09);
 
-  &--last { border-bottom: none; padding-bottom: 0; }
+  &--last {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 
   &__label {
     display: flex;
     flex-direction: column;
     gap: 2px;
 
-    span { font-size: 14px; font-weight: 500; color: $text; }
-    small { font-size: 12px; color: $muted; }
+    span {
+      font-size: 14px;
+      font-weight: 500;
+      color: $text;
+    }
+
+    small {
+      font-size: 12px;
+      color: $muted;
+    }
   }
 }
 
 .setting-input {
-  border: 1.5px solid rgba(200,140,60,0.30);
+  border: 1.5px solid rgba(200, 140, 60, 0.30);
   border-radius: 10px;
   padding: 8px 14px;
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.65);
+  background: rgba(255, 255, 255, 0.65);
   color: $text;
   width: 210px;
   outline: none;
@@ -731,7 +767,7 @@ $muted: var(--text-muted);
 
   &:focus {
     border-color: $accent;
-    box-shadow: 0 0 0 3px rgba(232,160,48,0.18);
+    box-shadow: 0 0 0 3px rgba(232, 160, 48, 0.18);
   }
 }
 
@@ -743,34 +779,41 @@ $muted: var(--text-muted);
   flex-shrink: 0;
   cursor: pointer;
 
-  input { opacity: 0; width: 0; height: 0; position: absolute; }
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
 
   &__slider {
     position: absolute;
     inset: 0;
-    background: rgba(120,80,30,0.20);
+    background: rgba(120, 80, 30, 0.20);
     border-radius: 12px;
     transition: background 0.2s;
-    border: 1px solid rgba(200,140,60,0.20);
+    border: 1px solid rgba(200, 140, 60, 0.20);
 
     &::before {
       content: '';
       position: absolute;
-      width: 18px; height: 18px;
-      left: 2px; top: 2px;
+      width: 18px;
+      height: 18px;
+      left: 2px;
+      top: 2px;
       background: #fff;
       border-radius: 50%;
       transition: transform 0.2s;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.20);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.20);
     }
   }
 
-  input:checked + .toggle__slider {
+  input:checked+.toggle__slider {
     background: $accent2;
-    border-color: darken($accent2, 10%);
+    border-color: color.adjust($accent2, $lightness: -10%);
   }
 
-  input:checked + .toggle__slider::before {
+  input:checked+.toggle__slider::before {
     transform: translateX(20px);
   }
 }
@@ -795,16 +838,19 @@ $muted: var(--text-muted);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(232,160,48,0.40);
+  box-shadow: 0 4px 18px rgba(232, 160, 48, 0.40);
   transition: background 0.18s, transform 0.12s;
 
-  &:hover { background: darken($accent, 10%); transform: translateY(-1px); }
+  &:hover {
+    background: color.adjust($accent, $lightness: -10%);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-danger {
-  background: rgba(224,80,80,0.12);
+  background: rgba(224, 80, 80, 0.12);
   color: $danger;
-  border: 1.5px solid rgba(224,80,80,0.28);
+  border: 1.5px solid rgba(224, 80, 80, 0.28);
   border-radius: 50px;
   padding: 11px 28px;
   font-size: 13px;
@@ -813,7 +859,9 @@ $muted: var(--text-muted);
   cursor: pointer;
   transition: background 0.18s;
 
-  &:hover { background: rgba(224,80,80,0.22); }
+  &:hover {
+    background: rgba(224, 80, 80, 0.22);
+  }
 }
 
 // Empty state

@@ -14,6 +14,14 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
+    path: 'author/:id',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'scrivi/:storyId',
+    renderMode: RenderMode.Server
+  },
+  {
     path: '**',
     renderMode: RenderMode.Prerender
   }

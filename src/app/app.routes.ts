@@ -8,6 +8,9 @@ import { Generi } from './components/generi/generi';
 import { GeneriDetail } from './components/generi-detail/generi-detail';
 import { User } from './components/user/user';
 import { Reader } from './components/reader/reader';
+import { AuthorDetail } from './components/author-detail/author-detail';
+import { ScriviDashboard } from './components/scrivi-dashboard/scrivi-dashboard';
+import { StoryEditor } from './components/story-editor/story-editor';
 import { authGuard } from './services/auth.guard';
 import { guestGuard } from './services/auth.guard';
 
@@ -21,4 +24,7 @@ export const routes: Routes = [
   { path: 'generi',          component: Generi,        canActivate: [authGuard] },
   { path: 'generi/:slug',    component: GeneriDetail,  canActivate: [authGuard] },
   { path: 'user',            component: User,          canActivate: [authGuard] },
+  { path: 'author/:id',      component: AuthorDetail,  canActivate: [authGuard] },
+  { path: 'scrivi',          component: ScriviDashboard, canActivate: [authGuard] },
+  { path: 'scrivi/:storyId', component: StoryEditor,     canActivate: [authGuard] },
 ];

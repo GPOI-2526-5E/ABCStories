@@ -1,0 +1,134 @@
+<app-navbar></app-navbar>
+
+<div class="editor-layout">
+
+  <aside class="editor-sidebar">
+
+    <div class="sidebar-header">
+      <button class="btn-back" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Torna alla Dashboard
+      </button>
+    </div>
+
+    <div class="story-settings" *ngIf="story">
+      <h4>Impostazioni Storia</h4>
+
+      <div class="form-group">
+        <label>URL Immagine di Copertina</label>
+        <input type="text" [(ngModel)]="story.image_url" class="form-control" placeholder="http://...">
+      </div>
+
+      <div class="form-group">
+        <label>Titolo</label>
+        <input type="text" [(ngModel)]="story.title" class="form-control" placeholder="Titolo storia">
+      </div>
+
+      <div class="form-group">
+        <label>Genere</label>
+        <div class="custom-dropdown" [class.open]="isGenreDropdownOpen">
+          <div class="custom-dropdown-trigger" (click)="toggleGenreDropdown($event)">
+            <span>{{ story.genre || 'Seleziona un genere' }}</span>
+            <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="custom-dropdown-menu" *ngIf="isGenreDropdownOpen">
+            <div class="custom-dropdown-item" *ngFor="let g of availableGenres" 
+                 [class.selected]="story.genre === g" 
+                 (click)="selectGenre(g, $event)">
+              {{ g }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Trama</label>
+        <textarea [(ngModel)]="story.description" class="form-control desc-input"
+          placeholder="Trama della tua opera..."></textarea>
+      </div>
+
+      <button class="btn-save-story" (click)="saveStoryInfo()">Salva Impostazioni</button>
+    </div>
+
+    <div class="chapters-section">
+      <div class="chapters-header">
+        <h4>Capitoli</h4>
+        <button class="btn-new-story" (click)="addChapter()" title="Aggiungi nuovo capitolo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="chapters-list">
+        <div class="chapter-item" *ngFor="let chap of chapters" [class.active]="selectedChapter?.id === chap.id"
+          (click)="selectChapter(chap)">
+          <span class="chapter-title">{{ chap.title || 'Senza titolo' }}</span>
+          <button class="btn-delete-icon" (click)="deleteChapter(chap.id, $event)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="editor-main">
+    <div class="editor-container" *ngIf="selectedChapter">
+      <div class="editor-top">
+
+        <div class="header-inputs-group">
+          <input type="text" [(ngModel)]="selectedChapter.title" class="chapter-title-input"
+            placeholder="Titolo del capitolo">
+
+          <div class="chapter-image-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" class="input-icon">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <input type="text" [(ngModel)]="selectedChapter.image_url" class="form-control-url"
+              placeholder="URL immagine di copertina del capitolo (opzionale)">
+          </div>
+        </div>
+
+        <button class="btn-save-chapter" (click)="saveChapter()" [disabled]="saving">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          {{ saving ? 'Salvataggio...' : 'Salva Capitolo' }}
+        </button>
+      </div>
+
+      <div class="editor-content">
+        <textarea [(ngModel)]="selectedChapter.content" class="chapter-content-input"
+          placeholder="Inizia a scrivere la tua storia qui..."></textarea>
+      </div>
+    </div>
+
+    <div class="empty-editor" *ngIf="!selectedChapter">
+      <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.2">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+      </svg>
+      <p>Seleziona un capitolo per iniziare a scrivere, oppure creane uno nuovo.</p>
+      <button class="btn-new-story" (click)="addChapter()">+ Nuovo Capitolo</button>
+    </div>
+  </main>
+
+</div>

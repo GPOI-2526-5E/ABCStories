@@ -14,6 +14,10 @@ export class Api {
     return this.http.get(`${this.apiUrl}/api/user`);
   }
 
+  getUserProfile(id: string) {
+    return this.http.get<any>(`${this.apiUrl}/api/user/${id}`);
+  }
+
   login(email: string, password: string) {
     return this.http.post(`${this.apiUrl}/api/user/login`, { email, password });
   }
@@ -102,7 +106,69 @@ export class Api {
     return this.http.get<any[]>(`${this.apiUrl}/api/stories/${storyId}/chapters`);
   }
 
+  getAuthorChapters(storyId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/author/stories/${storyId}/chapters`);
+  }
+
   getChapter(chapterId: string) {
     return this.http.get<any>(`${this.apiUrl}/api/chapters/${chapterId}`);
+  }
+
+  // ═══════════════ REVIEWS ═══════════════
+
+  getStoryReviews(storyId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/${storyId}/reviews`);
+  }
+
+  // ═══════════════ FOLLOWS & AUTHORS ═══════════════
+
+  followUser(followerId: string, followedId: string) {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/api/follows`, { follower_id: followerId, followed_id: followedId });
+  }
+
+  unfollowUser(followerId: string, followedId: string) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/follows/${followerId}/${followedId}`);
+  }
+
+  getFollowedAuthors(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/follows/${userId}`);
+  }
+
+  checkFollowStatus(followerId: string, followedId: string) {
+    return this.http.get<{ following: boolean }>(`${this.apiUrl}/api/follows/check/${followerId}/${followedId}`);
+  }
+
+  getAuthorStories(authorId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/author/${authorId}`);
+  }
+
+  // ═══════════════ AUTHOR DASHBOARD & EDITOR ═══════════════
+
+  getAuthorDashboardStories(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/author/my-stories/${userId}`);
+  }
+
+  createStory(storyData: any) {
+    return this.http.post<any>(`${this.apiUrl}/api/stories`, storyData);
+  }
+
+  updateStory(storyId: string, storyData: any) {
+    return this.http.put<any>(`${this.apiUrl}/api/stories/${storyId}`, storyData);
+  }
+
+  deleteStory(storyId: string) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/stories/${storyId}`);
+  }
+
+  createChapter(chapterData: any) {
+    return this.http.post<any>(`${this.apiUrl}/api/chapters`, chapterData);
+  }
+
+  updateChapter(chapterId: string, chapterData: any) {
+    return this.http.put<any>(`${this.apiUrl}/api/chapters/${chapterId}`, chapterData);
+  }
+
+  deleteChapter(chapterId: string) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/chapters/${chapterId}`);
   }
 }

@@ -5,7 +5,8 @@
   <!-- ═══════════════ SIDEBAR ═══════════════ -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-avatar">{{ userInitials() }}</div>
+      <img *ngIf="fullProfile?.avatar_url" [src]="fullProfile.avatar_url" alt="Avatar" class="brand-avatar" style="object-fit: cover; background: white;">
+      <div *ngIf="!fullProfile?.avatar_url" class="brand-avatar">{{ userInitials() }}</div>
       <div class="brand-meta">
         <span class="brand-name">{{ currentUser()?.username }}</span>
         <span class="brand-handle">{{ currentUser()?.email }}</span>
@@ -13,12 +14,8 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button
-        *ngFor="let item of navItems"
-        class="nav-btn"
-        [class.nav-btn--active]="activeSection() === item.id"
-        (click)="setSection(item.id)"
-      >
+      <button *ngFor="let item of navItems" class="nav-btn" [class.nav-btn--active]="activeSection() === item.id"
+        (click)="setSection(item.id)">
         <span class="nav-btn__icon">{{ item.icon }}</span>
         <span class="nav-btn__label">{{ item.label }}</span>
       </button>
@@ -43,10 +40,13 @@
     <section class="section" *ngIf="activeSection() === 'profilo'">
       <!-- Hero: immagine + sfumatura come pagina libro -->
       <div class="profile-hero">
-        <div class="profile-hero__bg"></div>
-        <div class="profile-hero__fade"></div>
+        <div class="profile-hero__ambient">
+          <div class="profile-hero__bg" [style.backgroundImage]="fullProfile?.avatar_url ? 'url(' + fullProfile.avatar_url + ')' : ''"></div>
+          <div class="profile-hero__fade"></div>
+        </div>
         <div class="profile-hero__content">
-          <div class="profile-avatar">{{ userInitials() }}</div>
+          <img *ngIf="fullProfile?.avatar_url" [src]="fullProfile.avatar_url" alt="Avatar" class="profile-avatar" style="object-fit: cover; background: white;">
+          <div *ngIf="!fullProfile?.avatar_url" class="profile-avatar">{{ userInitials() }}</div>
           <h1 class="profile-hero__name">{{ currentUser()?.username }}</h1>
           <p class="profile-hero__handle">{{ currentUser()?.email }}</p>
           <div class="profile-hero__tags">
@@ -117,7 +117,10 @@
           <div class="book-card__cover">
             <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
             <div class="action-icon heart-icon active" (click)="removeLike(book, $event)">
-              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
             </div>
           </div>
           <div class="book-card__info">
@@ -142,7 +145,9 @@
           <div class="book-card__cover">
             <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
             <div class="action-icon bookmark-icon active" (click)="removeBookmark(book, $event)">
-              <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+              </svg>
             </div>
           </div>
           <div class="book-card__info">
@@ -162,24 +167,21 @@
       <h2 class="section-title">Autori seguiti</h2>
       <p class="section-sub">Gli scrittori di cui non vuoi perdere gli aggiornamenti ✍️</p>
       <div class="authors-list">
-        <div class="author-card glass" *ngFor="let author of followedAuthors">
+        <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author', author.id]">
           <div class="author-card__avatar" [style.background]="author.avatarGradient">
-            {{ author.initials }}
+            <img *ngIf="author.avatar_url" [src]="author.avatar_url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            <span *ngIf="!author.avatar_url">{{ author.initials }}</span>
           </div>
           <div class="author-card__body">
             <span class="author-card__name">{{ author.name }}</span>
-            <span class="author-card__desc">{{ author.description }}</span>
+            <span class="author-card__desc">{{ author.description || 'Nessuna biografia disponibile.' }}</span>
           </div>
           <div class="author-card__stories">
             <strong>{{ author.stories }}</strong>
             <span>storie</span>
           </div>
-          <button
-            class="follow-btn"
-            [class.follow-btn--active]="author.following"
-            (click)="toggleFollow(author)"
-          >
-            {{ author.following ? '✓ Seguendo' : '+ Segui' }}
+          <button class="follow-btn follow-btn--active" (click)="$event.stopPropagation(); toggleFollow(author)">
+            Unfollow
           </button>
         </div>
       </div>

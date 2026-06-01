@@ -16,7 +16,7 @@
       <div class="detail-info">
         <span class="detail-tag">{{ book.tag || 'Romanzo' }}</span>
         <h1>{{ book.title }}</h1>
-        <p class="detail-author">{{ book.author }}</p>
+        <p class="detail-author" (click)="goToAuthor(book?.author_id, $event)" style="cursor: pointer;">{{ book.author }}</p>
         <p class="detail-desc">{{ book.desc }}</p>
         <button class="btnContGlass mt-4 fade-button" (click)="startReading()">
           {{ readButtonLabel }}
@@ -164,7 +164,7 @@
     <section class="dd-section">
       <h2 class="text-center mb-4">Recensioni degli utenti</h2>
       <div class="dd-reviews-grid">
-        @for (review of visibleReviews; track review.name) {
+        @for (review of visibleReviews; track review.id) {
         <div class="dd-review-card">
           <div class="dd-reviewer-row">
             <div class="dd-avatar">{{ review.name[0] }}</div>
@@ -177,7 +177,7 @@
               </div>
             </div>
           </div>
-          <div class="dd-review-text">{{ review.text }}</div>
+          <div class="dd-review-text">{{ review.content }}</div>
         </div>
         }
       </div>

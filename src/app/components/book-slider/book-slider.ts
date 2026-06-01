@@ -43,6 +43,13 @@ export class BookSlider implements OnInit {
     );
   }
 
+  goToAuthor(authorId: string | undefined, event: Event) {
+    event.stopPropagation();
+    if (authorId) {
+      this.router.navigate(['/author', authorId]);
+    }
+  }
+
   get visible(): number {
     if (typeof window === 'undefined') return 4;
     return Math.floor(window.innerWidth / this.cardWidth);

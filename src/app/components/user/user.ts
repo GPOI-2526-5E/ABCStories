@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
@@ -6,6 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { Api } from '../../services/api';
 import { InteractionsService } from '../../services/interactions.service';
 import { ThemeService, Theme } from '../../services/theme.service';
+
+import { RouterModule } from '@angular/router';
 
 export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni';
 
@@ -36,7 +38,7 @@ export interface Author {
 @Component({
   selector: 'app-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar],
+  imports: [CommonModule, FormsModule, Navbar, RouterModule],
   templateUrl: './user.html',
   styleUrl: './user.scss'
 })
@@ -46,6 +48,7 @@ export class User implements OnInit {
   private api = inject(Api);
   private interactions = inject(InteractionsService);
   public themeService = inject(ThemeService);
+  private cdr = inject(ChangeDetectorRef);
 
   /** Utente loggato (segnale) */
   currentUser = this.authService.currentUser;
@@ -57,6 +60,7 @@ export class User implements OnInit {
   });
 
   activeSection = signal<Section>('profilo');
+  fullProfile: any = null;
 
   navItems: { id: Section; label: string; icon: string }[] = [
     { id: 'profilo', label: 'Profilo', icon: '👤' },
@@ -70,13 +74,7 @@ export class User implements OnInit {
 
   favoriteBooks: UserBook[] = [];
 
-  followedAuthors: Author[] = [
-    { id: 1, initials: 'EV', name: 'Elena Verdi', handle: '@elenaverdi', description: 'Narratrice fantasy con un tocco di magia celtica. Pubblica ogni domenica.', stories: 18, avatarGradient: 'linear-gradient(135deg,#5bbf8a,#2a8a5a)', following: true },
-    { id: 2, initials: 'DW', name: 'DarkWriter88', handle: '@darkwriter88', description: 'Master del thriller psicologico. Le sue storie ti terranno sveglio la notte.', stories: 31, avatarGradient: 'linear-gradient(135deg,#f0a860,#c05820)', following: true },
-    { id: 3, initials: 'LS', name: 'Luna Scrittrice', handle: '@lunascrittrice', description: 'Poesia in prosa, romanzi brevi, emozioni allo stato puro.', stories: 9, avatarGradient: 'linear-gradient(135deg,#a060d0,#6030a0)', following: true },
-    { id: 4, initials: 'HI', name: 'Historicus', handle: '@historicus', description: 'Romanziere storico appassionato di Roma antica e Medioevo italiano.', stories: 24, avatarGradient: 'linear-gradient(135deg,#f0d870,#c09820)', following: true },
-    { id: 5, initials: 'OW', name: 'Ocean Writer', handle: '@oceanwriter', description: 'Avventure in mare aperto, misteri subacquei e vento in poppa.', stories: 12, avatarGradient: 'linear-gradient(135deg,#a0d8f8,#2080c0)', following: false },
-  ];
+  followedAuthors: any[] = [];
 
   settings = {
     nome: '',
@@ -101,6 +99,16 @@ export class User implements OnInit {
       // Carica le interazioni in memoria
       this.interactions.loadUserInteractions();
 
+      // Carica il profilo completo (bio, location, avatar, ecc.) dal DB
+      this.api.getUserProfile(u.id).subscribe({
+        next: (profile) => {
+          this.fullProfile = profile;
+          if (profile.location) this.settings.posizione = profile.location;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.warn('Errore caricamento profilo:', err)
+      });
+
       // Carica storie liked dal DB
       this.api.getLikedStories(u.id).subscribe({
         next: (stories) => this.likedBooks = stories,
@@ -112,6 +120,18 @@ export class User implements OnInit {
         next: (stories) => this.favoriteBooks = stories,
         error: (err) => console.warn('Errore caricamento bookmarks:', err)
       });
+      // Carica autori seguiti dal DB
+      this.api.getFollowedAuthors(u.id).subscribe({
+        next: (authors) => {
+          this.followedAuthors = authors.map(a => ({
+            ...a,
+            initials: a.name.slice(0, 2).toUpperCase(),
+            avatarGradient: 'linear-gradient(135deg, #f0d870, #f08878)'
+          }));
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.warn('Errore caricamento autori seguiti:', err)
+      });
     }
   }
 
@@ -119,8 +139,19 @@ export class User implements OnInit {
     this.activeSection.set(id);
   }
 
-  toggleFollow(author: Author): void {
-    author.following = !author.following;
+  toggleFollow(author: any): void {
+    const u = this.currentUser();
+    if (!u) return;
+    
+    // Unfollow real-time
+    this.api.unfollowUser(u.id, author.id).subscribe({
+      next: () => {
+        // Rimuove l'autore dall'array localmente in modo che la card scompaia
+        this.followedAuthors = this.followedAuthors.filter(a => a.id !== author.id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Errore unfollow', err)
+    });
   }
 
   saveSettings(): void {

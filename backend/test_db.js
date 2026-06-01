@@ -1,0 +1,1 @@
+const { Pool } = require('pg'); const pool = new Pool({ user: 'postgres', host: 'localhost', database: 'postgres', password: 'postgres', port: 5432 }); pool.query('SELECT title, genre, status FROM stories ORDER BY title DESC LIMIT 10').then(res => { console.table(res.rows); pool.end(); }).catch(console.error);
