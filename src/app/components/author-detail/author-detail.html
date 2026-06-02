@@ -1,34 +1,30 @@
 <app-navbar></app-navbar>
 
 <div class="author-layout" *ngIf="author">
-  <div class="author-container">
-    
+
+  <!-- Ambient Background Fade -->
+  <div class="ambient-wrapper">
+    <div class="ambient-bg"
+      [style.backgroundImage]="'url(' + (author.avatar_url || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1470&auto=format&fit=crop') + ')'">
+    </div>
+    <div class="ambient-overlay"></div>
+  </div>
+
+  <div class="author-container container-fluid">
+
     <!-- Hero Profile Section -->
-    <section class="author-hero glass">
-      <div class="author-hero__bg">
-        <div class="author-hero__fade"></div>
-      </div>
+    <section class="author-hero">
       <div class="author-hero__content">
-        <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="author-avatar" style="object-fit: cover; background: white;">
+        <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="author-avatar"
+          style="object-fit: cover; background: white;">
         <div *ngIf="!author.avatar_url" class="author-avatar">{{ initials }}</div>
-        
+
         <h1 class="author-hero__name">{{ author.username }}</h1>
         <p class="author-hero__handle">{{ author.email }}</p>
-        
+
         <p class="author-hero__bio" *ngIf="author.bio">{{ author.bio }}</p>
         <p class="author-hero__bio" *ngIf="!author.bio">Questo autore preferisce mantenere un alone di mistero.</p>
-        
-        <div class="author-hero__stats">
-          <div class="stat">
-            <span class="stat__val">{{ author.stories_count || 0 }}</span>
-            <span class="stat__lbl">Storie</span>
-          </div>
-          <div class="stat" *ngIf="author.location">
-            <span class="stat__val">📍</span>
-            <span class="stat__lbl">{{ author.location }}</span>
-          </div>
-        </div>
-        
+
         <!-- Action Buttons -->
         <div class="author-hero__actions" *ngIf="!isCurrentUser">
           <button class="follow-btn" [class.follow-btn--active]="isFollowing" (click)="toggleFollow()">
@@ -38,29 +34,202 @@
       </div>
     </section>
 
+    <!-- Author Info Section -->
+    <section class="author-info-section" style="position: relative; z-index: 3;">
+      <div class="author-info__container">
+
+        <div class="author-info__stats">
+          <div class="info-stat">
+            <span class="info-stat__val">{{ author.stories_count || 0 }}</span>
+            <span class="info-stat__lbl">Storie</span>
+          </div>
+          <div class="info-stat">
+            <span class="info-stat__val">{{ followersCount }}</span>
+            <span class="info-stat__lbl">Follower</span>
+          </div>
+          <div class="info-stat">
+            <span class="info-stat__val">{{ followingCount }}</span>
+            <span class="info-stat__lbl">Seguiti</span>
+          </div>
+          <div class="info-stat" *ngIf="author.location">
+            <span class="info-stat__val">📍</span>
+            <span class="info-stat__lbl">{{ author.location }}</span>
+          </div>
+        </div>
+
+        <div class="author-info__socials">
+          <a [href]="socials.instagram" target="_blank" class="social-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </a>
+          <a [href]="socials.twitter" target="_blank" class="social-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+              </path>
+            </svg>
+          </a>
+          <a [href]="socials.website" target="_blank" class="social-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+              </path>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
     <!-- Author Stories Section -->
     <section class="author-stories">
-      <h2 class="section-title">Opere pubblicate</h2>
-      
-      <div class="books-grid" *ngIf="stories.length > 0; else noStories">
-        <div class="book-card glass" *ngFor="let book of stories" [routerLink]="['/book', book.id]">
-          <div class="book-card__cover">
-            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
+
+      <h2 class="section-title text-center mb-4"
+        style="font-size: 2.2rem; font-weight: 800; position: relative; z-index: 3;">I libri di {{ author.username }}
+      </h2>
+
+      <!-- Tabs Navigation -->
+      <div class="author-tabs" style="position: relative; z-index: 3;">
+        <button *ngFor="let tab of tabs" class="tab-btn" [class.tab-btn--active]="activeTab === tab"
+          (click)="setTab(tab)">
+          {{ tab }}
+        </button>
+      </div>
+
+      <div class="container-fluid" style="padding: 0;">
+        <div class="ad-grid fluid-grid" *ngIf="filteredStories.length > 0; else noStories">
+          <div class="book-card" *ngFor="let book of displayedStories" [routerLink]="['/book', book.id]">
+            <div class="book-cover">
+              <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" loading="lazy" />
+            </div>
+            <div class="book-info">
+              <p class="book-title">{{ book.title }}</p>
+              <p class="book-author">{{ book.genre || 'Romanzo' }}</p>
+            </div>
           </div>
-          <div class="book-card__info">
-            <span class="book-card__title">{{ book.title }}</span>
-            <span class="book-card__author">{{ book.genre }}</span>
-            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
-          </div>
+        </div>
+
+        <div class="show-more-container" *ngIf="filteredStories.length > displayedStories.length">
+          <button class="show-more-btn" (click)="showMoreBooks()">Mostra altri</button>
         </div>
       </div>
 
       <ng-template #noStories>
-        <div class="empty-state glass">
-          <p>Questo autore non ha ancora pubblicato nessuna storia.</p>
+        <div class="empty-state">
+          <p>Nessuna storia trovata in questa categoria.</p>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Follower Section -->
+    <section class="author-followers-section" style="position: relative; z-index: 3; margin-top: 80px;">
+      <h2 class="section-title text-center mb-4" style="font-size: 2.5rem; font-weight: 800;">Follower</h2>
+
+      <div class="container-fluid" style="padding: 0;">
+        <div class="followers-fluid-grid" *ngIf="followersList.length > 0; else noFollowers">
+          <div class="follower-info-card" *ngFor="let follower of displayedFollowers"
+            [routerLink]="['/author', follower.id]">
+            <div class="follower-info-card__avatar">
+              <img *ngIf="follower.avatar_url" [src]="follower.avatar_url"
+                style="width: 100%; height: 100%; object-fit: cover;">
+              <span *ngIf="!follower.avatar_url">{{ follower.name?.slice(0, 2).toUpperCase() }}</span>
+            </div>
+            <div class="follower-info-card__body">
+              <span class="follower-name">{{ follower.name }}</span>
+              <span class="follower-handle">{{ follower.handle || follower.name }}</span>
+              <span class="follower-bio">{{ follower.description || 'Nessuna biografia disponibile.' }}</span>
+            </div>
+            <div class="follower-info-card__stats">
+              <div class="stat-item">
+                <strong>{{ follower.followers_count || 0 }}</strong>
+                <span>follower</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ follower.following_count || 0 }}</strong>
+                <span>seguiti</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ follower.stories_count || 0 }}</strong>
+                <span>storie</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="show-more-container" *ngIf="followersList.length > displayedFollowers.length">
+          <button class="show-more-btn" (click)="showMoreFollowers()">Mostra altri</button>
+        </div>
+      </div>
+
+      <ng-template #noFollowers>
+        <div class="empty-state">
+          <p>Ancora nessun follower. Sii il primo!</p>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Seguiti Section -->
+    <section class="author-following-section" style="position: relative; z-index: 3; margin-top: 80px;">
+      <h2 class="section-title text-center mb-4" style="font-size: 2.5rem; font-weight: 800;">Seguiti</h2>
+
+      <div class="container-fluid" style="padding: 0;">
+        <div class="following-square-grid" *ngIf="followingList.length > 0; else noFollowing">
+          <div class="following-info-card" *ngFor="let followed of displayedFollowing"
+            [routerLink]="['/author', followed.id]">
+            <div class="following-info-card__avatar">
+              <img *ngIf="followed.avatar_url" [src]="followed.avatar_url"
+                style="width: 100%; height: 100%; object-fit: cover;">
+              <span *ngIf="!followed.avatar_url">{{ followed.name?.slice(0, 2).toUpperCase() }}</span>
+            </div>
+            <div class="following-info-card__body">
+              <span class="following-name">{{ followed.name }}</span>
+              <span class="following-handle">{{ followed.handle || followed.name }}</span>
+              <span class="following-bio">{{ followed.description || 'Nessuna biografia disponibile.' }}</span>
+            </div>
+            <div class="following-info-card__stats">
+              <div class="stat-item">
+                <strong>{{ followed.followers_count || 0 }}</strong>
+                <span>follower</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ followed.following_count || 0 }}</strong>
+                <span>seguiti</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ followed.stories_count || 0 }}</strong>
+                <span>storie</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="show-more-container" *ngIf="followingList.length > displayedFollowing.length">
+          <button class="show-more-btn" (click)="showMoreFollowing()">Mostra altri</button>
+        </div>
+      </div>
+
+      <ng-template #noFollowing>
+        <div class="empty-state">
+          <p>Questo autore non segue ancora nessuno.</p>
         </div>
       </ng-template>
     </section>
 
   </div>
+
+  <!-- Recommended Books Slider -->
+  <div class="author-recommended"
+    style="margin-top: 80px; margin-bottom: 80px; position: relative; z-index: 3; width: 100%;">
+    <app-book-slider [title]="'Le letture consigliate da ' + author.username" [books]="recommendedBooks">
+    </app-book-slider>
+  </div>
 </div>
+
+<app-footer></app-footer>

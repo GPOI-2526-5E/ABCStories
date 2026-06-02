@@ -532,13 +532,51 @@ app.delete('/api/follows/:followerId/:followedId', async (req, res) => {
   }
 });
 
+// Ottieni gli utenti che seguono un autore (Followers)
+app.get('/api/follows/followers/:userId', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id, u.username as name, u.email as handle, u.bio as description, u.avatar_url,
+        (SELECT COUNT(*) FROM stories WHERE author_id = u.id AND status = 'published') as stories_count,
+        (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) as followers_count,
+        (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count
+      FROM users u
+      JOIN follows f ON f.follower_id = u.id
+      WHERE f.followed_id = $1
+      ORDER BY f.created_at DESC
+    `, [req.params.userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Ottieni i conteggi di followers e seguiti
+app.get('/api/follows/count/:userId', async (req, res) => {
+  try {
+    const followers = await pool.query('SELECT COUNT(*) FROM follows WHERE followed_id = $1', [req.params.userId]);
+    const following = await pool.query('SELECT COUNT(*) FROM follows WHERE follower_id = $1', [req.params.userId]);
+    res.json({
+      followersCount: parseInt(followers.rows[0].count, 10),
+      followingCount: parseInt(following.rows[0].count, 10)
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Ottieni gli autori seguiti da un utente
 app.get('/api/follows/:userId', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         u.id, u.username as name, u.email as handle, u.avatar_url, u.bio as description,
-        (SELECT count(*) FROM stories WHERE author_id = u.id) as stories
+        (SELECT COUNT(*) FROM stories WHERE author_id = u.id AND status = 'published') as stories_count,
+        (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) as followers_count,
+        (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count
       FROM users u
       JOIN follows f ON f.followed_id = u.id
       WHERE f.follower_id = $1

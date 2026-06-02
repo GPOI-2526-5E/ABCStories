@@ -19,8 +19,8 @@ export class InteractionsService {
   /** Set di story_id che l'utente ha bookmarked */
   private _bookmarkedIds = signal<Set<string>>(new Set());
 
-  /** Flag: i dati sono stati già caricati dal server? */
-  private loaded = false;
+  /** Tiene traccia dell'ID utente per cui i dati sono stati caricati */
+  private loadedUserId: string | null = null;
 
   /**
    * Carica gli ID liked/bookmarked dal backend.
@@ -29,9 +29,18 @@ export class InteractionsService {
    */
   loadUserInteractions(): Observable<boolean> {
     const user = this.authService.currentUser();
-    if (!user) return of(false);
-    if (this.loaded) return of(true);
-    this.loaded = true;
+    if (!user) {
+      // Pulisce i dati se non c'è utente
+      this._likedIds.set(new Set());
+      this._bookmarkedIds.set(new Set());
+      this.loadedUserId = null;
+      return of(false);
+    }
+    
+    // Se i dati sono già caricati per QUESTO utente, non rifare la chiamata
+    if (this.loadedUserId === user.id) return of(true);
+    
+    this.loadedUserId = user.id;
 
     return forkJoin({
       likes: this.api.getLikedIds(user.id).pipe(
@@ -51,7 +60,7 @@ export class InteractionsService {
 
   /** Forza il ricaricamento (utile dopo login) */
   resetAndLoad(): Observable<boolean> {
-    this.loaded = false;
+    this.loadedUserId = null;
     return this.loadUserInteractions();
   }
 

@@ -134,6 +134,14 @@ export class Api {
     return this.http.get<any[]>(`${this.apiUrl}/api/follows/${userId}`);
   }
 
+  getAuthorFollowers(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/follows/followers/${userId}`);
+  }
+
+  getFollowsCount(userId: string) {
+    return this.http.get<{ followersCount: number, followingCount: number }>(`${this.apiUrl}/api/follows/count/${userId}`);
+  }
+
   checkFollowStatus(followerId: string, followedId: string) {
     return this.http.get<{ following: boolean }>(`${this.apiUrl}/api/follows/check/${followerId}/${followedId}`);
   }

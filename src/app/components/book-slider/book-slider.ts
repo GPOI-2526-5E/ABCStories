@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, ViewChild, ElementRef, OnInit, inject } from '@angular/core';
+import { Component, Input, HostListener, ViewChild, ElementRef, OnInit, AfterViewInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Book } from '../../services/book';
@@ -10,7 +10,7 @@ import { InteractionsService } from '../../services/interactions.service';
   templateUrl: './book-slider.html',
   styleUrl: './book-slider.scss',
 })
-export class BookSlider implements OnInit {
+export class BookSlider implements OnInit, AfterViewInit, OnChanges {
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() books: any[] = [];
@@ -32,6 +32,18 @@ export class BookSlider implements OnInit {
     // Avvia il caricamento delle interazioni (se non già fatto).
     // Ora è idempotente e non usa setTimeout.
     this.interactions.loadUserInteractions().subscribe();
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => this.updateArrows(), 100);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['books']) {
+      setTimeout(() => {
+        this.updateArrows();
+      }, 100);
+    }
   }
 
   onBookClick(book: any, index: number) {
@@ -65,6 +77,7 @@ export class BookSlider implements OnInit {
   }
 
   updateArrows() {
+    if (!this.scrollContainer) return;
     const el = this.scrollContainer.nativeElement;
     this.canScrollLeft = el.scrollLeft > 5;
     this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;

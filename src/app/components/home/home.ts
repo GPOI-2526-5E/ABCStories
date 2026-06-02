@@ -69,110 +69,12 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
   /** Storie di tendenza (classifica settimanale) */
   trendingBooks: any[] = [];
 
-  booksA = [
-    { id: 1, title: 'Il Nome della Rosa', author: 'U. Eco', desc: 'Un monaco francescano indaga su una serie di morti misteriose in un monastero medievale, tra labirinti di libri e segreti inconfessabili.', img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80', liked: false, bookmarked: false },
-    { id: 2, title: "L'Alchimista", author: 'P. Coelho', desc: 'Un giovane pastore spagnolo intraprende un viaggio verso le piramidi d\'Egitto seguendo un sogno ricorrente e imparando a leggere i segni del destino.', img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=320&q=80', liked: false, bookmarked: false },
-    { id: 3, title: 'Cime Tempestose', author: 'E. Brontë', desc: 'Una storia d\'amore selvaggia e tormentata tra Heathcliff e Catherine, ambientata tra le brughiere dello Yorkshire e destinata a sfidare la morte stessa.', img: 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=320&q=80', liked: false, bookmarked: false },
-    { id: 4, title: 'Orgoglio e Pregiudizio', author: 'J. Austen', desc: 'Elizabeth Bennet e Mr. Darcy si scontrano tra pregiudizi sociali e orgoglio ferito, in un romanzo che ha definito il genere sentimentale moderno.', img: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=320&q=80', liked: false, bookmarked: false },
-    { id: 5, title: 'Il Grande Gatsby', author: 'F.S. Fitzgerald', desc: 'Nell\'America degli anni Venti, il misterioso Jay Gatsby organizza feste sfarzose sperando di riconquistare l\'amore perduto di Daisy Buchanan.', img: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?w=320&q=80', liked: false, bookmarked: false },
-    { id: 6, title: 'Delitto e Castigo', author: 'F. Dostoevskij', desc: 'Raskolnikov, uno studente in miseria, commette un omicidio convinto di essere al di sopra della legge morale. Ma la coscienza non perdona.', img: 'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=320&q=80', liked: false, bookmarked: false },
-    { id: 7, title: 'Don Chisciotte', author: 'M. de Cervantes', desc: 'Un nobiluomo spagnolo, ossessionato dai romanzi cavallereschi, si convince di essere un cavaliere errante e parte per avventure immaginarie con il fedele Sancho Panza.', img: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=320&q=80', liked: false, bookmarked: false },
-    { id: 8, title: 'Anna Karenina', author: 'L. Tolstoy', desc: 'Anna, brillante nobildonna russa, abbandona marito e figlio per seguire una passione travolgente che la società dell\'epoca non potrà mai perdonare.', img: 'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?w=320&q=80', liked: false, bookmarked: false },
-    { id: 9, title: 'Anna Karenina', author: 'L. Tolstoy', desc: 'Anna, brillante nobildonna russa, abbandona marito e figlio per seguire una passione travolgente che la società dell\'epoca non potrà mai perdonare.', img: 'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?w=320&q=80', liked: false, bookmarked: false },
-  ];
+  booksA: any[] = [];
+  booksB: any[] = [];
+  booksC: any[] = [];
+  booksD: any[] = [];
 
-  booksB = [
-    { id: 10, title: 'Cento anni di solitudine', author: 'G.G. Márquez', desc: 'La saga della famiglia Buendía attraverso sette generazioni nella città immaginaria di Macondo, tra magia e tragedia, amore e guerra.', img: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=320&q=80', liked: false, bookmarked: false },
-    { id: 11, title: 'La Metamorfosi', author: 'F. Kafka', desc: 'Gregor Samsa si sveglia una mattina trasformato in un enorme insetto. Un racconto sull\'alienazione, la famiglia e l\'identità perduta.', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=320&q=80', liked: false, bookmarked: false },
-    { id: 12, title: 'Il Processo', author: 'F. Kafka', desc: 'Josef K. viene arrestato senza sapere il perché e si trova intrappolato in un sistema giudiziario assurdo e kafkiano da cui non riesce a sfuggire.', img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=320&q=80', liked: false, bookmarked: false },
-    { id: 13, title: 'Lolita', author: 'V. Nabokov', desc: 'Il professor Humbert Humbert racconta la sua ossessione per la dodicenne Dolores Haze, in uno dei romanzi più controversi e stilisticamente brillanti del Novecento.', img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=320&q=80', liked: false, bookmarked: false },
-    { id: 14, title: 'Il Signore degli Anelli', author: 'J.R.R. Tolkien', desc: 'Frodo Baggins intraprende un viaggio epico per distruggere l\'Unico Anello e salvare la Terra di Mezzo dal dominio del Signore Oscuro Sauron.', img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=320&q=80', liked: false, bookmarked: false },
-    { id: 15, title: '1984', author: 'G. Orwell', desc: 'In uno Stato totalitario dove il Grande Fratello sorveglia ogni pensiero, Winston Smith osa sognare la libertà in un mondo dove la verità è un crimine.', img: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=320&q=80', liked: false, bookmarked: false },
-    { id: 16, title: 'Siddharta', author: 'H. Hesse', desc: 'Il giovane Siddharta abbandona ogni privilegio per cercare l\'illuminazione spirituale in un viaggio interiore attraverso l\'India antica.', img: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=320&q=80', liked: false, bookmarked: false },
-    { id: 17, title: 'Il Conte di Montecristo', author: 'A. Dumas', desc: 'Edmond Dantès, ingiustamente imprigionato, evade e costruisce una nuova identità per portare a termine una vendetta meticolosa contro chi lo ha tradito.', img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=320&q=80', liked: false, bookmarked: false },
-    { id: 18, title: 'Sherlock Holmes', author: 'A.C. Doyle', desc: 'Il geniale detective Sherlock Holmes e il fedele dottor Watson risolvono i casi più intricati di Londra con deduzione infallibile e mente sopraffina.', img: 'https://images.unsplash.com/photo-1515705576963-95cad62945b6?w=320&q=80', liked: false, bookmarked: false },
-    { id: 19, title: '1984', author: 'G. Orwell', desc: 'In uno Stato totalitario dove il Grande Fratello sorveglia ogni pensiero, Winston Smith osa sognare la libertà in un mondo dove la verità è un crimine.', img: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=320&q=80', liked: false, bookmarked: false },
-    { id: 20, title: 'Il Vecchio e il Mare', author: 'E. Hemingway', desc: 'Santiago, un vecchio pescatore cubano, affronta per giorni e notti un enorme marlin nell\'oceano in una lotta che diventa metafora della condizione umana.', img: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=320&q=80', liked: false, bookmarked: false },
-    { id: 21, title: 'Siddharta', author: 'H. Hesse', desc: 'Il giovane Siddharta abbandona ogni privilegio per cercare l\'illuminazione spirituale in un viaggio interiore attraverso l\'India antica.', img: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=320&q=80', liked: false, bookmarked: false },
-    { id: 22, title: 'Il Conte di Montecristo', author: 'A. Dumas', desc: 'Edmond Dantès, ingiustamente imprigionato, evade e costruisce una nuova identità per portare a termine una vendetta meticolosa contro chi lo ha tradito.', img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=320&q=80', liked: false, bookmarked: false },
-    { id: 23, title: 'Sherlock Holmes', author: 'A.C. Doyle', desc: 'Il geniale detective Sherlock Holmes e il fedele dottor Watson risolvono i casi più intricati di Londra con deduzione infallibile e mente sopraffina.', img: 'https://images.unsplash.com/photo-1515705576963-95cad62945b6?w=320&q=80', liked: false, bookmarked: false },
-  ];
-
-  booksC = [
-    { id: 24, title: 'Dracula', author: 'Bram Stoker', desc: 'Il conte Dracula, vampiro immortale della Transilvania, minaccia l\'Inghilterra vittoriana. Un gruppo di coraggiosi si unisce per fermarlo prima che sia troppo tardi.', img: '/assets/Presentazione/horror/horror1.jpg', liked: false, bookmarked: false },
-    { id: 25, title: 'Shining', author: 'Stephen King', desc: 'Jack Torrance porta la famiglia all\'Overlook Hotel per la stagione invernale. Isolati dalla neve, forze oscure iniziano a far cedere la sua mente.', img: '/assets/Presentazione/horror/horror2.jpg', liked: false, bookmarked: false },
-    { id: 26, title: "L'Esorcista", author: 'William P. Blatty', desc: 'La dodicenne Regan inizia a manifestare comportamenti inspiegabili. Sua madre, disperata, si rivolge a un prete esorcista per salvare l\'anima di sua figlia.', img: '/assets/Presentazione/horror/horror3.jpg', liked: false, bookmarked: false },
-    { id: 27, title: 'It', author: 'Stephen King', desc: 'Nel Maine una creatura millenaria, che si manifesta come Pennywise il clown, terrorizza la città di Derry nutrendosi della paura dei bambini.', img: '/assets/Presentazione/horror/horror4.jpg', liked: false, bookmarked: false },
-    { id: 28, title: 'Frankenstein', author: 'Mary Shelley', desc: 'Lo scienziato Victor Frankenstein crea vita da resti umani, ma la creatura che nasce è condannata a vagare sola in un mondo che la rifiuta con orrore.', img: '/assets/Presentazione/horror/horror5.jpg', liked: false, bookmarked: false },
-    { id: 29, title: 'Il Silenzio degli Innocenti', author: 'Thomas Harris', desc: 'L\'agente dell\'FBI Clarice Starling deve chiedere aiuto al geniale e terrificante dottor Hannibal Lecter per catturare un serial killer in libertà.', img: '/assets/Presentazione/horror/horror6.jpg', liked: false, bookmarked: false },
-    { id: 30, title: 'Pet Sematary', author: 'Stephen King', desc: 'La famiglia Creed scopre un antico cimitero indiano con il potere di riportare in vita i morti. Ma ciò che ritorna non è mai lo stesso di prima.', img: '/assets/Presentazione/horror/horror7.jpg', liked: false, bookmarked: false },
-    { id: 31, title: 'Cujo', author: 'Stephen King', desc: 'Un San Bernardo amichevole viene morso da un pipistrello rabbioso e si trasforma in una macchina da uccidere che intrappolerà una madre e suo figlio.', img: '/assets/Presentazione/horror/horror8.jpg', liked: false, bookmarked: false },
-    { id: 32, title: 'The Ring', author: 'Koji Suzuki', desc: 'Dopo aver visionato una misteriosa videocassetta, una giornalista riceve una telefonata: morirà tra sette giorni. Inizia una corsa contro il tempo.', img: '/assets/Presentazione/horror/horror9.jpg', liked: false, bookmarked: false },
-    { id: 33, title: 'Psico', author: 'Robert Bloch', desc: 'Marion Crane si ferma al Bates Motel gestito dal timido Norman Bates e dalla sua possessiva madre. Una sosta che cambierà tutto per sempre.', img: '/assets/Presentazione/horror/horror10.jpg', liked: false, bookmarked: false },
-  ];
-
-  booksD = [
-    { id: 34, title: 'Orgoglio e Pregiudizio', author: 'Jane Austen', desc: 'Elizabeth Bennet e Mr. Darcy si scontrano tra pregiudizi sociali e orgoglio ferito, in un romanzo che ha definito il genere sentimentale moderno.', img: '/assets/Presentazione/romance/romance1.jpg', liked: false, bookmarked: false },
-    { id: 35, title: 'Il Grande Gatsby', author: 'F. Scott Fitzgerald', desc: 'Nell\'America degli anni Venti, il misterioso Jay Gatsby organizza feste sfarzose sperando di riconquistare l\'amore perduto di Daisy Buchanan.', img: '/assets/Presentazione/romance/romance2.jpg', liked: false, bookmarked: false },
-    { id: 36, title: 'Romeo e Giulietta', author: 'William Shakespeare', desc: 'Due giovani di famiglie nemiche si innamorano perdutamente a Verona. Una storia d\'amore immortale destinata a una fine tragica.', img: '/assets/Presentazione/romance/romance3.jpg', liked: false, bookmarked: false },
-    { id: 37, title: 'Cime Tempestose', author: 'Emily Brontë', desc: 'Una storia d\'amore selvaggia e tormentata tra Heathcliff e Catherine, ambientata tra le brughiere dello Yorkshire e destinata a sfidare la morte stessa.', img: '/assets/Presentazione/romance/romance4.jpg', liked: false, bookmarked: false },
-    { id: 38, title: 'Jane Eyre', author: 'Charlotte Brontë', desc: 'Jane, orfana e determinata, trova lavoro come istitutrice a Thornfield Hall dove si innamora del misterioso Mr. Rochester, nascondendo un segreto oscuro.', img: '/assets/Presentazione/romance/romance5.jpg', liked: false, bookmarked: false },
-    { id: 39, title: 'Io prima di te', author: 'Jojo Moyes', desc: 'Louisa Clark diventa la badante di Will Traynor, giovane ricco rimasto tetraplegico. Tra loro nasce un legame profondo che cambierà entrambi per sempre.', img: '/assets/Presentazione/romance/romance6.jpg', liked: false, bookmarked: false },
-    { id: 40, title: 'Le pagine della nostra vita', author: 'Nicholas Sparks', desc: 'Noah e Allie si innamorano nell\'estate del 1940 ma la guerra e le differenze sociali li separano. Decenni dopo, il loro amore viene riletto da un vecchio quaderno.', img: '/assets/Presentazione/romance/romance7.jpg', liked: false, bookmarked: false },
-    { id: 41, title: 'Colpa delle stelle', author: 'John Green', desc: 'Hazel e Augustus si incontrano a un gruppo di supporto per malati di cancro. Insieme affrontano la vita con ironia e coraggio, innamorandosi perdutamente.', img: '/assets/Presentazione/romance/romance8.jpg', liked: false, bookmarked: false },
-    { id: 42, title: 'Chiamami col tuo nome', author: 'André Aciman', desc: 'Nell\'estate del 1983 in Italia, il diciassettenne Elio si innamora di Oliver, il dottorando ospite di suo padre, in un\'estate che non dimenticherà mai.', img: '/assets/Presentazione/romance/romance9.jpg', liked: false, bookmarked: false },
-    { id: 43, title: 'Anna Karenina', author: 'Lev Tolstoj', desc: 'Anna, brillante nobildonna russa, abbandona marito e figlio per seguire una passione travolgente che la società dell\'epoca non potrà mai perdonare.', img: '/assets/Presentazione/romance/romance10.jpg', liked: false, bookmarked: false },
-    { id: 44, title: 'Persuasione', author: 'Jane Austen', desc: 'Anne Elliot rincontra il capitano Wentworth, l\'uomo che aveva rifiutato anni prima su consiglio altrui. È ancora possibile una seconda possibilità?', img: '/assets/Presentazione/romance/romance1.jpg', liked: false, bookmarked: false },
-    { id: 45, title: 'Ragione e Sentimento', author: 'Jane Austen', desc: 'Le sorelle Elinor e Marianne Dashwood affrontano l\'amore in modi opposti: una con razionale compostezza, l\'altra con passione travolgente.', img: '/assets/Presentazione/romance/romance2.jpg', liked: false, bookmarked: false },
-    { id: 46, title: 'Un amore senza fine', author: 'Scott Spencer', desc: 'David è ossessionato da Jade, la ragazza di cui si è innamorato. Una storia d\'amore adolescenziale che diventa qualcosa di pericoloso e incontrollabile.', img: '/assets/Presentazione/romance/romance3.jpg', liked: false, bookmarked: false },
-    { id: 47, title: 'Emma', author: 'Jane Austen', desc: 'Emma Woodhouse, bella e ricca, si crede un\'abile mediatrice sentimentale. Ma nel combinare matrimoni per gli altri rischia di perdere il suo stesso amore.', img: '/assets/Presentazione/romance/romance4.jpg', liked: false, bookmarked: false },
-    { id: 48, title: 'La signora delle camelie', author: 'Alexandre Dumas', desc: 'Margherita Gautier, celebre cortigiana parigina, si innamora sinceramente di Armand Duval in una storia d\'amore condannata dalla società e dalla malattia.', img: '/assets/Presentazione/romance/romance5.jpg', liked: false, bookmarked: false },
-  ];
-
-  @Input() books: TalentBook[] = [
-    {
-      tag: 'Fantasy',
-      title: 'Le Radici del Cielo',
-      desc: 'Una giovane maga scopre che il suo potere è legato a un\'antica profezia che potrebbe cambiare il destino del regno.',
-      img: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80',
-    },
-    {
-      tag: 'Romance',
-      title: 'Sotto lo Stesso Cielo',
-      desc: 'Due anime che si cercano tra continenti diversi, unite da lettere scritte in un\'estate che nessuno dimenticherà.',
-      img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&q=80',
-    },
-    {
-      tag: 'Thriller',
-      title: 'Ombre nel Buio',
-      desc: 'Un detective scopre che il caso più oscuro della sua carriera lo riporta a una notte che credeva di aver dimenticato.',
-      img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
-    },
-    {
-      tag: 'Avventura',
-      title: 'Il Confine del Mondo',
-      desc: 'Tre ragazzi partono per un viaggio che li porterà oltre i confini di ciò che credevano possibile.',
-      img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80',
-    },
-    {
-      tag: 'Horror',
-      title: 'La Casa dei Sussurri',
-      desc: 'Una famiglia si trasferisce in una villa isolata. I muri parlano — e quello che dicono fa paura.',
-      img: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=600&q=80',
-    },
-    {
-      tag: 'Fantascienza',
-      title: 'Oltre le Stelle',
-      desc: 'Un astronauta solitario riceve un segnale dall\'altra parte della galassia. Non è solo.',
-      img: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80',
-    },
-    {
-      tag: 'Storico',
-      title: 'Il Sangue dei Re',
-      desc: 'Nella Roma del 50 a.C., uno schiavo scopre di essere l\'erede di un\'antica casata.',
-      img: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&q=80',
-    },
-  ];
+  @Input() books: any[] = [];
 
   @Output() bookSelected = new EventEmitter<TalentBook>();
   @Output() readClicked = new EventEmitter<TalentBook>();
@@ -272,73 +174,64 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     const user = this.interactions['authService']?.currentUser?.() ??
       JSON.parse(localStorage.getItem('auth_user') ?? 'null');
 
-    // Carica interazioni, storie popolari, trending e tutte le storie in parallelo
-    forkJoin({
-      _interactions: this.interactions.loadUserInteractions().pipe(catchError(() => of(false))),
-      popular:  this.api.getPopularStories().pipe(catchError(() => of([]))),
-      trending: this.api.getTrendingStories().pipe(catchError(() => of([]))),
-      all:      this.api.getStories().pipe(catchError(() => of([]))),
-      continueReading: user
-        ? this.api.getContinueReading(user.id).pipe(catchError(() => of([])))
-        : of([])
-    }).subscribe({
-      next: ({ popular, trending, all, continueReading }) => {
+    // 1. Carica le interazioni separatamente per non bloccare il rendering dei libri
+    this.interactions.loadUserInteractions().subscribe();
 
-        const mapList = (list: any[]) => list.map(s => this.mapDbBook(s));
+    const mapList = (list: any[]) => list.map(s => this.mapDbBook(s));
 
-        const popularMapped   = mapList(popular as any[]);
-        const trendingMapped  = mapList(trending as any[]);
-        const allMapped       = mapList(all as any[]);
-        const continueMapped  = mapList(continueReading as any[]);
-
-        // Suddividi "all" per genere per gli slider tematici
-        const romance = allMapped.filter(b =>
-          ['sentimentale', 'romance', 'romanzo'].some(g => (b.genre ?? '').toLowerCase().includes(g))
-        );
-        const horror  = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('horror'));
-        const fantasy = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('fantasy'));
-
-        // ── Slider contestualizzati ────────────────────────────
-        // booksA = "Riprendi a leggere" (solo libri con progresso incompleto)
-        this.booksA = continueMapped;
-
-        // booksB = "Popolari" (ordinati per views totali)
-        this.booksB = popularMapped.length ? popularMapped : allMapped.slice(9, 23);
-
-        // booksC = genere Romance (o slice generica)
-        this.booksC = romance.length ? romance : allMapped.slice(23, 33);
-
-        // booksD = genere Horror/Fantasy (o slice generica)
-        this.booksD = (horror.length || fantasy.length)
-          ? [...horror, ...fantasy]
-          : allMapped.slice(33, 48);
-
-        // Trending per la classifica
-        this.trendingBooks = trendingMapped.length ? trendingMapped : popularMapped;
-
-        // ── Slide dinamiche per la Hero (Cambiano ogni giorno) ──
-        if (popularMapped.length > 0) {
-          // Creiamo un generatore pseudo-casuale basato sulla data di oggi
-          const today = new Date();
-          let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-          
-          const randomSeeded = () => {
-            const x = Math.sin(seed++) * 10000;
-            return x - Math.floor(x);
-          };
-
-          const shuffled = [...popularMapped].sort(() => 0.5 - randomSeeded());
-          this.books = shuffled.slice(0, 5);
-          this.slidesCount = this.books.length;
-          this.current = 0;
-          this.updateAmbientBackground();
-        }
-
+    // 2. Carica 'Riprendi a leggere' (Books A)
+    if (user) {
+      this.api.getContinueReading(user.id).pipe(catchError(() => of([]))).subscribe(continueReading => {
+        this.booksA = mapList(continueReading as any[]);
         this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.warn('Impossibile caricare storie dal server, uso dati statici.', err);
+      });
+    }
+
+    // 3. Carica 'Popolari' e aggiorna Hero Slider (Books B e Hero)
+    this.api.getPopularStories().pipe(catchError(() => of([]))).subscribe(popular => {
+      const popularMapped = mapList(popular as any[]);
+      
+      // Aggiorna hero slider se non è già stato fatto
+      if (popularMapped.length > 0 && this.books.length === 0) {
+        const today = new Date();
+        let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        const randomSeeded = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
+        
+        const shuffled = [...popularMapped].sort(() => 0.5 - randomSeeded());
+        this.books = shuffled.slice(0, 5);
+        this.slidesCount = this.books.length;
+        this.current = 0;
+        this.updateAmbientBackground();
       }
+
+      this.booksB = popularMapped; // Momentaneo finché non abbiamo 'all'
+      this.cdr.detectChanges();
+    });
+
+    // 4. Carica 'Trending' (Classifica)
+    this.api.getTrendingStories().pipe(catchError(() => of([]))).subscribe(trending => {
+      const trendingMapped = mapList(trending as any[]);
+      this.trendingBooks = trendingMapped;
+      this.cdr.detectChanges();
+    });
+
+    // 5. Carica tutte le storie per generi specifici (Books C, Books D) e fallback
+    this.api.getStories().pipe(catchError(() => of([]))).subscribe(all => {
+      const allMapped = mapList(all as any[]);
+      const romance = allMapped.filter(b => ['sentimentale', 'romance', 'romanzo'].some(g => (b.genre ?? '').toLowerCase().includes(g)));
+      const horror  = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('horror'));
+      const fantasy = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('fantasy'));
+
+      // Se 'booksB' era vuoto, usiamo lo slice di fallback
+      if (this.booksB.length === 0) this.booksB = allMapped.slice(9, 23);
+
+      this.booksC = romance.length ? romance : allMapped.slice(23, 33);
+      this.booksD = (horror.length || fantasy.length) ? [...horror, ...fantasy] : allMapped.slice(33, 48);
+
+      // Fallback per trending
+      if (this.trendingBooks.length === 0) this.trendingBooks = allMapped.slice(0, 10);
+
+      this.cdr.detectChanges();
     });
   }
 
