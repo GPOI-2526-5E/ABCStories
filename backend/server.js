@@ -11,11 +11,12 @@ const SALT_ROUNDS = 12;
 const allowedOrigins = [
   'http://localhost:4200',
   process.env.FRONTEND_URL,
-].filter(Boolean);
+].filter(Boolean).map(o => o.replace(/\/$/, '')); // rimuove slash finale
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const normalizedOrigin = origin ? origin.replace(/\/$/, '') : origin;
+    if (!normalizedOrigin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
