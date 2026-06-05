@@ -11,6 +11,7 @@ import { Api } from '../../services/api';
 import { InteractionsService } from '../../services/interactions.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { LoadingService } from '../../services/loading.service';
 
 interface Genre {
   name: string;
@@ -142,6 +143,7 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     private router: Router,
     private api: Api,
     private interactions: InteractionsService,
+    private loadingService: LoadingService,
   ) {
     this.mapHomeBookIds();
     this.slidesCount = this.books.length;
@@ -202,6 +204,15 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
         this.slidesCount = this.books.length;
         this.current = 0;
         this.updateAmbientBackground();
+        
+        // Precarica l'immagine corrente dell'hero
+        if (this.books[0]?.img && isPlatformBrowser(this.platformId)) {
+          this.loadingService.show();
+          const img = new Image();
+          img.onload = () => this.loadingService.hide();
+          img.onerror = () => this.loadingService.hide();
+          img.src = this.books[0].img;
+        }
       }
 
       this.booksB = popularMapped; // Momentaneo finché non abbiamo 'all'
@@ -209,7 +220,7 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     });
 
     // 4. Carica 'Trending' (Classifica)
-    this.api.getTrendingStories().pipe(catchError(() => of([]))).subscribe(trending => {
+    this.api.getTrendingStories(user?.id).pipe(catchError(() => of([]))).subscribe(trending => {
       const trendingMapped = mapList(trending as any[]);
       this.trendingBooks = trendingMapped;
       this.cdr.detectChanges();

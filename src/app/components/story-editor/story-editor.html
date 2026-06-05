@@ -18,8 +18,28 @@
       <h4>Impostazioni Storia</h4>
 
       <div class="form-group">
-        <label>URL Immagine di Copertina</label>
-        <input type="text" [(ngModel)]="story.image_url" class="form-control" placeholder="http://...">
+        <label>Immagine di Copertina</label>
+        <div class="image-upload-area" (click)="storyCoverInput.click()">
+          <img *ngIf="storyImagePreview" [src]="storyImagePreview" class="image-preview" alt="Copertina storia">
+          <img *ngIf="!storyImagePreview && story.image_url && !story.image_url.startsWith('data:')" [src]="story.image_url" class="image-preview" alt="Copertina storia">
+          <div class="image-upload-placeholder" *ngIf="!storyImagePreview && (!story.image_url || story.image_url.startsWith('data:') && !storyImagePreview)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Clicca per scegliere un file</span>
+            <small>JPG, PNG, WEBP &mdash; max 2MB</small>
+          </div>
+          <div class="image-upload-overlay" *ngIf="storyImagePreview || story.image_url">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Cambia immagine</span>
+          </div>
+        </div>
+        <input #storyCoverInput type="file" accept="image/*" style="display:none" (change)="onStoryImageSelected($event)">
       </div>
 
       <div class="form-group">
@@ -92,14 +112,26 @@
             placeholder="Titolo del capitolo">
 
           <div class="chapter-image-wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" class="input-icon">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            <input type="text" [(ngModel)]="selectedChapter.image_url" class="form-control-url"
-              placeholder="URL immagine di copertina del capitolo (opzionale)">
+            <div class="image-upload-area image-upload-area--compact" (click)="chapterCoverInput.click()">
+              <img *ngIf="chapterImagePreview" [src]="chapterImagePreview" class="image-preview" alt="Copertina capitolo">
+              <img *ngIf="!chapterImagePreview && selectedChapter.image_url && !selectedChapter.image_url.startsWith('data:')" [src]="selectedChapter.image_url" class="image-preview" alt="Copertina capitolo">
+              <div class="image-upload-placeholder" *ngIf="!chapterImagePreview && (!selectedChapter.image_url || (selectedChapter.image_url.startsWith('data:') && !chapterImagePreview))">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Immagine capitolo</span>
+              </div>
+              <div class="image-upload-overlay" *ngIf="chapterImagePreview || selectedChapter.image_url">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>Cambia</span>
+              </div>
+            </div>
+            <input #chapterCoverInput type="file" accept="image/*" style="display:none" (change)="onChapterImageSelected($event)">
           </div>
         </div>
 

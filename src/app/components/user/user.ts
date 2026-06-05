@@ -6,6 +6,9 @@ import { AuthService } from '../../services/auth.service';
 import { Api } from '../../services/api';
 import { InteractionsService } from '../../services/interactions.service';
 import { ThemeService, Theme } from '../../services/theme.service';
+import { LoadingService } from '../../services/loading.service';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 import { RouterModule } from '@angular/router';
 
@@ -49,6 +52,8 @@ export class User implements OnInit {
   private interactions = inject(InteractionsService);
   public themeService = inject(ThemeService);
   private cdr = inject(ChangeDetectorRef);
+  private loadingService = inject(LoadingService);
+  private platformId = inject(PLATFORM_ID);
 
   /** Utente loggato (segnale) */
   currentUser = this.authService.currentUser;
@@ -81,10 +86,31 @@ export class User implements OnInit {
     handle: '',
     email: '',
     posizione: '',
+    social_instagram: '',
+    social_twitter: '',
+    social_facebook: '',
+    social_website: '',
+    social_tiktok: '',
+    social_linkedin: '',
     tema: 'tropical' as Theme,
     notifiche: { commenti: true, seguaci: true, aggiornamenti: false, newsletter: true },
     privacy: { profiloPubblico: true, mostraLibreria: false, indicizza: true },
   };
+
+  // Letture Consigliate (Author setting)
+  allStories: any[] = [];
+  recommendedStoryIds: string[] = [];
+  searchStoryText: string = '';
+  showStoryDropdown = false;
+  
+  get filteredStoriesForSearch() {
+    if (!this.searchStoryText) return [];
+    return this.allStories.filter(s => s.title.toLowerCase().includes(this.searchStoryText.toLowerCase()) && !this.recommendedStoryIds.includes(s.id));
+  }
+
+  get recommendedStoriesDetails() {
+    return this.recommendedStoryIds.map(id => this.allStories.find(s => s.id === id)).filter(s => !!s);
+  }
 
   savedFeedback = false;
 
@@ -97,13 +123,23 @@ export class User implements OnInit {
       this.settings.tema = this.themeService.currentTheme();
 
       // Carica le interazioni in memoria
-      this.interactions.loadUserInteractions();
+      this.settings.handle = u.email;
 
-      // Carica il profilo completo (bio, location, avatar, ecc.) dal DB
+      if ((u as any).avatar_url) {
+        this.preloadImage((u as any).avatar_url);
+      }
+
+      // Fetch user profile from DB to get fresh data
       this.api.getUserProfile(u.id).subscribe({
         next: (profile) => {
           this.fullProfile = profile;
           if (profile.location) this.settings.posizione = profile.location;
+          if (profile.social_instagram) this.settings.social_instagram = profile.social_instagram;
+          if (profile.social_twitter) this.settings.social_twitter = profile.social_twitter;
+          if (profile.social_facebook) this.settings.social_facebook = profile.social_facebook;
+          if (profile.social_website) this.settings.social_website = profile.social_website;
+          if (profile.social_tiktok) this.settings.social_tiktok = profile.social_tiktok;
+          if (profile.social_linkedin) this.settings.social_linkedin = profile.social_linkedin;
           this.cdr.detectChanges();
         },
         error: (err) => console.warn('Errore caricamento profilo:', err)
@@ -132,6 +168,21 @@ export class User implements OnInit {
         },
         error: (err) => console.warn('Errore caricamento autori seguiti:', err)
       });
+
+      // Carica tutte le storie per il dropdown delle letture consigliate
+      this.api.getStories().subscribe({
+        next: (stories) => this.allStories = stories,
+        error: (err) => console.warn('Errore caricamento tutte le storie:', err)
+      });
+
+      // Carica letture consigliate salvate
+      this.api.getAuthorRecommended(u.id).subscribe({
+        next: (stories) => {
+          this.recommendedStoryIds = stories.map((s: any) => s.id);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.warn('Errore caricamento recommended:', err)
+      });
     }
   }
 
@@ -156,8 +207,43 @@ export class User implements OnInit {
 
   saveSettings(): void {
     this.themeService.setTheme(this.settings.tema);
+    
+    // Salva le storie raccomandate e il profilo
+    const user = this.currentUser();
+    if (user) {
+      this.api.updateAuthorRecommended(user.id, this.recommendedStoryIds).subscribe({
+        next: () => console.log('Letture consigliate aggiornate'),
+        error: (err) => console.error('Errore aggiornamento letture consigliate', err)
+      });
+      
+      this.api.updateUserProfile(user.id, {
+        social_instagram: this.settings.social_instagram || null,
+        social_twitter: this.settings.social_twitter || null,
+        social_facebook: this.settings.social_facebook || null,
+        social_website: this.settings.social_website || null,
+        social_tiktok: this.settings.social_tiktok || null,
+        social_linkedin: this.settings.social_linkedin || null
+      }).subscribe({
+        next: () => console.log('Profilo social aggiornato'),
+        error: (err) => console.error('Errore aggiornamento profilo', err)
+      });
+    }
+
     this.savedFeedback = true;
     setTimeout(() => (this.savedFeedback = false), 2000);
+  }
+
+  addRecommendedStory(story: any) {
+    if (this.recommendedStoryIds.length >= 10) return; // Max 10
+    if (!this.recommendedStoryIds.includes(story.id)) {
+      this.recommendedStoryIds.push(story.id);
+      this.searchStoryText = '';
+      this.showStoryDropdown = false;
+    }
+  }
+
+  removeRecommendedStory(storyId: string) {
+    this.recommendedStoryIds = this.recommendedStoryIds.filter(id => id !== storyId);
   }
 
   removeLike(book: UserBook, event: Event): void {
@@ -174,5 +260,14 @@ export class User implements OnInit {
       this.interactions.toggleBookmark(book.id);
       this.favoriteBooks = this.favoriteBooks.filter(b => b.id !== book.id);
     }
+  }
+
+  private preloadImage(url: string) {
+    if (!isPlatformBrowser(this.platformId) || !url) return;
+    this.loadingService.show();
+    const img = new Image();
+    img.onload = () => this.loadingService.hide();
+    img.onerror = () => this.loadingService.hide();
+    img.src = url;
   }
 }

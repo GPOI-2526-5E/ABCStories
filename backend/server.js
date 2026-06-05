@@ -24,7 +24,9 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+// Aumentato a 20MB per permettere il trasferimento di immagini Base64
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // Connessione DB: usa DATABASE_URL se disponibile (Railway), altrimenti credenziali locali
 const pool = process.env.DATABASE_URL
@@ -67,8 +69,41 @@ app.get('/api/user/:id', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         id, username, email, avatar_url, bio, location, website_url, created_at,
+        social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
         (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
       FROM users WHERE id = $1`, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/user/:id', async (req, res) => {
+  const { social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin } = req.body;
+  try {
+    const result = await pool.query(`
+      UPDATE users 
+      SET 
+        social_instagram = $1,
+        social_twitter = $2,
+        social_facebook = $3,
+        social_website = $4,
+        social_tiktok = $5,
+        social_linkedin = $6
+      WHERE id = $7
+      RETURNING *
+    `, [
+      social_instagram || null, 
+      social_twitter || null, 
+      social_facebook || null, 
+      social_website || null,
+      social_tiktok || null,
+      social_linkedin || null,
+      req.params.id
+    ]);
+    
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
   } catch (error) {
@@ -132,6 +167,49 @@ app.post('/api/user/register', async (req, res) => {
     );
 
     res.status(201).json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// ═══════════════ USER SETTINGS & RECOMMENDED ═══════════════
+
+// Ottieni le storie raccomandate da un utente
+app.get('/api/user/:userId/recommended', async (req, res) => {
+  try {
+    const userRes = await pool.query('SELECT recommended_story_ids FROM users WHERE id = $1', [req.params.userId]);
+    if (userRes.rows.length === 0) return res.status(404).json({ error: 'Utente non trovato' });
+    
+    const storyIds = userRes.rows[0].recommended_story_ids || [];
+    if (storyIds.length === 0) return res.json([]);
+
+    // Recupera i dettagli delle storie raccomandate
+    const storiesRes = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+             s.readers_count, s.rating, s.pages, s.release_year,
+             u.username AS author_name
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      WHERE s.id = ANY($1) AND s.status = 'published'
+    `, [storyIds]);
+    
+    res.json(storiesRes.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Aggiorna le storie raccomandate da un utente
+app.put('/api/user/:userId/recommended', async (req, res) => {
+  const { storyIds } = req.body;
+  if (!Array.isArray(storyIds)) return res.status(400).json({ error: 'storyIds deve essere un array' });
+  
+  try {
+    await pool.query('UPDATE users SET recommended_story_ids = $1 WHERE id = $2', [storyIds, req.params.userId]);
+    res.json({ success: true });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -267,6 +345,127 @@ app.get('/api/bookmarks/:userId/stories', async (req, res) => {
 });
 
 
+// ═══════════════ COMMENTS ═══════════════
+
+// Ottieni commenti e risposte di una storia, incluso il conteggio dei like e lo stato like dell'utente se passato
+app.get('/api/stories/:storyId/comments', async (req, res) => {
+  const userId = req.query.userId || null;
+  try {
+    // 1. Prendi tutti i commenti
+    const commentsRes = await pool.query(`
+      SELECT c.id, c.content as text, c.created_at, 
+             u.id as author_id, u.username as author_name, u.email as author_handle, u.avatar_url,
+             (SELECT COUNT(*) FROM comment_likes cl WHERE cl.comment_id = c.id) as likes_count
+             ${userId ? `, EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = $2) as user_liked` : ''}
+      FROM comments c
+      JOIN users u ON u.id = c.author_id
+      WHERE c.story_id = $1
+      ORDER BY c.created_at DESC
+    `, userId ? [req.params.storyId, userId] : [req.params.storyId]);
+    
+    const comments = commentsRes.rows;
+
+    // 2. Prendi tutte le risposte per questi commenti
+    if (comments.length > 0) {
+      const commentIds = comments.map(c => c.id);
+      const repliesRes = await pool.query(`
+        SELECT r.id, r.comment_id, r.content as text, r.created_at,
+               u.id as author_id, u.username as author_name, u.email as author_handle, u.avatar_url,
+               (SELECT COUNT(*) FROM reply_likes rl WHERE rl.reply_id = r.id) as likes_count
+               ${userId ? `, EXISTS(SELECT 1 FROM reply_likes rl WHERE rl.reply_id = r.id AND rl.user_id = $2) as user_liked` : ''}
+        FROM comment_replies r
+        JOIN users u ON u.id = r.author_id
+        WHERE r.comment_id = ANY($1)
+        ORDER BY r.created_at ASC
+      `, userId ? [commentIds, userId] : [commentIds]);
+      
+      const replies = repliesRes.rows;
+      
+      // Associa le risposte ai commenti
+      comments.forEach(c => {
+        c.replies = replies.filter(r => r.comment_id === c.id);
+      });
+    }
+
+    res.json(comments);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Aggiungi commento
+app.post('/api/stories/:storyId/comments', async (req, res) => {
+  const { author_id, content } = req.body;
+  try {
+    const result = await pool.query(`
+      INSERT INTO comments (story_id, author_id, content) 
+      VALUES ($1, $2, $3) RETURNING id, content, created_at
+    `, [req.params.storyId, author_id, content]);
+    
+    // Ritorna il commento appena creato
+    const userRes = await pool.query('SELECT username as author_name, email as author_handle, avatar_url FROM users WHERE id = $1', [author_id]);
+    res.json({ ...result.rows[0], ...userRes.rows[0], likes_count: 0, user_liked: false, replies: [] });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Aggiungi risposta
+app.post('/api/comments/:commentId/replies', async (req, res) => {
+  const { author_id, content } = req.body;
+  try {
+    const result = await pool.query(`
+      INSERT INTO comment_replies (comment_id, author_id, content) 
+      VALUES ($1, $2, $3) RETURNING id, comment_id, content, created_at
+    `, [req.params.commentId, author_id, content]);
+    
+    const userRes = await pool.query('SELECT username as author_name, email as author_handle, avatar_url FROM users WHERE id = $1', [author_id]);
+    res.json({ ...result.rows[0], ...userRes.rows[0], likes_count: 0, user_liked: false });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Toggle like commento
+app.post('/api/comments/:commentId/like', async (req, res) => {
+  const { user_id } = req.body;
+  try {
+    const exists = await pool.query('SELECT 1 FROM comment_likes WHERE user_id = $1 AND comment_id = $2', [user_id, req.params.commentId]);
+    if (exists.rows.length > 0) {
+      await pool.query('DELETE FROM comment_likes WHERE user_id = $1 AND comment_id = $2', [user_id, req.params.commentId]);
+      res.json({ liked: false });
+    } else {
+      await pool.query('INSERT INTO comment_likes (user_id, comment_id) VALUES ($1, $2)', [user_id, req.params.commentId]);
+      res.json({ liked: true });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Toggle like risposta
+app.post('/api/comments/replies/:replyId/like', async (req, res) => {
+  const { user_id } = req.body;
+  try {
+    const exists = await pool.query('SELECT 1 FROM reply_likes WHERE user_id = $1 AND reply_id = $2', [user_id, req.params.replyId]);
+    if (exists.rows.length > 0) {
+      await pool.query('DELETE FROM reply_likes WHERE user_id = $1 AND reply_id = $2', [user_id, req.params.replyId]);
+      res.json({ liked: false });
+    } else {
+      await pool.query('INSERT INTO reply_likes (user_id, reply_id) VALUES ($1, $2)', [user_id, req.params.replyId]);
+      res.json({ liked: true });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // ═══════════════ STORIES ═══════════════
 
 // Tutte le storie
@@ -303,7 +502,6 @@ app.get('/api/stories/popular', async (req, res) => {
       LEFT JOIN story_views sv ON sv.story_id = s.id
       WHERE s.status = 'published'
       GROUP BY s.id, u.username
-      HAVING COUNT(sv.id) >= 0
       ORDER BY view_count DESC, s.rating DESC
       LIMIT 20
     `);
@@ -314,10 +512,21 @@ app.get('/api/stories/popular', async (req, res) => {
   }
 });
 
-// Storie di tendenza (visualizzazioni ultima settimana)
+// Storie di tendenza (visualizzazioni recenti o dalla registrazione utente)
 app.get('/api/stories/trending', async (req, res) => {
   try {
-    const result = await pool.query(`
+    let dateFilter = "NOW() - INTERVAL '7 days'";
+    
+    // Se viene passato userId, consideriamo le visualizzazioni dalla sua registrazione (se più recente di 7 giorni)
+    if (req.query.userId) {
+      const userRes = await pool.query('SELECT created_at FROM users WHERE id = $1', [req.query.userId]);
+      if (userRes.rows.length > 0) {
+        // Usa la data di registrazione se esiste
+        dateFilter = `(SELECT created_at FROM users WHERE id = $1)`;
+      }
+    }
+
+    const query = `
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              s.readers_count, s.rating, s.pages, s.release_year,
              u.username AS author_name,
@@ -326,12 +535,50 @@ app.get('/api/stories/trending', async (req, res) => {
       LEFT JOIN users u ON u.id = s.author_id
       LEFT JOIN story_views sv
         ON sv.story_id = s.id
-        AND sv.viewed_at >= NOW() - INTERVAL '7 days'
+        AND sv.viewed_at >= ${req.query.userId ? dateFilter : "NOW() - INTERVAL '7 days'"}
       WHERE s.status = 'published'
       GROUP BY s.id, u.username
       ORDER BY week_views DESC, s.rating DESC
       LIMIT 15
-    `);
+    `;
+    
+    const params = req.query.userId ? [req.query.userId] : [];
+    const result = await pool.query(query, params);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie simili (Potrebbero piacerti anche)
+app.get('/api/stories/similar/:storyId', async (req, res) => {
+  try {
+    // Prima otteniamo il genere della storia corrente
+    const storyRes = await pool.query('SELECT genre FROM stories WHERE id = $1', [req.params.storyId]);
+    if (storyRes.rows.length === 0) return res.json([]);
+    
+    const genre = storyRes.rows[0].genre;
+    if (!genre) return res.json([]);
+
+    // Troviamo storie simili per genere, escludendo quella corrente, ordinate per popolarità
+    const result = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+             s.readers_count, s.rating, s.pages, s.release_year,
+             u.username AS author_name,
+             COUNT(sv.id) AS view_count
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      LEFT JOIN story_views sv ON sv.story_id = s.id
+      WHERE s.status = 'published' 
+        AND s.id != $1 
+        AND s.genre ILIKE $2
+      GROUP BY s.id, u.username
+      ORDER BY view_count DESC, s.rating DESC
+      LIMIT 50
+    `, [req.params.storyId, `%${genre}%`]);
+    
     res.json(result.rows);
   } catch (error) {
     console.log(error);
@@ -485,7 +732,7 @@ app.post('/api/progress', async (req, res) => {
 app.get('/api/stories/:id/chapters', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, title, order_index, status
+      SELECT id, title, order_index, status, image_url
       FROM chapters
       WHERE story_id = $1 AND status = 'published'
       ORDER BY order_index
@@ -501,7 +748,7 @@ app.get('/api/stories/:id/chapters', async (req, res) => {
 app.get('/api/chapters/:id', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.title, c.content, c.order_index, c.story_id,
+      SELECT c.id, c.title, c.content, c.order_index, c.story_id, COALESCE(c.image_url, s.image_url) AS image_url,
              s.title AS story_title,
              u.username AS author_name,
              (SELECT COUNT(*) FROM chapters WHERE story_id = c.story_id AND status = 'published') AS total_chapters
@@ -685,9 +932,8 @@ app.post('/api/stories', async (req, res) => {
 // Aggiorna una storia
 app.put('/api/stories/:id', async (req, res) => {
   let { title, description, genre, image_url, status } = req.body;
-  if (!image_url || image_url.trim() === '') {
-    image_url = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80';
-  }
+  // Se image_url è vuota o non fornita, mantieni quella esistente (COALESCE gestisce null)
+  const imageToSave = (image_url && image_url.trim() !== '') ? image_url : null;
   try {
     const result = await pool.query(`
       UPDATE stories
@@ -698,7 +944,7 @@ app.put('/api/stories/:id', async (req, res) => {
           status = COALESCE($5, status)
       WHERE id = $6
       RETURNING *
-    `, [title, description, genre, image_url, status, req.params.id]);
+    `, [title, description, genre, imageToSave, status, req.params.id]);
     res.json(result.rows[0]);
   } catch (error) {
     console.log(error);
@@ -751,9 +997,8 @@ app.post('/api/chapters', async (req, res) => {
 // Aggiorna un capitolo
 app.put('/api/chapters/:id', async (req, res) => {
   let { title, content, status, image_url } = req.body;
-  if (!image_url || image_url.trim() === '') {
-    image_url = 'https://images.unsplash.com/photo-1455390582262-044cdead2708?auto=format&fit=crop&w=800&q=80';
-  }
+  // Se image_url è vuota o non fornita, mantieni quella esistente (COALESCE gestisce null)
+  const imageToSave = (image_url && image_url.trim() !== '') ? image_url : null;
   try {
     const result = await pool.query(`
       UPDATE chapters
@@ -763,7 +1008,7 @@ app.put('/api/chapters/:id', async (req, res) => {
           image_url = COALESCE($4, image_url)
       WHERE id = $5
       RETURNING *
-    `, [title, content, status, image_url, req.params.id]);
+    `, [title, content, status, imageToSave, req.params.id]);
     res.json(result.rows[0]);
   } catch (error) {
     console.log(error);

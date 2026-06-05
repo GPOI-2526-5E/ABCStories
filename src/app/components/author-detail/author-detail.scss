@@ -192,11 +192,11 @@ $muted: var(--text-muted);
 
 .author-info__container {
   display: flex;
-  flex-direction: row; // Mette stats e social sulla stessa linea
+  flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-evenly; // Allarga gli elementi
-  gap: 30px;
+  justify-content: center; // Mantiene tutto al centro
+  gap: 60px; // Spazio elegante tra le statistiche e le icone social
 }
 
 .author-info__stats {
@@ -213,12 +213,12 @@ $muted: var(--text-muted);
     &__val {
       font-size: 24px;
       font-weight: 700;
-      color: #fff;
+      color: #000;
     }
 
     &__lbl {
       font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(0, 0, 0, 0.6);
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-top: 6px;
@@ -231,7 +231,7 @@ $muted: var(--text-muted);
   gap: 20px;
 
   .social-icon {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.6);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -243,9 +243,9 @@ $muted: var(--text-muted);
     }
 
     &:hover {
-      color: #fff;
+      color: #000;
       transform: translateY(-3px);
-      filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.2));
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
     }
   }
 }

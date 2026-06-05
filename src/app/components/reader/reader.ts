@@ -25,6 +25,8 @@ export class Reader implements OnInit, OnDestroy {
 
   // Progresso scroll nel capitolo corrente (0-100)
   scrollPercent = signal(0);
+  isScrolled = signal(false);
+  isPastTitle = signal(false);
 
   // Progresso globale calcolato
   get globalPercent(): number {
@@ -120,6 +122,11 @@ export class Reader implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const el = document.documentElement;
     const scrolled = el.scrollTop;
+    
+    // Aggiorna lo stato della topbar
+    this.isScrolled.set(scrolled > 20); // La barra diventa pillola quasi subito
+    this.isPastTitle.set(scrolled > window.innerHeight * 0.4); // Mostra il titolo quando si supera l'header (circa 40vh)
+    
     const total = el.scrollHeight - el.clientHeight;
     const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
     this.scrollPercent.set(Math.min(100, pct));

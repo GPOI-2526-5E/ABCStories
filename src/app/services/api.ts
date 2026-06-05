@@ -20,6 +20,10 @@ export class Api {
     return this.http.get<any>(`${this.apiUrl}/api/user/${id}`);
   }
 
+  updateUserProfile(id: string, data: any) {
+    return this.http.put<any>(`${this.apiUrl}/api/user/${id}`, data);
+  }
+
   login(email: string, password: string) {
     return this.http.post(`${this.apiUrl}/api/user/login`, { email, password });
   }
@@ -74,8 +78,14 @@ export class Api {
     return this.http.get<any[]>(`${this.apiUrl}/api/stories/genre/${genre}`);
   }
 
-  getTrendingStories() {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/trending`);
+  getTrendingStories(userId?: string) {
+    let url = `${this.apiUrl}/api/stories/trending`;
+    if (userId) url += `?userId=${userId}`;
+    return this.http.get<any[]>(url);
+  }
+
+  getSimilarStories(storyId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/similar/${storyId}`);
   }
 
   getContinueReading(userId: string) {
@@ -116,10 +126,32 @@ export class Api {
     return this.http.get<any>(`${this.apiUrl}/api/chapters/${chapterId}`);
   }
 
-  // ═══════════════ REVIEWS ═══════════════
+  // ═══════════════ REVIEWS & COMMENTS ═══════════════
 
   getStoryReviews(storyId: string) {
     return this.http.get<any[]>(`${this.apiUrl}/api/stories/${storyId}/reviews`);
+  }
+
+  getStoryComments(storyId: string, userId?: string) {
+    let url = `${this.apiUrl}/api/stories/${storyId}/comments`;
+    if (userId) url += `?userId=${userId}`;
+    return this.http.get<any[]>(url);
+  }
+
+  addComment(storyId: string, authorId: string, content: string) {
+    return this.http.post<any>(`${this.apiUrl}/api/stories/${storyId}/comments`, { author_id: authorId, content });
+  }
+
+  addReply(commentId: string, authorId: string, content: string) {
+    return this.http.post<any>(`${this.apiUrl}/api/comments/${commentId}/replies`, { author_id: authorId, content });
+  }
+
+  toggleCommentLike(commentId: string, userId: string) {
+    return this.http.post<{ liked: boolean }>(`${this.apiUrl}/api/comments/${commentId}/like`, { user_id: userId });
+  }
+
+  toggleReplyLike(replyId: string, userId: string) {
+    return this.http.post<{ liked: boolean }>(`${this.apiUrl}/api/comments/replies/${replyId}/like`, { user_id: userId });
   }
 
   // ═══════════════ FOLLOWS & AUTHORS ═══════════════
@@ -150,6 +182,16 @@ export class Api {
 
   getAuthorStories(authorId: string) {
     return this.http.get<any[]>(`${this.apiUrl}/api/stories/author/${authorId}`);
+  }
+
+  // ═══════════════ USER SETTINGS & RECOMMENDED ═══════════════
+
+  getAuthorRecommended(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/user/${userId}/recommended`);
+  }
+
+  updateAuthorRecommended(userId: string, storyIds: string[]) {
+    return this.http.put<{ success: boolean }>(`${this.apiUrl}/api/user/${userId}/recommended`, { storyIds });
   }
 
   // ═══════════════ AUTHOR DASHBOARD & EDITOR ═══════════════

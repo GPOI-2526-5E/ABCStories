@@ -59,7 +59,7 @@
   <p class="text-center">I libri più letti questa settimana</p>
   <section class="ranking-container">
     <div class="podium-display">
-      <div class="book-card podium-item second">
+      <div class="book-card podium-item second" (click)="goToBookDetail(trendingBooks[1] || booksB[1])" style="cursor: pointer;">
         <div class="rank-badge">2°</div>
         <div class="book-cover">
           <img [src]="(trendingBooks[1] || booksB[1])?.img" [alt]="(trendingBooks[1] || booksB[1])?.title">
@@ -70,7 +70,7 @@
         </div>
       </div>
 
-      <div class="book-card podium-item first">
+      <div class="book-card podium-item first" (click)="goToBookDetail(trendingBooks[0] || booksB[0])" style="cursor: pointer;">
         <div class="rank-badge">1°</div>
         <div class="book-cover">
           <img [src]="(trendingBooks[0] || booksB[0])?.img" [alt]="(trendingBooks[0] || booksB[0])?.title">
@@ -81,7 +81,7 @@
         </div>
       </div>
 
-      <div class="book-card podium-item third">
+      <div class="book-card podium-item third" (click)="goToBookDetail(trendingBooks[2] || booksB[2])" style="cursor: pointer;">
         <div class="rank-badge">3°</div>
         <div class="book-cover">
           <img [src]="(trendingBooks[2] || booksB[2])?.img" [alt]="(trendingBooks[2] || booksB[2])?.title">
@@ -99,7 +99,7 @@
       <div class="rank-scroll-outer">
         <div class="slider-track" #rankTrack>
           @for (index of [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track $index) {
-          <div class="book-card">
+          <div class="book-card" (click)="goToBookDetail(trendingBooks[index] || booksB[index])" style="cursor: pointer;">
             <div class="rank-badge small">{{index + 1}}°</div>
             <div class="book-cover">
               <img [src]="(trendingBooks[index] || booksB[index])?.img" [alt]="(trendingBooks[index] || booksB[index])?.title">

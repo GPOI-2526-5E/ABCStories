@@ -322,7 +322,7 @@ p.text-center {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
       z-index: 2;
     }
   }
@@ -374,8 +374,13 @@ p.text-center {
     top: 40%;
     display: none;
 
-    &.prev { left: 5px; }
-    &.next { right: 5px; }
+    &.prev {
+      left: 5px;
+    }
+
+    &.next {
+      right: 5px;
+    }
   }
 
   .slide.prev-slide {
@@ -394,6 +399,7 @@ p.text-center {
   .slider-viewport {
     height: 400px;
   }
+
   .slide-content h1 {
     font-size: 1.5rem;
   }
@@ -412,11 +418,25 @@ p.text-center {
 // =============================================
 
 @keyframes borderFlow {
-  0%   { background-position: 0% 50%; }
-  25%  { background-position: 100% 50%; }
-  50%  { background-position: 100% 100%; }
-  75%  { background-position: 0% 100%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  25% {
+    background-position: 100% 50%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  75% {
+    background-position: 0% 100%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .book-card {
@@ -524,7 +544,7 @@ p.text-center {
     .book-cover {
       width: 100%;
       aspect-ratio: 2 / 3;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 
       img {
         width: 100%;
@@ -538,12 +558,26 @@ p.text-center {
       text-align: center;
       margin-top: 1rem;
 
-      .book-title { font-weight: bold; margin-bottom: 0.2rem; }
+      .book-title {
+        font-weight: bold;
+        margin-bottom: 0.2rem;
+      }
     }
 
-    &.first  { order: 1; max-width: 240px; }
-    &.second { order: 2; max-width: 210px; }
-    &.third  { order: 3; max-width: 190px; }
+    &.first {
+      order: 1;
+      max-width: 240px;
+    }
+
+    &.second {
+      order: 2;
+      max-width: 210px;
+    }
+
+    &.third {
+      order: 3;
+      max-width: 190px;
+    }
   }
 
   @media (min-width: 769px) {
@@ -552,9 +586,20 @@ p.text-center {
     justify-content: center;
 
     .podium-item {
-      &.first  { order: 2; max-width: 260px; }
-      &.second { order: 1; max-width: 220px; }
-      &.third  { order: 3; max-width: 200px; }
+      &.first {
+        order: 2;
+        max-width: 260px;
+      }
+
+      &.second {
+        order: 1;
+        max-width: 220px;
+      }
+
+      &.third {
+        order: 3;
+        max-width: 200px;
+      }
     }
   }
 }
@@ -573,14 +618,34 @@ p.text-center {
       max-width: none !important;
 
       // Ordine podio: 2° - 1° - 3°
-      &.first  { order: 2; }
-      &.second { order: 1; }
-      &.third  { order: 3; }
+      &.first {
+        order: 2;
+      }
+
+      &.second {
+        order: 1;
+      }
+
+      &.third {
+        order: 3;
+      }
 
       // Altezze proporzionali per effetto podio visivo
-      &.first .book-cover  { aspect-ratio: 2/3; }
-      &.second .book-cover { aspect-ratio: 2/3; transform: scale(0.9); transform-origin: bottom center; }
-      &.third .book-cover  { aspect-ratio: 2/3; transform: scale(0.82); transform-origin: bottom center; }
+      &.first .book-cover {
+        aspect-ratio: 2/3;
+      }
+
+      &.second .book-cover {
+        aspect-ratio: 2/3;
+        transform: scale(0.9);
+        transform-origin: bottom center;
+      }
+
+      &.third .book-cover {
+        aspect-ratio: 2/3;
+        transform: scale(0.82);
+        transform-origin: bottom center;
+      }
 
       .book-info {
         margin-top: 0.5rem;
@@ -639,7 +704,9 @@ p.text-center {
     padding: 24px 2rem;
     margin: -24px 0;
 
-    &::-webkit-scrollbar { display: none; }
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .slider-track {
@@ -703,8 +770,13 @@ p.text-center {
       height: 22px;
     }
 
-    &.prev { left: 0.75rem; }
-    &.next { right: 0.75rem; }
+    &.prev {
+      left: 0.75rem;
+    }
+
+    &.next {
+      right: 0.75rem;
+    }
 
     &:hover {
       background: #4a2f18;
@@ -856,7 +928,9 @@ p.text-center {
     cursor: pointer;
     transition: color 0.2s ease;
 
-    &:hover { color: #fff; }
+    &:hover {
+      color: #fff;
+    }
   }
 }
 
@@ -874,8 +948,13 @@ p.text-center {
   margin: -24px 0;
   cursor: grab;
 
-  &:active { cursor: grabbing; }
-  &::-webkit-scrollbar { display: none; }
+  &:active {
+    cursor: grabbing;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .slider-row {
@@ -905,10 +984,22 @@ p.text-center {
       width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
       z-index 0s 0s;
 
-    .card-bg { filter: brightness(0.4); }
-    .card-fade { opacity: 1; }
-    .card-title-always { opacity: 0; }
-    .card-hover-content { opacity: 1; pointer-events: auto; }
+    .card-bg {
+      filter: brightness(0.4);
+    }
+
+    .card-fade {
+      opacity: 1;
+    }
+
+    .card-title-always {
+      opacity: 0;
+    }
+
+    .card-hover-content {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 }
 
@@ -1015,10 +1106,22 @@ p.text-center {
     &:hover {
       width: 290px;
 
-      .card-bg { filter: none; }
-      .card-fade { opacity: 1; }
-      .card-title-always { opacity: 0; }
-      .card-hover-content { opacity: 1; pointer-events: auto; }
+      .card-bg {
+        filter: none;
+      }
+
+      .card-fade {
+        opacity: 1;
+      }
+
+      .card-title-always {
+        opacity: 0;
+      }
+
+      .card-hover-content {
+        opacity: 1;
+        pointer-events: auto;
+      }
     }
 
     // Stato sempre attivo su mobile (no hover richiesto)
@@ -1068,7 +1171,9 @@ p.text-center {
       }
 
       // Descrizione nascosta su mobile per non sovraffollare
-      p { display: none; }
+      p {
+        display: none;
+      }
 
       // Bottone "Leggi Ora" ridotto
       button {
@@ -1101,7 +1206,9 @@ p.text-center {
   padding: 30px 1.5rem;
   margin: -30px 0;
 
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   @media (max-width: 768px) {
     padding: 20px 1rem 20px;
@@ -1167,17 +1274,32 @@ p.text-center {
     transform: translateY(-6px) scale(1.08);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
 
-    &::before { opacity: 1; }
-    img { filter: brightness(1.1); }
+    &::before {
+      opacity: 1;
+    }
+
+    img {
+      filter: brightness(1.1);
+    }
   }
 
-  .artist-name { color: var(--text-muted); }
-  .artist-followers { color: var(--text-muted-dark); }
+  .artist-name {
+    color: var(--text-muted);
+  }
+
+  .artist-followers {
+    color: var(--text-muted-dark);
+  }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .artist-name {

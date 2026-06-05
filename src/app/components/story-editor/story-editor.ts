@@ -31,8 +31,12 @@ export class StoryEditor implements OnInit {
   ];
 
   selectedChapter: any = null;
-
   saving = false;
+
+  // Upload immagini
+  MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+  storyImagePreview: string | null = null;
+  chapterImagePreview: string | null = null;
 
   ngOnInit() {
     this.storyId = this.route.snapshot.paramMap.get('storyId');
@@ -46,6 +50,10 @@ export class StoryEditor implements OnInit {
     this.api.getStory(this.storyId!).subscribe({
       next: (data) => {
         this.story = data;
+        // Se l'immagine nel DB è già base64, mostrala come preview
+        if (data.image_url && data.image_url.startsWith('data:')) {
+          this.storyImagePreview = data.image_url;
+        }
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
@@ -69,7 +77,8 @@ export class StoryEditor implements OnInit {
     this.api.updateStory(this.story.id, {
       title: this.story.title,
       genre: this.story.genre,
-      description: this.story.description
+      description: this.story.description,
+      image_url: this.story.image_url || null
     }).subscribe({
       next: (updated) => alert('Storia aggiornata!'),
       error: (err) => alert('Errore aggiornamento storia.')
@@ -78,6 +87,51 @@ export class StoryEditor implements OnInit {
 
   selectChapter(chapter: any) {
     this.selectedChapter = chapter;
+    // Mostra preview immagine capitolo se è già base64
+    if (chapter.image_url && chapter.image_url.startsWith('data:')) {
+      this.chapterImagePreview = chapter.image_url;
+    } else {
+      this.chapterImagePreview = null;
+    }
+    this.cdr.detectChanges();
+  }
+
+  onStoryImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
+      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.storyImagePreview = base64;
+      if (this.story) this.story.image_url = base64;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onChapterImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
+      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.chapterImagePreview = base64;
+      if (this.selectedChapter) this.selectedChapter.image_url = base64;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
   }
 
   addChapter() {

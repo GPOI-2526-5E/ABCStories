@@ -340,11 +340,36 @@ h2 {
   flex: 1;
 
   svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     color: rgba(255, 255, 255, 0.8);
-    transition: transform 0.3s ease;
+    margin-bottom: 4px;
   }
+
+  .stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+
+    .star {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 1.3rem;
+      
+      &.filled {
+        color: #f1c40f;
+        text-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
+      }
+
+      &.partial {
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        color: transparent !important;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {}
 
   &:hover svg {
     transform: scale(1.2);
@@ -696,12 +721,19 @@ h2 {
   font-size: 13px;
   letter-spacing: 1px;
 
-  .filled {
-    color: #c8862a;
-  }
-
-  .empty {
+  .star {
     color: rgba(20, 20, 10, 0.2);
+
+    &.filled {
+      color: #c8862a;
+    }
+
+    &.partial {
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      color: transparent !important;
+    }
   }
 }
 

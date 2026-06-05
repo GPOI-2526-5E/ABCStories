@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
@@ -8,6 +8,7 @@ import { Footer } from '../footer/footer';
 import { BookService } from '../../services/book';
 import { BOOK_UUID_MAP } from '../../services/book-uuid-map';
 import { Api } from '../../services/api';
+import { LoadingService } from '../../services/loading.service';
 
 export interface Reply {
   id: string;
@@ -50,23 +51,7 @@ export class BookDetail implements OnInit {
   firstUnreadChapter: any = null;  // capitolo da cui riprendere
   overallProgress = 0; // % totale lettura
 
-  booksD = [
-    { id: 34, title: 'Orgoglio e Pregiudizio', author: 'Jane Austen', desc: 'Elizabeth Bennet e Mr. Darcy si scontrano tra pregiudizi sociali e orgoglio ferito, in un romanzo che ha definito il genere sentimentale moderno.', img: '/assets/Presentazione/romance/romance1.jpg', liked: false, bookmarked: false },
-    { id: 35, title: 'Il Grande Gatsby', author: 'F. Scott Fitzgerald', desc: 'Nell\'America degli anni Venti, il misterioso Jay Gatsby organizza feste sfarzose sperando di riconquistare l\'amore perduto di Daisy Buchanan.', img: '/assets/Presentazione/romance/romance2.jpg', liked: false, bookmarked: false },
-    { id: 36, title: 'Romeo e Giulietta', author: 'William Shakespeare', desc: 'Due giovani di famiglie nemiche si innamorano perdutamente a Verona. Una storia d\'amore immortale destinata a una fine tragica.', img: '/assets/Presentazione/romance/romance3.jpg', liked: false, bookmarked: false },
-    { id: 37, title: 'Cime Tempestose', author: 'Emily Brontë', desc: 'Una storia d\'amore selvaggia e tormentata tra Heathcliff e Catherine, ambientata tra le brughiere dello Yorkshire e destinata a sfidare la morte stessa.', img: '/assets/Presentazione/romance/romance4.jpg', liked: false, bookmarked: false },
-    { id: 38, title: 'Jane Eyre', author: 'Charlotte Brontë', desc: 'Jane, orfana e determinata, trova lavoro come istitutrice a Thornfield Hall dove si innamora del misterioso Mr. Rochester, nascondendo un segreto oscuro.', img: '/assets/Presentazione/romance/romance5.jpg', liked: false, bookmarked: false },
-    { id: 39, title: 'Io prima di te', author: 'Jojo Moyes', desc: 'Louisa Clark diventa la badante di Will Traynor, giovane ricco rimasto tetraplegico. Tra loro nasce un legame profondo che cambierà entrambi per sempre.', img: '/assets/Presentazione/romance/romance6.jpg', liked: false, bookmarked: false },
-    { id: 40, title: 'Le pagine della nostra vita', author: 'Nicholas Sparks', desc: 'Noah e Allie si innamorano nell\'estate del 1940 ma la guerra e le differenze sociali li separano. Decenni dopo, il loro amore viene riletto da un vecchio quaderno.', img: '/assets/Presentazione/romance/romance7.jpg', liked: false, bookmarked: false },
-    { id: 41, title: 'Colpa delle stelle', author: 'John Green', desc: 'Hazel e Augustus si incontrano a un gruppo di supporto per malati di cancro. Insieme affrontano la vita con ironia e coraggio, innamorandosi perdutamente.', img: '/assets/Presentazione/romance/romance8.jpg', liked: false, bookmarked: false },
-    { id: 42, title: 'Chiamami col tuo nome', author: 'André Aciman', desc: 'Nell\'estate del 1983 in Italia, il diciassettenne Elio si innamora di Oliver, il dottorando ospite di suo padre, in un\'estate che non dimenticherà mai.', img: '/assets/Presentazione/romance/romance9.jpg', liked: false, bookmarked: false },
-    { id: 43, title: 'Anna Karenina', author: 'Lev Tolstoj', desc: 'Anna, brillante nobildonna russa, abbandona marito e figlio per seguire una passione travolgente che la società dell\'epoca non potrà mai perdonare.', img: '/assets/Presentazione/romance/romance10.jpg', liked: false, bookmarked: false },
-    { id: 44, title: 'Persuasione', author: 'Jane Austen', desc: 'Anne Elliot rincontra il capitano Wentworth, l\'uomo che aveva rifiutato anni prima su consiglio altrui. È ancora possibile una seconda possibilità?', img: '/assets/Presentazione/romance/romance1.jpg', liked: false, bookmarked: false },
-    { id: 45, title: 'Ragione e Sentimento', author: 'Jane Austen', desc: 'Le sorelle Elinor e Marianne Dashwood affrontano l\'amore in modi opposti: una con razionale compostezza, l\'altra con passione travolgente.', img: '/assets/Presentazione/romance/romance2.jpg', liked: false, bookmarked: false },
-    { id: 46, title: 'Un amore senza fine', author: 'Scott Spencer', desc: 'David è ossessionato da Jade, la ragazza di cui si è innamorato. Una storia d\'amore adolescenziale che diventa qualcosa di pericoloso e incontrollabile.', img: '/assets/Presentazione/romance/romance3.jpg', liked: false, bookmarked: false },
-    { id: 47, title: 'Emma', author: 'Jane Austen', desc: 'Emma Woodhouse, bella e ricca, si crede un\'abile mediatrice sentimentale. Ma nel combinare matrimoni per gli altri rischia di perdere il suo stesso amore.', img: '/assets/Presentazione/romance/romance4.jpg', liked: false, bookmarked: false },
-    { id: 48, title: 'La signora delle camelie', author: 'Alexandre Dumas', desc: 'Margherita Gautier, celebre cortigiana parigina, si innamora sinceramente di Armand Duval in una storia d\'amore condannata dalla società e dalla malattia.', img: '/assets/Presentazione/romance/romance5.jpg', liked: false, bookmarked: false },
-  ];
+  booksD: any[] = [];
 
   currentUserInitial = 'T';
   currentUserName = 'Tu';
@@ -76,64 +61,7 @@ export class BookDetail implements OnInit {
   visibleCount = VISIBLE_STEP;
   sortNewest = true;
 
-  comments: Comment[] = [
-    {
-      id: '1',
-      author: 'Luca Bianchi',
-      handle: '@lucabianchi',
-      timeAgo: '2 giorni fa',
-      text: 'Un classico imperdibile, rimane attuale e inquietante a distanza di decenni. La prosa è magistrale.',
-      tags: ['imperdibile', 'classico'],
-      likes: 48,
-      liked: false,
-      repliesOpen: false,
-      replyBoxOpen: false,
-      replyDraft: '',
-      replies: [
-        { id: '1-1', author: 'Giulia Verdi', handle: '@giuliaverdi', timeAgo: '1 giorno fa', text: 'Concordo! Il finale mi ha lasciata senza parole.', likes: 8, liked: false },
-        { id: '1-2', author: 'Alessandro Moretti', handle: '@alessandrom', timeAgo: '23 ore fa', text: 'Vero, il colpo di scena è stato pazzesco!', likes: 5, liked: false },
-      ],
-    },
-    {
-      id: '2',
-      author: 'Marta Romano',
-      handle: '@martaromano',
-      timeAgo: '2 giorni fa',
-      text: 'Mi ha fatto riflettere molto sulla società moderna. Uno di quei libri che rimangono dentro.',
-      tags: ['consigliato', 'riflessivo'],
-      likes: 31, liked: false, repliesOpen: false, replyBoxOpen: false, replyDraft: '', replies: [],
-    },
-    {
-      id: '3',
-      author: 'Sara Conti',
-      handle: '@saraconti',
-      timeAgo: '3 giorni fa',
-      text: 'Non sono completamente d\'accordo: la parte centrale è un po\' lenta, ma il finale riscatta tutto.',
-      tags: ['onesto'],
-      likes: 9, liked: false, repliesOpen: false, replyBoxOpen: false, replyDraft: '',
-      replies: [
-        { id: '3-1', author: 'Marco De Luca', handle: '@marcodeluca', timeAgo: '1 giorno fa', text: 'Capisco cosa intendi, ma era necessaria per costruire il finale.', likes: 4, liked: false },
-      ],
-    },
-    {
-      id: '4',
-      author: 'Paolo Ferrari',
-      handle: '@paoloferrari',
-      timeAgo: '4 giorni fa',
-      text: 'Prosa magistrale, storia indimenticabile. Lo consiglio a chiunque ami la grande letteratura.',
-      tags: ['ben scritto'],
-      likes: 22, liked: false, repliesOpen: false, replyBoxOpen: false, replyDraft: '', replies: [],
-    },
-    {
-      id: '5',
-      author: 'Elena Russo',
-      handle: '@elenarusso',
-      timeAgo: '5 giorni fa',
-      text: 'Uno dei libri più importanti che abbia mai letto. Ogni pagina sorprende.',
-      tags: [],
-      likes: 17, liked: false, repliesOpen: false, replyBoxOpen: false, replyDraft: '', replies: [],
-    },
-  ];
+  comments: Comment[] = [];
 
   get visibleComments(): Comment[] {
     return this.comments.slice(0, this.visibleCount);
@@ -146,59 +74,87 @@ export class BookDetail implements OnInit {
 
   addComment(): void {
     const text = this.newCommentText.trim();
-    if (!text) return;
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    if (!text || !user || !this.book?.id) return;
 
-    const newComment: Comment = {
-      id: crypto.randomUUID(),
-      author: this.currentUserName,
-      handle: this.currentUserHandle,
-      timeAgo: 'adesso',
-      text,
-      tags: [],
-      likes: 0,
-      liked: false,
-      replies: [],
-      repliesOpen: false,
-      replyBoxOpen: false,
-      replyDraft: '',
-    };
-
-    this.comments.unshift(newComment);
-    this.newCommentText = '';
-
-    // TODO: persistere su backend
-    // this.commentService.create(this.book.id, newComment).subscribe();
+    this.api.addComment(this.book.id, user.id, text).subscribe({
+      next: (newCommentData: any) => {
+        const newComment: Comment = {
+          id: newCommentData.id,
+          author: newCommentData.author_name || this.currentUserName,
+          handle: newCommentData.author_handle || this.currentUserHandle,
+          timeAgo: 'adesso',
+          text: newCommentData.content,
+          tags: [],
+          likes: 0,
+          liked: false,
+          replies: [],
+          repliesOpen: false,
+          replyBoxOpen: false,
+          replyDraft: '',
+        };
+        this.comments.unshift(newComment);
+        this.newCommentText = '';
+        this.cdr.detectChanges();
+      },
+      error: err => console.error('Error adding comment', err)
+    });
   }
 
   addReply(comment: Comment): void {
     const text = comment.replyDraft.trim();
-    if (!text) return;
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    if (!text || !user) return;
 
-    const reply: Reply = {
-      id: crypto.randomUUID(),
-      author: this.currentUserName,
-      handle: this.currentUserHandle,
-      timeAgo: 'adesso',
-      text,
-      likes: 0,
-      liked: false,
-    };
+    this.api.addReply(comment.id, user.id, text).subscribe({
+      next: (newReplyData: any) => {
+        const reply: Reply = {
+          id: newReplyData.id,
+          author: newReplyData.author_name || this.currentUserName,
+          handle: newReplyData.author_handle || this.currentUserHandle,
+          timeAgo: 'adesso',
+          text: newReplyData.content,
+          likes: 0,
+          liked: false,
+        };
 
-    comment.replies.push(reply);
-    comment.repliesOpen = true;
-    comment.replyBoxOpen = false;
-    comment.replyDraft = '';
-
-    // TODO: persistere su backend
-    // this.commentService.createReply(comment.id, reply).subscribe();
+        comment.replies.push(reply);
+        comment.repliesOpen = true;
+        comment.replyBoxOpen = false;
+        comment.replyDraft = '';
+        this.cdr.detectChanges();
+      },
+      error: err => console.error('Error adding reply', err)
+    });
   }
 
-  toggleLike(item: Comment | Reply): void {
+  toggleLike(item: any, isReply: boolean = false): void {
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    if (!user) return; // Dev'essere loggato
+
+    // Aggiornamento ottimistico
     item.liked = !item.liked;
     item.likes += item.liked ? 1 : -1;
 
-    // TODO: sincronizzare con backend
-    // this.commentService.like(item.id, item.liked).subscribe();
+    if (isReply) {
+      this.api.toggleReplyLike(item.id, user.id).subscribe({
+        error: () => {
+          // Revert on error
+          item.liked = !item.liked;
+          item.likes += item.liked ? 1 : -1;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.api.toggleCommentLike(item.id, user.id).subscribe({
+        error: () => {
+          // Revert on error
+          item.liked = !item.liked;
+          item.likes += item.liked ? 1 : -1;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   toggleReplies(comment: Comment): void {
@@ -233,6 +189,8 @@ export class BookDetail implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
+  private loadingService = inject(LoadingService);
+
   /** Mappa un oggetto storia dal DB nel formato usato dal template */
   private mapDbBook(s: any): any {
     return {
@@ -255,66 +213,123 @@ export class BookDetail implements OnInit {
   }
 
   ngOnInit(): void {
-    // Map booksD ids to UUIDs
-    if (this.booksD) {
-      this.booksD.forEach(book => {
-        const uuid = BOOK_UUID_MAP[book.title.toLowerCase().trim()];
-        if (uuid) {
-          book.id = uuid as any;
-        }
-      });
+    // Recupera i dati dell'utente loggato
+    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+    if (user) {
+      this.currentUserInitial = user.username ? user.username[0].toUpperCase() : 'U';
+      this.currentUserName = user.username || 'Tu';
+      this.currentUserHandle = user.email || '@tu';
     }
 
-    const id = this.route.snapshot.paramMap.get('id');
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
 
-    // Pre-caricamento ottimistico: mostra subito il libro dallo state se disponibile
-    // (es. click da slider) — ma chiamiamo SEMPRE l'API per sicurezza
-    const navState = isPlatformBrowser(this.platformId)
-      ? (history.state as any)?.book
-      : null;
+      // Pre-caricamento ottimistico: mostra subito il libro dallo state se disponibile
+      // (es. click da slider) — ma chiamiamo SEMPRE l'API per sicurezza
+      const navState = isPlatformBrowser(this.platformId)
+        ? (history.state as any)?.book
+        : null;
 
-    if (navState && navState.id) {
-      // Mostra subito il libro dallo state mentre l'API carica
-      this.book = this.mapDbBook(navState);
-    }
+      if (navState && navState.id) {
+        // Mostra subito il libro dallo state mentre l'API carica
+        this.book = this.mapDbBook(navState);
+      } else {
+        this.book = null; // Resetta il libro corrente
+      }
 
-    // Chiama sempre l'API con l'UUID nell'URL
-    const storyId = id ?? navState?.id;
-    if (storyId) {
-      this.api.getStory(storyId).subscribe({
-        next: (story) => {
-          if (story) {
-            this.book = this.mapDbBook(story);
-          } else if (!this.book) {
-            this.book = this.bookService.getById(storyId);
-          }
-          this.cdr.detectChanges();
-          this.loadChaptersAndProgress(storyId);
-        },
-        error: (err) => {
-          console.error("Errore fetch storia:", err);
-          if (!this.book) {
-            this.book = this.bookService.getById(storyId);
+      // Chiama sempre l'API con l'UUID nell'URL
+      const storyId = id ?? navState?.id;
+      if (storyId) {
+        this.api.getStory(storyId).subscribe({
+          next: (story) => {
+            if (story) {
+              this.book = this.mapDbBook(story);
+              this.preloadImage(this.book.img);
+            } else if (!this.book) {
+              this.book = this.bookService.getById(storyId);
+              if (this.book?.img) this.preloadImage(this.book.img);
+            }
             this.cdr.detectChanges();
+            this.loadChaptersAndProgress(storyId);
+          },
+          error: (err) => {
+            console.error("Errore fetch storia:", err);
+            if (!this.book) {
+              this.book = this.bookService.getById(storyId);
+              this.cdr.detectChanges();
+            }
+            this.loadChaptersAndProgress(storyId);
           }
-          this.loadChaptersAndProgress(storyId);
-        }
-      });
+        });
 
-      this.api.getStoryReviews(storyId).subscribe({
-        next: (reviews) => {
-          this.reviews = reviews;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error("Errore fetch recensioni:", err);
-        }
-      });
-    }
+        this.api.getStoryReviews(storyId).subscribe({
+          next: (reviews) => {
+            this.reviews = reviews;
+            if (reviews && reviews.length > 0) {
+              const sum = reviews.reduce((acc, r) => acc + (parseFloat(r.rating) || 0), 0);
+              const avg = sum / reviews.length;
+              if (this.book) {
+                this.book.rating = avg;
+              }
+            }
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error("Errore fetch recensioni:", err);
+          }
+        });
 
-    if (isPlatformBrowser(this.platformId)) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }
+        this.api.getStoryComments(storyId, user?.id).subscribe({
+          next: (comments) => {
+            this.comments = comments.map(c => ({
+              id: c.id,
+              author: c.author_name,
+              handle: c.author_handle,
+              timeAgo: new Date(c.created_at).toLocaleDateString(), // Semplice formattazione data
+              text: c.text,
+              tags: [],
+              likes: parseInt(c.likes_count),
+              liked: c.user_liked,
+              repliesOpen: false,
+              replyBoxOpen: false,
+              replyDraft: '',
+              replies: c.replies ? c.replies.map((r: any) => ({
+                id: r.id,
+                author: r.author_name,
+                handle: r.author_handle,
+                timeAgo: new Date(r.created_at).toLocaleDateString(),
+                text: r.text,
+                likes: parseInt(r.likes_count),
+                liked: r.user_liked
+              })) : []
+            }));
+            this.cdr.detectChanges();
+          },
+          error: err => console.error("Errore fetch commenti", err)
+        });
+
+        this.api.getSimilarStories(storyId).subscribe({
+          next: (similar) => {
+            this.booksD = similar.map((s: any) => this.mapDbBook(s));
+            this.cdr.detectChanges();
+          },
+          error: err => console.error("Errore fetch storie simili", err)
+        });
+      }
+
+      if (isPlatformBrowser(this.platformId)) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
+  private preloadImage(url: string) {
+    if (!isPlatformBrowser(this.platformId) || !url) return;
+    this.loadingService.show();
+    const img = new Image();
+    img.onload = () => this.loadingService.hide();
+    img.onerror = () => this.loadingService.hide();
+    img.src = url;
   }
 
   /** Carica capitoli e progresso di lettura */
@@ -426,7 +441,12 @@ export class BookDetail implements OnInit {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   }
 
-  getStars(rating: number): string[] {
-    return Array.from({ length: 5 }, (_, i) => i < rating ? 'filled' : 'empty');
+  getStars(rating: number): number[] {
+    return Array.from({ length: 5 }, (_, i) => {
+      const diff = rating - i;
+      if (diff >= 1) return 100;
+      if (diff <= 0) return 0;
+      return Math.round(diff * 100);
+    });
   }
 }

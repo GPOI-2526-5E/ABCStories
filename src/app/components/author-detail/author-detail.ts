@@ -6,6 +6,9 @@ import { AuthService } from '../../services/auth.service';
 import { Navbar } from '../navbar/navbar';
 import { BookSlider } from '../book-slider/book-slider';
 import { Footer } from '../footer/footer';
+import { LoadingService } from '../../services/loading.service';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-author-detail',
@@ -19,6 +22,8 @@ export class AuthorDetail implements OnInit {
   private api = inject(Api);
   private auth = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private loadingService = inject(LoadingService);
+  private platformId = inject(PLATFORM_ID);
 
   authorId: string | null = null;
   author: any = null;
@@ -42,40 +47,9 @@ export class AuthorDetail implements OnInit {
   tabs = ['Tutte', 'Più popolari', 'Recenti'];
   activeTab = 'Tutte';
 
-  // Social Links Mock
-  socials = {
-    instagram: '#',
-    twitter: '#',
-    website: '#'
-  };
 
-  // Recommended Books Mock
-  recommendedBooks = [
-    {
-      id: '10',
-      title: 'It',
-      author: 'Stephen King',
-      img: 'https://images.unsplash.com/photo-1587876931567-564ce588bfbd?w=500&q=80',
-    },
-    {
-      id: '11',
-      title: 'Il Signore degli Anelli',
-      author: 'J.R.R. Tolkien',
-      img: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?w=500&q=80',
-    },
-    {
-      id: '12',
-      title: '1984',
-      author: 'George Orwell',
-      img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&q=80',
-    },
-    {
-      id: '13',
-      title: 'Dune',
-      author: 'Frank Herbert',
-      img: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=500&q=80',
-    }
-  ];
+  // Recommended Books
+  recommendedBooks: any[] = [];
 
   get initials(): string {
     return this.author?.username?.slice(0, 2).toUpperCase() || 'AU';
@@ -150,6 +124,9 @@ export class AuthorDetail implements OnInit {
       this.api.getUserProfile(this.authorId).subscribe({
         next: (data) => {
           this.author = data;
+          if (this.author?.profilePictureUrl) {
+            this.preloadImage(this.author.profilePictureUrl);
+          }
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Error fetching author', err)
@@ -188,6 +165,25 @@ export class AuthorDetail implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Error fetching following', err)
+      });
+
+      // Fetch Recommended Books
+      this.api.getAuthorRecommended(this.authorId).subscribe({
+        next: (data) => {
+          this.recommendedBooks = data.map((s: any) => ({
+            id: s.id,
+            title: s.title,
+            author: s.author_name || s.author_id,
+            desc: s.description,
+            img: s.image_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
+            genre: s.genre,
+            tag: s.genre,
+            rating: s.rating ? parseFloat(s.rating) : 0,
+            readers: s.readers_count
+          }));
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Error fetching recommended', err)
       });
 
       // Check follow status
@@ -240,5 +236,14 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error following', err)
       });
     }
+  }
+
+  private preloadImage(url: string) {
+    if (!isPlatformBrowser(this.platformId) || !url) return;
+    this.loadingService.show();
+    const img = new Image();
+    img.onload = () => this.loadingService.hide();
+    img.onerror = () => this.loadingService.hide();
+    img.src = url;
   }
 }
