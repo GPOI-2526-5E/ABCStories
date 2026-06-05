@@ -4,18 +4,40 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 const SALT_ROUNDS = 12;
 
-app.use(cors());
+// Permetti richieste dal frontend Vercel (e da localhost in sviluppo)
+const allowedOrigins = [
+  'http://localhost:4200',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'postgres',
-  port: 5432,
-});
+// Connessione DB: usa DATABASE_URL se disponibile (Railway), altrimenti credenziali locali
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  : new Pool({
+      user: process.env.DB_USER || 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      port: parseInt(process.env.DB_PORT || '5432'),
+    });
 
 
 app.get('/api/prova', async (req, res) => {
@@ -759,7 +781,7 @@ app.delete('/api/chapters/:id', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 })
 
