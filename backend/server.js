@@ -81,20 +81,39 @@ app.get('/api/user/:id', async (req, res) => {
 });
 
 app.put('/api/user/:id', async (req, res) => {
-  const { social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin } = req.body;
+  const { 
+    username, 
+    bio, 
+    location, 
+    avatar_url,
+    social_instagram, 
+    social_twitter, 
+    social_facebook, 
+    social_website, 
+    social_tiktok, 
+    social_linkedin 
+  } = req.body;
   try {
     const result = await pool.query(`
       UPDATE users 
       SET 
-        social_instagram = $1,
-        social_twitter = $2,
-        social_facebook = $3,
-        social_website = $4,
-        social_tiktok = $5,
-        social_linkedin = $6
-      WHERE id = $7
+        username = COALESCE($1, username),
+        bio = $2,
+        location = $3,
+        avatar_url = $4,
+        social_instagram = $5,
+        social_twitter = $6,
+        social_facebook = $7,
+        social_website = $8,
+        social_tiktok = $9,
+        social_linkedin = $10
+      WHERE id = $11
       RETURNING *
     `, [
+      username || null,
+      bio || null,
+      location || null,
+      avatar_url || null,
       social_instagram || null, 
       social_twitter || null, 
       social_facebook || null, 
@@ -188,7 +207,9 @@ app.get('/api/user/:userId/recommended', async (req, res) => {
     // Recupera i dettagli delle storie raccomandate
     const storiesRes = await pool.query(`
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
@@ -275,9 +296,13 @@ app.get('/api/stories/:storyId/reviews', async (req, res) => {
 app.get('/api/likes/:userId/stories', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.*, sl.created_at AS liked_at
+      `SELECT s.*, 
+              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+              u.username AS author_name, sl.created_at AS liked_at
        FROM story_likes sl
        JOIN stories s ON s.id = sl.story_id
+       LEFT JOIN users u ON u.id = s.author_id
        WHERE sl.user_id = $1
        ORDER BY sl.created_at DESC`,
       [req.params.userId]
@@ -330,9 +355,13 @@ app.get('/api/bookmarks/:userId', async (req, res) => {
 app.get('/api/bookmarks/:userId/stories', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.*, sb.created_at AS bookmarked_at
+      `SELECT s.*, 
+              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+              u.username AS author_name, sb.created_at AS bookmarked_at
        FROM story_bookmarks sb
        JOIN stories s ON s.id = sb.story_id
+       LEFT JOIN users u ON u.id = s.author_id
        WHERE sb.user_id = $1
        ORDER BY sb.created_at DESC`,
       [req.params.userId]
@@ -473,12 +502,14 @@ app.get('/api/stories', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-              s.readers_count, s.rating, s.pages, s.release_year,
+              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+              s.pages, s.release_year,
               u.username AS author_name
        FROM stories s
        LEFT JOIN users u ON u.id = s.author_id
        WHERE s.status = 'published'
-       ORDER BY s.rating DESC`
+       ORDER BY rating DESC`
     );
     res.json(result.rows);
   } catch (error) {
@@ -494,7 +525,9 @@ app.get('/api/stories/popular', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name,
              COUNT(sv.id) AS view_count
       FROM stories s
@@ -502,7 +535,7 @@ app.get('/api/stories/popular', async (req, res) => {
       LEFT JOIN story_views sv ON sv.story_id = s.id
       WHERE s.status = 'published'
       GROUP BY s.id, u.username
-      ORDER BY view_count DESC, s.rating DESC
+      ORDER BY view_count DESC, rating DESC
       LIMIT 20
     `);
     res.json(result.rows);
@@ -528,7 +561,9 @@ app.get('/api/stories/trending', async (req, res) => {
 
     const query = `
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name,
              COUNT(sv.id) AS week_views
       FROM stories s
@@ -538,7 +573,7 @@ app.get('/api/stories/trending', async (req, res) => {
         AND sv.viewed_at >= ${req.query.userId ? dateFilter : "NOW() - INTERVAL '7 days'"}
       WHERE s.status = 'published'
       GROUP BY s.id, u.username
-      ORDER BY week_views DESC, s.rating DESC
+      ORDER BY week_views DESC, rating DESC
       LIMIT 15
     `;
     
@@ -565,7 +600,9 @@ app.get('/api/stories/similar/:storyId', async (req, res) => {
     // Troviamo storie simili per genere, escludendo quella corrente, ordinate per popolarità
     const result = await pool.query(`
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name,
              COUNT(sv.id) AS view_count
       FROM stories s
@@ -575,7 +612,7 @@ app.get('/api/stories/similar/:storyId', async (req, res) => {
         AND s.id != $1 
         AND s.genre ILIKE $2
       GROUP BY s.id, u.username
-      ORDER BY view_count DESC, s.rating DESC
+      ORDER BY view_count DESC, rating DESC
       LIMIT 50
     `, [req.params.storyId, `%${genre}%`]);
     
@@ -592,12 +629,14 @@ app.get('/api/stories/genre/:genre', async (req, res) => {
     const genre = `%${req.params.genre}%`;
     const result = await pool.query(`
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
       WHERE s.genre ILIKE $1 AND s.status = 'published'
-      ORDER BY s.rating DESC
+      ORDER BY rating DESC
     `, [genre]);
     res.json(result.rows);
   } catch (error) {
@@ -624,7 +663,9 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
         ORDER BY c.story_id, rp.updated_at DESC
       )
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name,
              lr.progress_pct,
              lr.chapter_id,
@@ -652,8 +693,11 @@ app.get('/api/stories/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
-              s.readers_count, s.rating, s.pages, s.release_year,
-              u.username AS author_name
+              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+              s.pages, s.release_year,
+              u.username AS author_name,
+              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS views_count
        FROM stories s
        LEFT JOIN users u ON u.id = s.author_id
        WHERE s.id = $1`,
@@ -676,6 +720,15 @@ app.post('/api/views', async (req, res) => {
   const { story_id, user_id } = req.body;
   if (!story_id) return res.status(400).json({ error: 'story_id obbligatorio' });
   try {
+    if (user_id) {
+      const existing = await pool.query(
+        'SELECT 1 FROM story_views WHERE story_id = $1 AND user_id = $2',
+        [story_id, user_id]
+      );
+      if (existing.rows.length > 0) {
+        return res.json({ ok: true, duplicate: true });
+      }
+    }
     await pool.query(
       'INSERT INTO story_views (story_id, user_id) VALUES ($1, $2)',
       [story_id, user_id || null]
@@ -878,12 +931,14 @@ app.get('/api/stories/author/:authorId', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT s.id, s.title, s.description, s.genre, s.image_url,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              u.username AS author_name
       FROM stories s
       JOIN users u ON u.id = s.author_id
       WHERE s.author_id = $1 AND s.status = 'published'
-      ORDER BY s.rating DESC
+      ORDER BY rating DESC
     `, [req.params.authorId]);
     res.json(result.rows);
   } catch (error) {
@@ -899,7 +954,9 @@ app.get('/api/author/my-stories/:userId', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT s.id, s.title, s.description, s.genre, s.image_url, s.status,
-             s.readers_count, s.rating, s.pages, s.release_year,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.pages, s.release_year,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS views_count
       FROM stories s
       WHERE s.author_id = $1

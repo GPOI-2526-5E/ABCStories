@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
 import { AuthService } from '../../services/auth.service';
+import { InteractionsService } from '../../services/interactions.service';
 import { Navbar } from '../navbar/navbar';
-import { BookSlider } from '../book-slider/book-slider';
 import { Footer } from '../footer/footer';
 import { LoadingService } from '../../services/loading.service';
 import { PLATFORM_ID, Inject } from '@angular/core';
@@ -13,7 +13,7 @@ import { isPlatformBrowser } from '@angular/common';
 @Component({
   selector: 'app-author-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, Navbar, BookSlider, Footer],
+  imports: [CommonModule, RouterModule, Navbar, Footer],
   templateUrl: './author-detail.html',
   styleUrl: './author-detail.scss',
 })
@@ -24,6 +24,7 @@ export class AuthorDetail implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private loadingService = inject(LoadingService);
   private platformId = inject(PLATFORM_ID);
+  public interactions = inject(InteractionsService);
 
   authorId: string | null = null;
   author: any = null;
@@ -108,6 +109,7 @@ export class AuthorDetail implements OnInit {
         this.loadAuthorData();
       }
     });
+    this.interactions.loadUserInteractions().subscribe();
   }
 
   loadAuthorData() {
@@ -245,5 +247,17 @@ export class AuthorDetail implements OnInit {
     img.onload = () => this.loadingService.hide();
     img.onerror = () => this.loadingService.hide();
     img.src = url;
+  }
+
+  toggleLike(book: any) {
+    if (book.id) {
+      this.interactions.toggleLike(book.id);
+    }
+  }
+
+  toggleBookmark(book: any) {
+    if (book.id) {
+      this.interactions.toggleBookmark(book.id);
+    }
   }
 }

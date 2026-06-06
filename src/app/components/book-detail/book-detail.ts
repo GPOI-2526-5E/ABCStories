@@ -209,6 +209,7 @@ export class BookDetail implements OnInit {
       chaptersCount: s.chapters_count ?? s.chaptersCount ?? 0,
       liked: s.liked ?? false,
       bookmarked: s.bookmarked ?? false,
+      viewsCount: s.views_count ? parseInt(s.views_count, 10) : 0,
     };
   }
 
@@ -240,86 +241,102 @@ export class BookDetail implements OnInit {
       // Chiama sempre l'API con l'UUID nell'URL
       const storyId = id ?? navState?.id;
       if (storyId) {
-        this.api.getStory(storyId).subscribe({
-          next: (story) => {
-            if (story) {
-              this.book = this.mapDbBook(story);
-              this.preloadImage(this.book.img);
-            } else if (!this.book) {
-              this.book = this.bookService.getById(storyId);
-              if (this.book?.img) this.preloadImage(this.book.img);
-            }
-            this.cdr.detectChanges();
-            this.loadChaptersAndProgress(storyId);
-          },
+        // Carica recensioni, commenti e simili in parallelo
+        this.loadSideDetails(storyId, user);
+
+        // Registra visualizzazione unica e poi carica i dettagli della storia principale
+        this.api.recordView(storyId, user?.id).subscribe({
+          next: () => this.loadMainStory(storyId),
           error: (err) => {
-            console.error("Errore fetch storia:", err);
-            if (!this.book) {
-              this.book = this.bookService.getById(storyId);
-              this.cdr.detectChanges();
-            }
-            this.loadChaptersAndProgress(storyId);
+            console.warn("Errore registrazione visualizzazione, procedo:", err);
+            this.loadMainStory(storyId);
           }
-        });
-
-        this.api.getStoryReviews(storyId).subscribe({
-          next: (reviews) => {
-            this.reviews = reviews;
-            if (reviews && reviews.length > 0) {
-              const sum = reviews.reduce((acc, r) => acc + (parseFloat(r.rating) || 0), 0);
-              const avg = sum / reviews.length;
-              if (this.book) {
-                this.book.rating = avg;
-              }
-            }
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error("Errore fetch recensioni:", err);
-          }
-        });
-
-        this.api.getStoryComments(storyId, user?.id).subscribe({
-          next: (comments) => {
-            this.comments = comments.map(c => ({
-              id: c.id,
-              author: c.author_name,
-              handle: c.author_handle,
-              timeAgo: new Date(c.created_at).toLocaleDateString(), // Semplice formattazione data
-              text: c.text,
-              tags: [],
-              likes: parseInt(c.likes_count),
-              liked: c.user_liked,
-              repliesOpen: false,
-              replyBoxOpen: false,
-              replyDraft: '',
-              replies: c.replies ? c.replies.map((r: any) => ({
-                id: r.id,
-                author: r.author_name,
-                handle: r.author_handle,
-                timeAgo: new Date(r.created_at).toLocaleDateString(),
-                text: r.text,
-                likes: parseInt(r.likes_count),
-                liked: r.user_liked
-              })) : []
-            }));
-            this.cdr.detectChanges();
-          },
-          error: err => console.error("Errore fetch commenti", err)
-        });
-
-        this.api.getSimilarStories(storyId).subscribe({
-          next: (similar) => {
-            this.booksD = similar.map((s: any) => this.mapDbBook(s));
-            this.cdr.detectChanges();
-          },
-          error: err => console.error("Errore fetch storie simili", err)
         });
       }
 
       if (isPlatformBrowser(this.platformId)) {
         window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       }
+    });
+  }
+
+  private loadMainStory(storyId: string) {
+    this.api.getStory(storyId).subscribe({
+      next: (story) => {
+        if (story) {
+          this.book = this.mapDbBook(story);
+          this.preloadImage(this.book.img);
+        } else if (!this.book) {
+          this.book = this.bookService.getById(storyId);
+          if (this.book?.img) this.preloadImage(this.book.img);
+        }
+        this.cdr.detectChanges();
+        this.loadChaptersAndProgress(storyId);
+      },
+      error: (err) => {
+        console.error("Errore fetch storia:", err);
+        if (!this.book) {
+          this.book = this.bookService.getById(storyId);
+          this.cdr.detectChanges();
+        }
+        this.loadChaptersAndProgress(storyId);
+      }
+    });
+  }
+
+  private loadSideDetails(storyId: string, user: any) {
+    this.api.getStoryReviews(storyId).subscribe({
+      next: (reviews) => {
+        this.reviews = reviews;
+        if (reviews && reviews.length > 0) {
+          const sum = reviews.reduce((acc, r) => acc + (parseFloat(r.rating) || 0), 0);
+          const avg = sum / reviews.length;
+          if (this.book) {
+            this.book.rating = avg;
+          }
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Errore fetch recensioni:", err);
+      }
+    });
+
+    this.api.getStoryComments(storyId, user?.id).subscribe({
+      next: (comments) => {
+        this.comments = comments.map(c => ({
+          id: c.id,
+          author: c.author_name,
+          handle: c.author_handle,
+          timeAgo: new Date(c.created_at).toLocaleDateString(), // Semplice formattazione data
+          text: c.text,
+          tags: [],
+          likes: parseInt(c.likes_count),
+          liked: c.user_liked,
+          repliesOpen: false,
+          replyBoxOpen: false,
+          replyDraft: '',
+          replies: c.replies ? c.replies.map((r: any) => ({
+            id: r.id,
+            author: r.author_name,
+            handle: r.author_handle,
+            timeAgo: new Date(r.created_at).toLocaleDateString(),
+            text: r.text,
+            likes: parseInt(r.likes_count),
+            liked: r.user_liked
+          })) : []
+        }));
+        this.cdr.detectChanges();
+      },
+      error: err => console.error("Errore fetch commenti", err)
+    });
+
+    this.api.getSimilarStories(storyId).subscribe({
+      next: (similar) => {
+        this.booksD = similar.map((s: any) => this.mapDbBook(s));
+        this.cdr.detectChanges();
+      },
+      error: err => console.error("Errore fetch storie simili", err)
     });
   }
 

@@ -94,6 +94,34 @@ export class StoryEditor implements OnInit {
       this.chapterImagePreview = null;
     }
     this.cdr.detectChanges();
+    this.autoResizeTextareas();
+  }
+
+  adjustTitleHeight(event: any) {
+    const textarea = event.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  adjustTextareaHeight(event: any) {
+    const textarea = event.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  autoResizeTextareas() {
+    setTimeout(() => {
+      const titleEl = document.querySelector('.reader-chapter-title-input') as HTMLTextAreaElement;
+      const contentEl = document.querySelector('.reader-text-input') as HTMLTextAreaElement;
+      if (titleEl) {
+        titleEl.style.height = 'auto';
+        titleEl.style.height = titleEl.scrollHeight + 'px';
+      }
+      if (contentEl) {
+        contentEl.style.height = 'auto';
+        contentEl.style.height = contentEl.scrollHeight + 'px';
+      }
+    }, 50);
   }
 
   onStoryImageSelected(event: Event) {

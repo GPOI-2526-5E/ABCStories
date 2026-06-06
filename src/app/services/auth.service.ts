@@ -5,6 +5,8 @@ export interface AuthUser {
   id: string;
   email: string;
   username: string;
+  avatar_url?: string;
+  bio?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +28,13 @@ export class AuthService {
   }
 
   login(user: AuthUser): void {
+    this._user.set(user);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    }
+  }
+
+  updateCurrentUser(user: AuthUser): void {
     this._user.set(user);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));

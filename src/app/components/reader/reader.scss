@@ -478,6 +478,9 @@
     margin: 0 0 1.8em;
     text-align: justify;
     hyphens: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 
     &:first-of-type::first-letter {
       font-family: 'Inter', sans-serif;

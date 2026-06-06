@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
@@ -10,7 +10,7 @@ import { LoadingService } from '../../services/loading.service';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni';
 
@@ -25,6 +25,8 @@ export interface UserBook {
   readers_count: string;
   pages: number;
   release_year: number;
+  img?: string;
+  author?: string;
 }
 
 export interface Author {
@@ -49,11 +51,12 @@ export class User implements OnInit {
 
   private authService = inject(AuthService);
   private api = inject(Api);
-  private interactions = inject(InteractionsService);
+  public interactions = inject(InteractionsService);
   public themeService = inject(ThemeService);
   private cdr = inject(ChangeDetectorRef);
   private loadingService = inject(LoadingService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
   /** Utente loggato (segnale) */
   currentUser = this.authService.currentUser;
@@ -68,11 +71,11 @@ export class User implements OnInit {
   fullProfile: any = null;
 
   navItems: { id: Section; label: string; icon: string }[] = [
-    { id: 'profilo', label: 'Profilo', icon: '👤' },
-    { id: 'mipiace', label: 'Mi piace', icon: '❤️' },
-    { id: 'preferiti', label: 'Preferiti', icon: '🔖' },
-    { id: 'autori', label: 'Autori seguiti', icon: '✍️' },
-    { id: 'impostazioni', label: 'Impostazioni', icon: '⚙️' },
+    { id: 'profilo', label: 'Profilo', icon: '/assets/Icone/profilo.png' },
+    { id: 'mipiace', label: 'Mi piace', icon: '/assets/Icone/mipiace.png' },
+    { id: 'preferiti', label: 'Preferiti', icon: '/assets/Icone/preferiti.png' },
+    { id: 'autori', label: 'Autori seguiti', icon: '/assets/Icone/autore.png' },
+    { id: 'impostazioni', label: 'Impostazioni', icon: '/assets/Icone/impostazioni.png' },
   ];
 
   likedBooks: UserBook[] = [];
@@ -81,11 +84,16 @@ export class User implements OnInit {
 
   followedAuthors: any[] = [];
 
+  followersCount = 0;
+  followingCount = 0;
+
   settings = {
     nome: '',
     handle: '',
     email: '',
     posizione: '',
+    bio: '',
+    avatar_url: '',
     social_instagram: '',
     social_twitter: '',
     social_facebook: '',
@@ -112,6 +120,7 @@ export class User implements OnInit {
     return this.recommendedStoryIds.map(id => this.allStories.find(s => s.id === id)).filter(s => !!s);
   }
 
+  MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
   savedFeedback = false;
 
   ngOnInit(): void {
@@ -129,11 +138,15 @@ export class User implements OnInit {
         this.preloadImage((u as any).avatar_url);
       }
 
+      this.interactions.loadUserInteractions().subscribe();
+
       // Fetch user profile from DB to get fresh data
       this.api.getUserProfile(u.id).subscribe({
         next: (profile) => {
           this.fullProfile = profile;
           if (profile.location) this.settings.posizione = profile.location;
+          if (profile.bio) this.settings.bio = profile.bio;
+          if (profile.avatar_url) this.settings.avatar_url = profile.avatar_url;
           if (profile.social_instagram) this.settings.social_instagram = profile.social_instagram;
           if (profile.social_twitter) this.settings.social_twitter = profile.social_twitter;
           if (profile.social_facebook) this.settings.social_facebook = profile.social_facebook;
@@ -145,15 +158,25 @@ export class User implements OnInit {
         error: (err) => console.warn('Errore caricamento profilo:', err)
       });
 
+      // Fetch Followers and Follow Counts
+      this.api.getFollowsCount(u.id).subscribe({
+        next: (data) => {
+          this.followersCount = data.followersCount;
+          this.followingCount = data.followingCount;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Errore caricamento contatori follow:', err)
+      });
+
       // Carica storie liked dal DB
       this.api.getLikedStories(u.id).subscribe({
-        next: (stories) => this.likedBooks = stories,
+        next: (stories) => this.likedBooks = stories.map(s => this.mapDbBook(s)),
         error: (err) => console.warn('Errore caricamento liked:', err)
       });
 
       // Carica storie bookmarked dal DB
       this.api.getBookmarkedStories(u.id).subscribe({
-        next: (stories) => this.favoriteBooks = stories,
+        next: (stories) => this.favoriteBooks = stories.map(s => this.mapDbBook(s)),
         error: (err) => console.warn('Errore caricamento bookmarks:', err)
       });
       // Carica autori seguiti dal DB
@@ -199,6 +222,7 @@ export class User implements OnInit {
       next: () => {
         // Rimuove l'autore dall'array localmente in modo che la card scompaia
         this.followedAuthors = this.followedAuthors.filter(a => a.id !== author.id);
+        this.followingCount = Math.max(0, this.followingCount - 1);
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Errore unfollow', err)
@@ -217,6 +241,10 @@ export class User implements OnInit {
       });
       
       this.api.updateUserProfile(user.id, {
+        username: this.settings.nome,
+        bio: this.settings.bio,
+        location: this.settings.posizione,
+        avatar_url: this.settings.avatar_url,
         social_instagram: this.settings.social_instagram || null,
         social_twitter: this.settings.social_twitter || null,
         social_facebook: this.settings.social_facebook || null,
@@ -224,7 +252,12 @@ export class User implements OnInit {
         social_tiktok: this.settings.social_tiktok || null,
         social_linkedin: this.settings.social_linkedin || null
       }).subscribe({
-        next: () => console.log('Profilo social aggiornato'),
+        next: (updatedUser) => {
+          console.log('Profilo social e dettagli aggiornati:', updatedUser);
+          this.authService.updateCurrentUser(updatedUser);
+          this.fullProfile = updatedUser;
+          this.cdr.detectChanges();
+        },
         error: (err) => console.error('Errore aggiornamento profilo', err)
       });
     }
@@ -232,6 +265,33 @@ export class User implements OnInit {
     this.savedFeedback = true;
     setTimeout(() => (this.savedFeedback = false), 2000);
   }
+
+  onAvatarImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
+      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.settings.avatar_url = base64;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target && typeof target.closest === 'function' && !target.closest('.story-search-container')) {
+      this.showStoryDropdown = false;
+    }
+  }
+
 
   addRecommendedStory(story: any) {
     if (this.recommendedStoryIds.length >= 10) return; // Max 10
@@ -246,16 +306,50 @@ export class User implements OnInit {
     this.recommendedStoryIds = this.recommendedStoryIds.filter(id => id !== storyId);
   }
 
-  removeLike(book: UserBook, event: Event): void {
+  private mapDbBook(s: any): any {
+    return {
+      id: s.id,
+      title: s.title ?? '',
+      author: s.author_name ?? 'Autore sconosciuto',
+      author_id: s.author_id,
+      desc: s.description ?? '',
+      img: s.image_url ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
+      genre: s.genre ?? '',
+      tag: s.tag ?? s.genre ?? '',
+      pages: s.pages ?? 0,
+      year: s.release_year ?? s.year ?? 0,
+      rating: s.rating ? parseFloat(s.rating) : 0,
+      readers: s.readers_count ? String(s.readers_count) : '0',
+      chaptersCount: s.chapters_count ?? 0,
+      liked: false,
+      bookmarked: false,
+    };
+  }
+
+  onBookClick(book: any, index: number) {
+    this.router.navigate(
+      ['/book', book.id],
+      {
+        state: { book }
+      }
+    );
+  }
+
+  goToAuthor(authorId: string | undefined, event: Event) {
     event.stopPropagation();
+    if (authorId) {
+      this.router.navigate(['/author', authorId]);
+    }
+  }
+
+  toggleLike(book: any) {
     if (book.id) {
       this.interactions.toggleLike(book.id);
       this.likedBooks = this.likedBooks.filter(b => b.id !== book.id);
     }
   }
 
-  removeBookmark(book: UserBook, event: Event): void {
-    event.stopPropagation();
+  toggleBookmark(book: any) {
     if (book.id) {
       this.interactions.toggleBookmark(book.id);
       this.favoriteBooks = this.favoriteBooks.filter(b => b.id !== book.id);

@@ -2,10 +2,11 @@
 
 <div class="layout">
 
-  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <!-- ═══════════════ SIDEBAR FLUTTUANTE ═══════════════ -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img *ngIf="fullProfile?.avatar_url" [src]="fullProfile.avatar_url" alt="Avatar" class="brand-avatar" style="object-fit: cover; background: white;">
+      <img *ngIf="fullProfile?.avatar_url" [src]="fullProfile.avatar_url" alt="Avatar" class="brand-avatar"
+        style="object-fit: cover; background: white;">
       <div *ngIf="!fullProfile?.avatar_url" class="brand-avatar">{{ userInitials() }}</div>
       <div class="brand-meta">
         <span class="brand-name">{{ currentUser()?.username }}</span>
@@ -16,94 +17,234 @@
     <nav class="sidebar-nav">
       <button *ngFor="let item of navItems" class="nav-btn" [class.nav-btn--active]="activeSection() === item.id"
         (click)="setSection(item.id)">
-        <span class="nav-btn__icon">{{ item.icon }}</span>
+        <span class="nav-btn__icon">
+          <img [src]="item.icon" [alt]="item.label" class="sidebar-icon-img" />
+        </span>
         <span class="nav-btn__label">{{ item.label }}</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
       <div class="sidebar-stat">
-        <strong>142</strong>
+        <strong>{{ followingCount }}</strong>
         <span>Seguiti</span>
       </div>
       <div class="sidebar-stat">
-        <strong>89</strong>
-        <span>Seguaci</span>
+        <strong>{{ followersCount }}</strong>
+        <span>Follower</span>
       </div>
     </div>
   </aside>
 
-  <!-- ═══════════════ MAIN ═══════════════ -->
+  <!-- ═══════════════ MAIN CONTENT FLUTTUANTE ═══════════════ -->
   <main class="main">
 
-    <!-- ── PROFILO ── -->
-    <section class="section" *ngIf="activeSection() === 'profilo'">
-      <!-- Hero: immagine + sfumatura come pagina libro -->
-      <div class="profile-hero">
-        <div class="profile-hero__ambient">
-          <div class="profile-hero__bg" [style.backgroundImage]="fullProfile?.avatar_url ? 'url(' + fullProfile.avatar_url + ')' : ''"></div>
-          <div class="profile-hero__fade"></div>
+    <!-- ── PROFILO (BENTO GRID CON INLINE EDITING) ── -->
+    <section class="section" *ngIf="activeSection() === 'profilo'"
+      style="position: relative; overflow: hidden; border-radius: 32px; padding: 30px;">
+
+      <!-- Sfondo Ambientale Posteriore -->
+      <div class="ambient-screen" style="height: 100%; min-height: 500px;">
+        <div class="ambient-sphere glow-1"
+          [style.backgroundImage]="settings.avatar_url ? 'url(' + settings.avatar_url + ')' : ''">
         </div>
-        <div class="profile-hero__content">
-          <img *ngIf="fullProfile?.avatar_url" [src]="fullProfile.avatar_url" alt="Avatar" class="profile-avatar" style="object-fit: cover; background: white;">
-          <div *ngIf="!fullProfile?.avatar_url" class="profile-avatar">{{ userInitials() }}</div>
-          <h1 class="profile-hero__name">{{ currentUser()?.username }}</h1>
-          <p class="profile-hero__handle">{{ currentUser()?.email }}</p>
-          <div class="profile-hero__tags">
-            <span class="tag">Horror</span>
-            <span class="tag">Fantasy</span>
-            <span class="tag">Thriller</span>
-            <span class="tag">Racconti</span>
-          </div>
-        </div>
+        <div class="ambient-sphere glow-2"></div>
+        <div class="ambient-curtain"></div>
       </div>
 
-      <!-- Stats bar glassmorphism (come la pagina libro) -->
-      <div class="stats-bar glass">
-        <div class="stats-bar__item">
-          <span class="stars">★★★★<span class="star-empty">★</span></span>
-          <span class="stats-bar__sub">4.8 / 5.0</span>
-        </div>
-        <div class="stats-bar__divider"></div>
-        <div class="stats-bar__item">
-          <strong>1.2k</strong>
-          <span class="stats-bar__sub">lettori</span>
-        </div>
-        <div class="stats-bar__divider"></div>
-        <div class="stats-bar__item">
-          <strong>3</strong>
-          <span class="stats-bar__sub">storie</span>
-        </div>
-        <div class="stats-bar__divider"></div>
-        <div class="stats-bar__item">
-          <strong>234</strong>
-          <span class="stats-bar__sub">mi piace</span>
-        </div>
-      </div>
+      <!-- Dashboard Bento Grid -->
+      <div class="author-dashboard" style="padding-top: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
+        <div class="bento-grid">
 
-      <!-- Bio e dettagli -->
-      <div class="profile-body">
-        <p class="profile-bio">
-          Appassionato di narrativa horror e fantasy. Scrivo storie dal 2018 e amo esplorare i confini
-          tra reale e immaginario. Attualmente sto lavorando alla mia prima raccolta di racconti brevi. ☕📚
-        </p>
-        <div class="profile-meta-row">
-          <span>📍 Milano, Italia</span>
-          <span>📅 Iscritto a Marzo 2021</span>
-          <span>🌐 marcorossi.it</span>
-        </div>
-        <div class="activity-grid">
-          <div class="activity-card glass">
-            <span class="activity-card__label">Ultima attività</span>
-            <span class="activity-card__val">Oggi, 14:32</span>
-            <span class="activity-card__sub">Cap. 8 di <em>Ombre nell'Alba</em></span>
+          <!-- TESSERA 1: Identità & Biografia (Modificabile) -->
+          <div class="bento-tile identity-tile glass-core">
+            <div class="identity-lead">
+              <div class="avatar-aura" (click)="avatarFileInput.click()" style="cursor: pointer;">
+                <img *ngIf="settings.avatar_url" [src]="settings.avatar_url" alt="Avatar" class="avatar-img"
+                  style="object-fit: cover;" />
+                <div *ngIf="!settings.avatar_url" class="avatar-fallback">{{ userInitials() }}</div>
+                <div class="avatar-upload-overlay">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  <span>Cambia</span>
+                </div>
+              </div>
+              <input #avatarFileInput type="file" accept="image/*" style="display:none"
+                (change)="onAvatarImageSelected($event)">
+
+              <div class="identity-meta">
+                <input type="text" class="inline-edit-username" [(ngModel)]="settings.nome" placeholder="Username..." />
+                <p class="author-handle" style="opacity: 0.6; font-size: 0.9rem; margin-top: 6px;">{{ settings.email }}
+                  (non modificabile)</p>
+              </div>
+            </div>
+
+            <div class="bio-box">
+              <textarea class="inline-edit-bio" [(ngModel)]="settings.bio"
+                placeholder="Scrivi una breve biografia..."></textarea>
+            </div>
           </div>
-          <div class="activity-card glass">
-            <span class="activity-card__label">Livello scrittore</span>
-            <span class="activity-card__val">⭐ Pro</span>
-            <span class="activity-card__badge">Top 15% community</span>
+
+          <!-- COLONNA DESTRA BENTO -->
+          <div class="bento-sidebar">
+
+            <!-- TESSERA 2: Hub Statistiche (Sola Lettura + Posizione Modificabile) -->
+            <div class="bento-tile stats-tile glass-core">
+              <div class="tile-header">
+                <span class="tile-tag">Analytics</span>
+                <h3>Impatto Community</h3>
+              </div>
+              <div class="stats-matrix">
+                <div class="matrix-cell">
+                  <span class="matrix-val">{{ fullProfile?.stories_count || 0 }}</span>
+                  <span class="matrix-lbl">Storie</span>
+                </div>
+                <div class="matrix-cell">
+                  <span class="matrix-val">{{ followersCount }}</span>
+                  <span class="matrix-lbl">Follower</span>
+                </div>
+                <div class="matrix-cell">
+                  <span class="matrix-val">{{ followingCount }}</span>
+                  <span class="matrix-lbl">Seguiti</span>
+                </div>
+                <div class="matrix-cell position-edit-cell">
+                  <span class="matrix-val location-pin">📍</span>
+                  <input type="text" class="inline-edit-location" [(ngModel)]="settings.posizione"
+                    placeholder="La tua città..." />
+                </div>
+              </div>
+            </div>
+
+            <!-- TESSERA 3: Canali Social (Modificabili) -->
+            <div class="bento-tile socials-tile glass-core">
+              <div class="tile-header">
+                <span class="tile-tag">Connessioni</span>
+                <h3>Social Links</h3>
+              </div>
+              <div class="social-edit-fields">
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/instagram.png" alt="Instagram" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_instagram"
+                    placeholder="https://instagram.com/tuo_profilo" />
+                </div>
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/x.png" alt="X" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_twitter"
+                    placeholder="https://x.com/tuo_profilo" />
+                </div>
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/tiktok.png" alt="TikTok" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_tiktok"
+                    placeholder="https://tiktok.com/@tuo_profilo" />
+                </div>
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/linkedin.png" alt="LinkedIn" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_linkedin"
+                    placeholder="https://linkedin.com/in/tuo_profilo" />
+                </div>
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/facebook.png" alt="Facebook" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_facebook"
+                    placeholder="https://facebook.com/tuo_profilo" />
+                </div>
+                <div class="social-edit-row">
+                  <span class="social-edit-icon">
+                    <img src="/assets/Icone/sitoweb.png" alt="Facebook" class="social-icon-img" />
+                  </span>
+                  <input type="text" class="social-edit-input" [(ngModel)]="settings.social_website"
+                    placeholder="https://tuosito.com" />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
+        <!-- TESSERA 4: Letture Consigliate (Modificabile) -->
+        <div class="bento-tile recommended-tile glass-core"
+          style="margin-top: 24px; width: 100%; box-sizing: border-box; padding: 28px;">
+          <div class="tile-header"
+            style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+            <div>
+              <span class="tile-tag">Consigliati</span>
+              <h3 style="margin: 0;">Le mie letture consigliate</h3>
+              <p style="opacity: 0.6; font-size: 0.85rem; margin-top: 4px; margin-bottom: 0;">Seleziona fino a 10 storie
+                da raccomandare sul tuo profilo pubblico ({{ recommendedStoryIds.length }}/10)</p>
+            </div>
+
+            <!-- Cerca storia -->
+            <div class="story-search-container" style="position: relative; width: 320px; max-width: 100%;">
+              <input type="text" class="inline-edit-search" [(ngModel)]="searchStoryText"
+                (focus)="showStoryDropdown = true" placeholder="🔍 Cerca una storia da aggiungere..." />
+
+              <div class="dropdown-list glass" *ngIf="showStoryDropdown && searchStoryText"
+                style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100; max-height: 200px; overflow-y: auto; margin-top: 6px;">
+                <div *ngFor="let s of filteredStoriesForSearch" class="dropdown-item" (click)="addRecommendedStory(s)"
+                  style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 2px; text-align: left;">
+                  <strong style="font-size: 0.9rem; color: var(--text-primary);">{{ s.title }}</strong>
+                  <small style="opacity: 0.7; font-size: 0.75rem; color: var(--text-muted);">{{ s.author_name ||
+                    s.author_id }}</small>
+                </div>
+                <div *ngIf="filteredStoriesForSearch.length === 0"
+                  style="padding: 12px; color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+                  Nessuna storia trovata
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Griglia delle storie selezionate -->
+          <div class="recommended-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 18px; margin-top: 24px; width: 100%;">
+            <div class="recommended-card" *ngFor="let s of recommendedStoriesDetails">
+              <div class="rec-cover"
+                style="position: relative; aspect-ratio: 130/180; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s ease;">
+                <img *ngIf="s.image_url" [src]="s.image_url" [alt]="s.title"
+                  style="width: 100%; height: 100%; object-fit: cover;" />
+                <button class="btn-remove-rec" (click)="removeRecommendedStory(s.id); $event.stopPropagation();"
+                  title="Rimuovi dai consigliati">
+                  ✕
+                </button>
+              </div>
+              <div class="rec-info" style="margin-top: 8px; text-align: center;">
+                <h4
+                  style="font-size: 0.85rem; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);">
+                  {{ s.title }}</h4>
+                <p
+                  style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {{ s.author_name || 'Autore sconosciuto' }}</p>
+              </div>
+            </div>
+
+            <div *ngIf="recommendedStoryIds.length === 0"
+              style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; padding: 40px; text-align: center; color: var(--text-muted); gap: 10px;">
+              <span style="font-size: 2.2rem;">📚</span>
+              <p style="margin: 0; font-size: 0.9rem;">Non hai ancora aggiunto alcuna storia consigliata. Usa la barra
+                di ricerca in alto a destra per aggiungerne una.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Azione di salvataggio del profilo -->
+        <div class="profile-save-container">
+          <button class="btn-save" (click)="saveSettings()">
+            {{ savedFeedback ? '✅ Profilo Salvato!' : '💾 Salva modifiche' }}
+          </button>
+        </div>
+
       </div>
     </section>
 
@@ -113,20 +254,28 @@
       <p class="section-sub">I libri che hai apprezzato con un cuore ❤️</p>
 
       <div class="books-grid" *ngIf="likedBooks.length > 0; else noLikes">
-        <div class="book-card glass" *ngFor="let book of likedBooks">
-          <div class="book-card__cover">
-            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
-            <div class="action-icon heart-icon active" (click)="removeLike(book, $event)">
+        <div class="book-card" *ngFor="let book of likedBooks; let i = index" (click)="onBookClick(book, i)">
+          <div class="book-cover">
+            <img *ngIf="book.img" [src]="book.img" [alt]="book.title" loading="lazy" />
+
+            <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"
+              (click)="toggleBookmark(book); $event.stopPropagation()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+              </svg>
+            </div>
+            <div class="action-icon heart-icon" [class.active]="interactions.isLiked(book.id)"
+              (click)="toggleLike(book); $event.stopPropagation()">
               <svg viewBox="0 0 24 24">
                 <path
                   d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
             </div>
           </div>
-          <div class="book-card__info">
-            <span class="book-card__title">{{ book.title }}</span>
-            <span class="book-card__author">{{ book.genre }}</span>
-            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
+          <div class="book-info">
+            <p class="book-title">{{ book.title }}</p>
+            <p class="book-author" (click)="goToAuthor(book.author_id, $event)"
+              style="cursor: pointer; position: relative; z-index: 2;">{{ book.author }}</p>
           </div>
         </div>
       </div>
@@ -141,19 +290,28 @@
       <p class="section-sub">Le letture salvate a cui tieni di più 🔖</p>
 
       <div class="books-grid" *ngIf="favoriteBooks.length > 0; else noFavorites">
-        <div class="book-card glass" *ngFor="let book of favoriteBooks">
-          <div class="book-card__cover">
-            <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" class="book-card__img" />
-            <div class="action-icon bookmark-icon active" (click)="removeBookmark(book, $event)">
+        <div class="book-card" *ngFor="let book of favoriteBooks; let i = index" (click)="onBookClick(book, i)">
+          <div class="book-cover">
+            <img *ngIf="book.img" [src]="book.img" [alt]="book.title" loading="lazy" />
+
+            <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"
+              (click)="toggleBookmark(book); $event.stopPropagation()">
               <svg viewBox="0 0 24 24">
                 <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
               </svg>
             </div>
+            <div class="action-icon heart-icon" [class.active]="interactions.isLiked(book.id)"
+              (click)="toggleLike(book); $event.stopPropagation()">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            </div>
           </div>
-          <div class="book-card__info">
-            <span class="book-card__title">{{ book.title }}</span>
-            <span class="book-card__author">{{ book.genre }}</span>
-            <span class="book-card__stat">⭐ {{ book.rating }} · {{ book.readers_count }} lettori</span>
+          <div class="book-info">
+            <p class="book-title">{{ book.title }}</p>
+            <p class="book-author" (click)="goToAuthor(book.author_id, $event)"
+              style="cursor: pointer; position: relative; z-index: 2;">{{ book.author }}</p>
           </div>
         </div>
       </div>
@@ -169,7 +327,8 @@
       <div class="authors-list">
         <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author', author.id]">
           <div class="author-card__avatar" [style.background]="author.avatarGradient">
-            <img *ngIf="author.avatar_url" [src]="author.avatar_url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            <img *ngIf="author.avatar_url" [src]="author.avatar_url"
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
             <span *ngIf="!author.avatar_url">{{ author.initials }}</span>
           </div>
           <div class="author-card__body">
@@ -207,7 +366,7 @@
           <div class="setting-row">
             <div class="setting-row__label">
               <span>Handle</span>
-              <small>Il tuo &#64;identificativo univoco</small>
+              <small>Il tuo @identificativo univoco</small>
             </div>
             <input class="setting-input" type="text" [(ngModel)]="settings.handle" />
           </div>
@@ -230,38 +389,43 @@
         <!-- Link Social -->
         <div class="settings-card glass">
           <h3 class="settings-card__title">Link Social</h3>
-          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem;">Collega i tuoi profili social per farti trovare dai lettori.</p>
-          
+          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem; text-align: left;">Collega i tuoi
+            profili social per farti trovare dai lettori.</p>
+
           <div class="setting-row">
             <div class="setting-row__label">
               <span>Instagram</span>
               <small>Link al tuo profilo</small>
             </div>
-            <input class="setting-input" type="url" placeholder="https://instagram.com/..." [(ngModel)]="settings.social_instagram" />
+            <input class="setting-input" type="url" placeholder="https://instagram.com/..."
+              [(ngModel)]="settings.social_instagram" />
           </div>
-          
+
           <div class="setting-row">
             <div class="setting-row__label">
               <span>X (Twitter)</span>
               <small>Link al tuo profilo</small>
             </div>
-            <input class="setting-input" type="url" placeholder="https://x.com/..." [(ngModel)]="settings.social_twitter" />
+            <input class="setting-input" type="url" placeholder="https://x.com/..."
+              [(ngModel)]="settings.social_twitter" />
           </div>
-          
+
           <div class="setting-row">
             <div class="setting-row__label">
               <span>Facebook</span>
               <small>Link alla tua pagina</small>
             </div>
-            <input class="setting-input" type="url" placeholder="https://facebook.com/..." [(ngModel)]="settings.social_facebook" />
+            <input class="setting-input" type="url" placeholder="https://facebook.com/..."
+              [(ngModel)]="settings.social_facebook" />
           </div>
-          
+
           <div class="setting-row">
             <div class="setting-row__label">
               <span>TikTok</span>
               <small>Link al tuo profilo</small>
             </div>
-            <input class="setting-input" type="url" placeholder="https://tiktok.com/..." [(ngModel)]="settings.social_tiktok" />
+            <input class="setting-input" type="url" placeholder="https://tiktok.com/..."
+              [(ngModel)]="settings.social_tiktok" />
           </div>
 
           <div class="setting-row">
@@ -269,7 +433,8 @@
               <span>LinkedIn</span>
               <small>Link al tuo profilo</small>
             </div>
-            <input class="setting-input" type="url" placeholder="https://linkedin.com/in/..." [(ngModel)]="settings.social_linkedin" />
+            <input class="setting-input" type="url" placeholder="https://linkedin.com/in/..."
+              [(ngModel)]="settings.social_linkedin" />
           </div>
 
           <div class="setting-row setting-row--last">
@@ -300,16 +465,21 @@
         <!-- Letture Consigliate (Autore) -->
         <div class="settings-card glass">
           <h3 class="settings-card__title">Letture Consigliate</h3>
-          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem;">Seleziona fino a 10 storie da raccomandare sul tuo profilo pubblico.</p>
-          
-          <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; position: relative;">
+          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem; text-align: left;">Seleziona fino a 10
+            storie da raccomandare sul tuo profilo pubblico.</p>
+
+          <div class="setting-row"
+            style="flex-direction: column; align-items: flex-start; gap: 0.5rem; position: relative;">
             <div class="setting-row__label" style="width: 100%;">
               <span>Cerca una storia</span>
             </div>
-            <input class="setting-input" type="text" [(ngModel)]="searchStoryText" (focus)="showStoryDropdown = true" placeholder="Digita il titolo..." style="width: 100%;" />
-            
-            <div class="dropdown-list glass" *ngIf="showStoryDropdown && searchStoryText" style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; max-height: 200px; overflow-y: auto;">
-              <div *ngFor="let s of filteredStoriesForSearch" class="dropdown-item" (click)="addRecommendedStory(s)" style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <input class="setting-input" type="text" [(ngModel)]="searchStoryText" (focus)="showStoryDropdown = true"
+              placeholder="Digita il titolo..." style="width: 100%;" />
+
+            <div class="dropdown-list glass" *ngIf="showStoryDropdown && searchStoryText"
+              style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; max-height: 200px; overflow-y: auto;">
+              <div *ngFor="let s of filteredStoriesForSearch" class="dropdown-item" (click)="addRecommendedStory(s)"
+                style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <strong>{{ s.title }}</strong> - <small>{{ s.author_name || s.author_id }}</small>
               </div>
               <div *ngIf="filteredStoriesForSearch.length === 0" style="padding: 0.5rem; color: #888;">
@@ -323,11 +493,15 @@
               <span>Storie selezionate ({{ recommendedStoryIds.length }}/10)</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
-              <div *ngFor="let s of recommendedStoriesDetails" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+              <div *ngFor="let s of recommendedStoriesDetails"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 1rem; background: rgba(255,255,255,0.08); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
                 <span style="font-size: 0.9rem;"><strong>{{ s.title }}</strong></span>
-                <button (click)="removeRecommendedStory(s.id)" style="background: none; border: none; color: #ff5555; cursor: pointer;">✕ Rimuovi</button>
+                <button (click)="removeRecommendedStory(s.id)"
+                  style="background: none; border: none; color: #ff5555; cursor: pointer; font-weight: 500;">✕
+                  Rimuovi</button>
               </div>
-              <div *ngIf="recommendedStoryIds.length === 0" style="color: #888; font-size: 0.9rem;">Nessuna storia raccomandata.</div>
+              <div *ngIf="recommendedStoryIds.length === 0" style="color: #888; font-size: 0.9rem;">Nessuna storia
+                raccomandata.</div>
             </div>
           </div>
         </div>

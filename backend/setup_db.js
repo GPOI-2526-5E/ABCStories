@@ -65,11 +65,7 @@ async function setup() {
     `);
     console.log("index idx_story_views_story_id created.");
 
-    // Create an index on stories.rating
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_stories_rating ON stories(rating DESC);
-    `);
-    console.log("index idx_stories_rating created.");
+
 
     console.log("Database setup complete.");
   } catch (err) {

@@ -2,245 +2,296 @@
 
 <div class="author-layout" *ngIf="author">
 
-  <!-- Ambient Background Fade -->
-  <div class="ambient-wrapper">
-    <div class="ambient-bg"
+  <!-- Core Coreografico dello Sfondo Ambientale -->
+  <div class="ambient-screen">
+    <div class="ambient-sphere glow-1"
       [style.backgroundImage]="'url(' + (author.avatar_url || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1470&auto=format&fit=crop') + ')'">
     </div>
-    <div class="ambient-overlay"></div>
+    <div class="ambient-sphere glow-2"></div>
+    <div class="ambient-curtain"></div>
   </div>
 
-  <div class="author-container container-fluid">
+  <!-- Dashboard Principale Ultra-Wide -->
+  <div class="author-dashboard">
 
-    <!-- Hero Profile Section -->
-    <section class="author-hero">
-      <div class="author-hero__content">
-        <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="author-avatar"
-          style="object-fit: cover; background: white;">
-        <div *ngIf="!author.avatar_url" class="author-avatar">{{ initials }}</div>
+    <!-- ═══════════════ BENTO INTERACTIVE GRID (FIXED) ═══════════════ -->
+    <div class="bento-grid">
 
-        <h1 class="author-hero__name">{{ author.username }}</h1>
-        <p class="author-hero__handle">{{ author.email }}</p>
+      <!-- TESSERA 1: Identità & Biografia (Centrata) -->
+      <div class="bento-tile identity-tile glass-core">
+        <div class="identity-badge" *ngIf="isFollowing">✨ Autore Seguito</div>
+        <div class="identity-lead">
+          <div class="avatar-aura">
+            <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="avatar-img" />
+            <div *ngIf="!author.avatar_url" class="avatar-fallback">{{ initials }}</div>
+          </div>
+          <div class="identity-meta">
+            <h1 class="author-name">{{ author.username }}</h1>
+            <p class="author-handle">{{ author.email }}</p>
+          </div>
+        </div>
 
-        <p class="author-hero__bio" *ngIf="author.bio">{{ author.bio }}</p>
-        <p class="author-hero__bio" *ngIf="!author.bio">Questo autore preferisce mantenere un alone di mistero.</p>
+        <p class="author-bio" *ngIf="author.bio">{{ author.bio }}</p>
+        <p class="author-bio missing-bio" *ngIf="!author.bio">Questo autore preferisce mantenere un alone di mistero.
+        </p>
 
-        <!-- Action Buttons -->
-        <div class="author-hero__actions" *ngIf="!isCurrentUser">
-          <button class="follow-btn" [class.follow-btn--active]="isFollowing" (click)="toggleFollow()">
+        <div class="identity-actions" *ngIf="!isCurrentUser">
+          <button class="action-follow-btn" [class.action-follow-btn--active]="isFollowing" (click)="toggleFollow()">
             {{ isFollowing ? '✓ Seguendo' : '+ Segui' }}
           </button>
         </div>
       </div>
-    </section>
 
-    <!-- Author Info Section -->
-    <section class="author-info-section" style="position: relative; z-index: 3;">
-      <div class="author-info__container">
+      <!-- COLONNA DESTRA BENTO (Previene lo stretch vuoto di image_0241a1.jpg) -->
+      <div class="bento-sidebar">
 
-        <div class="author-info__stats">
-          <div class="info-stat">
-            <span class="info-stat__val">{{ author.stories_count || 0 }}</span>
-            <span class="info-stat__lbl">Storie</span>
+        <!-- TESSERA 2: Hub Statistiche Dinamiche -->
+        <div class="bento-tile stats-tile glass-core">
+          <div class="tile-header">
+            <span class="tile-tag">Analytics</span>
+            <h3>Impatto Community</h3>
           </div>
-          <div class="info-stat">
-            <span class="info-stat__val">{{ followersCount }}</span>
-            <span class="info-stat__lbl">Follower</span>
-          </div>
-          <div class="info-stat">
-            <span class="info-stat__val">{{ followingCount }}</span>
-            <span class="info-stat__lbl">Seguiti</span>
-          </div>
-          <div class="info-stat" *ngIf="author.location">
-            <span class="info-stat__val">📍</span>
-            <span class="info-stat__lbl">{{ author.location }}</span>
-          </div>
-        </div>
-
-        <div class="author-info__socials" *ngIf="author.social_instagram || author.social_twitter || author.social_facebook || author.social_website || author.social_tiktok || author.social_linkedin">
-          <a *ngIf="author.social_instagram" [href]="author.social_instagram" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-            </svg>
-          </a>
-          <a *ngIf="author.social_twitter" [href]="author.social_twitter" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-            </svg>
-          </a>
-          <a *ngIf="author.social_facebook" [href]="author.social_facebook" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-            </svg>
-          </a>
-          <a *ngIf="author.social_tiktok" [href]="author.social_tiktok" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a8 8 0 0 1-5-1v6a4 4 0 0 1-4-4z"></path>
-            </svg>
-          </a>
-          <a *ngIf="author.social_linkedin" [href]="author.social_linkedin" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-              <rect x="2" y="9" width="4" height="12"></rect>
-              <circle cx="4" cy="4" r="2"></circle>
-            </svg>
-          </a>
-          <a *ngIf="author.social_website" [href]="author.social_website" target="_blank" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-          </a>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Author Stories Section -->
-    <section class="author-stories">
-
-      <h2 class="section-title text-center mb-4"
-        style="font-size: 2.2rem; font-weight: 800; position: relative; z-index: 3;">I libri di {{ author.username }}
-      </h2>
-
-      <!-- Tabs Navigation -->
-      <div class="author-tabs" style="position: relative; z-index: 3;">
-        <button *ngFor="let tab of tabs" class="tab-btn" [class.tab-btn--active]="activeTab === tab"
-          (click)="setTab(tab)">
-          {{ tab }}
-        </button>
-      </div>
-
-      <div class="container-fluid" style="padding: 0;">
-        <div class="ad-grid fluid-grid" *ngIf="filteredStories.length > 0; else noStories">
-          <div class="book-card" *ngFor="let book of displayedStories" [routerLink]="['/book', book.id]">
-            <div class="book-cover">
-              <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" loading="lazy" />
+          <div class="stats-matrix">
+            <div class="matrix-cell">
+              <span class="matrix-val">{{ author.stories_count || 0 }}</span>
+              <span class="matrix-lbl">Storie</span>
             </div>
-            <div class="book-info">
-              <p class="book-title">{{ book.title }}</p>
-              <p class="book-author">{{ book.genre || 'Romanzo' }}</p>
+            <div class="matrix-cell">
+              <span class="matrix-val">{{ followersCount }}</span>
+              <span class="matrix-lbl">Follower</span>
+            </div>
+            <div class="matrix-cell">
+              <span class="matrix-val">{{ followingCount }}</span>
+              <span class="matrix-lbl">Seguiti</span>
+            </div>
+            <div class="matrix-cell" *ngIf="author.location">
+              <span class="matrix-val location-pin">📍</span>
+              <span class="matrix-lbl">{{ author.location }}</span>
             </div>
           </div>
         </div>
 
-        <div class="show-more-container" *ngIf="filteredStories.length > displayedStories.length">
-          <button class="show-more-btn" (click)="showMoreBooks()">Mostra altri</button>
+        <!-- TESSERA 3: Nexus dei Canali Social -->
+        <div class="bento-tile socials-tile glass-core"
+          *ngIf="author.social_instagram || author.social_twitter || author.social_facebook || author.social_website || author.social_tiktok || author.social_linkedin">
+          <div class="tile-header">
+            <span class="tile-tag">Connessioni</span>
+            <h3>Rete dell'Autore</h3>
+          </div>
+          <div class="social-pills-container">
+            <a *ngIf="author.social_website" [href]="author.social_website" target="_blank" class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+              <span>Sito Personale</span>
+            </a>
+            <a *ngIf="author.social_instagram" [href]="author.social_instagram" target="_blank"
+              class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              <span>Instagram</span>
+            </a>
+            <a *ngIf="author.social_twitter" [href]="author.social_twitter" target="_blank" class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                  d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+                </path>
+              </svg>
+              <span>X (Twitter)</span>
+            </a>
+            <a *ngIf="author.social_tiktok" [href]="author.social_tiktok" target="_blank" class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a8 8 0 0 1-5-1v6a4 4 0 0 1-4-4z"></path>
+              </svg>
+              <span>TikTok</span>
+            </a>
+            <a *ngIf="author.social_linkedin" [href]="author.social_linkedin" target="_blank" class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+              <span>LinkedIn</span>
+            </a>
+            <a *ngIf="author.social_facebook" [href]="author.social_facebook" target="_blank" class="social-pill-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+              </svg>
+              <span>Facebook</span>
+            </a>
+          </div>
         </div>
+
       </div>
+    </div>
 
-      <ng-template #noStories>
-        <div class="empty-state">
-          <p>Nessuna storia trovata in questa categoria.</p>
+    <!-- ═══════════════ CANVAS CONTENUTI CONTINUO ═══════════════ -->
+    <div class="content-stream-canvas glass-core">
+
+      <!-- Sezione Libri (Griglia standard mantenuta) -->
+      <section class="stream-section">
+        <div class="stream-section-header">
+          <h2 class="stream-title">I libri di {{ author.username }}</h2>
+          <div class="tab-pill-box">
+            <button *ngFor="let tab of tabs" class="tab-pill-btn" [class.tab-pill-btn--active]="activeTab === tab"
+              (click)="setTab(tab)">
+              {{ tab }}
+            </button>
+          </div>
         </div>
-      </ng-template>
-    </section>
 
-    <!-- Follower Section -->
-    <section class="author-followers-section" style="position: relative; z-index: 3; margin-top: 80px;">
-      <h2 class="section-title text-center mb-4" style="font-size: 2.5rem; font-weight: 800;">Follower</h2>
+        <div class="books-dynamic-grid" *ngIf="filteredStories.length > 0; else noStories">
+          <div class="premium-book-card" *ngFor="let book of displayedStories" [routerLink]="['/book', book.id]">
+            <div class="book-thumbnail-container">
+              <img *ngIf="book.image_url" [src]="book.image_url" [alt]="book.title" loading="lazy" class="book-img" />
+              
+              <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"
+                (click)="toggleBookmark(book); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+              </div>
+              <div class="action-icon heart-icon" [class.active]="interactions.isLiked(book.id)"
+                (click)="toggleLike(book); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+            </div>
+            <div class="book-meta-data">
+              <h4 class="book-heading">{{ book.title }}</h4>
+              <span class="book-badge-genre">{{ book.genre || 'Romanzo' }}</span>
+            </div>
+          </div>
+        </div>
 
-      <div class="container-fluid" style="padding: 0;">
-        <div class="followers-fluid-grid" *ngIf="followersList.length > 0; else noFollowers">
-          <div class="follower-info-card" *ngFor="let follower of displayedFollowers"
+        <div class="pagination-nexus" *ngIf="filteredStories.length > displayedStories.length">
+          <button class="load-more-action" (click)="showMoreBooks()">Mostra altri</button>
+        </div>
+
+        <ng-template #noStories>
+          <div class="empty-glass-state">
+            <p>Nessuna storia trovata in questa categoria.</p>
+          </div>
+        </ng-template>
+      </section>
+
+      <div class="stream-divider"></div>
+
+      <!-- Sezione Follower (Card Centrate) -->
+      <section class="stream-section text-center-wrapper">
+        <h2 class="stream-title mb-large">Follower</h2>
+
+        <div class="followers-masonry-grid" *ngIf="followersList.length > 0; else noFollowers">
+          <div class="user-profile-card glass-panel" *ngFor="let follower of displayedFollowers"
             [routerLink]="['/author', follower.id]">
-            <div class="follower-info-card__avatar">
-              <img *ngIf="follower.avatar_url" [src]="follower.avatar_url"
-                style="width: 100%; height: 100%; object-fit: cover;">
-              <span *ngIf="!follower.avatar_url">{{ follower.name?.slice(0, 2).toUpperCase() }}</span>
+            <div class="user-card-head">
+              <div class="user-avatar-sphere">
+                <img *ngIf="follower.avatar_url" [src]="follower.avatar_url" alt="Avatar follower" />
+                <span *ngIf="!follower.avatar_url">{{ follower.name?.slice(0, 2).toUpperCase() }}</span>
+              </div>
+              <div class="user-card-meta">
+                <h4 class="user-card-name">{{ follower.name }}</h4>
+                <p class="user-card-handle">{{ follower.handle || follower.name }}</p>
+              </div>
             </div>
-            <div class="follower-info-card__body">
-              <span class="follower-name">{{ follower.name }}</span>
-              <span class="follower-handle">{{ follower.handle || follower.name }}</span>
-              <span class="follower-bio">{{ follower.description || 'Nessuna biografia disponibile.' }}</span>
-            </div>
-            <div class="follower-info-card__stats">
-              <div class="stat-item">
-                <strong>{{ follower.followers_count || 0 }}</strong>
-                <span>follower</span>
-              </div>
-              <div class="stat-item">
-                <strong>{{ follower.following_count || 0 }}</strong>
-                <span>seguiti</span>
-              </div>
-              <div class="stat-item">
-                <strong>{{ follower.stories_count || 0 }}</strong>
-                <span>storie</span>
-              </div>
+            <p class="user-card-bio">{{ follower.description || 'Nessuna biografia disponibile.' }}</p>
+            <div class="user-card-stats-bar">
+              <div><strong>{{ follower.followers_count || 0 }}</strong><span>follower</span></div>
+              <div><strong>{{ follower.following_count || 0 }}</strong><span>seguiti</span></div>
+              <div><strong>{{ follower.stories_count || 0 }}</strong><span>storie</span></div>
             </div>
           </div>
         </div>
 
-        <div class="show-more-container" *ngIf="followersList.length > displayedFollowers.length">
-          <button class="show-more-btn" (click)="showMoreFollowers()">Mostra altri</button>
+        <div class="pagination-nexus" *ngIf="followersList.length > displayedFollowers.length">
+          <button class="load-more-action" (click)="showMoreFollowers()">Mostra altri</button>
         </div>
-      </div>
 
-      <ng-template #noFollowers>
-        <div class="empty-state">
-          <p>Ancora nessun follower. Sii il primo!</p>
-        </div>
-      </ng-template>
-    </section>
+        <ng-template #noFollowers>
+          <div class="empty-glass-state">
+            <p>Ancora nessun follower. Sii il primo!</p>
+          </div>
+        </ng-template>
+      </section>
 
-    <!-- Seguiti Section -->
-    <section class="author-following-section" style="position: relative; z-index: 3; margin-top: 80px;">
-      <h2 class="section-title text-center mb-4" style="font-size: 2.5rem; font-weight: 800;">Seguiti</h2>
+      <div class="stream-divider"></div>
 
-      <div class="container-fluid" style="padding: 0;">
-        <div class="following-square-grid" *ngIf="followingList.length > 0; else noFollowing">
-          <div class="following-info-card" *ngFor="let followed of displayedFollowing"
+      <!-- Sezione Seguiti (Card Centrate) -->
+      <section class="stream-section text-center-wrapper">
+        <h2 class="stream-title mb-large">Seguiti</h2>
+
+        <div class="followers-masonry-grid" *ngIf="followingList.length > 0; else noFollowing">
+          <div class="user-profile-card glass-panel" *ngFor="let followed of displayedFollowing"
             [routerLink]="['/author', followed.id]">
-            <div class="following-info-card__avatar">
-              <img *ngIf="followed.avatar_url" [src]="followed.avatar_url"
-                style="width: 100%; height: 100%; object-fit: cover;">
-              <span *ngIf="!followed.avatar_url">{{ followed.name?.slice(0, 2).toUpperCase() }}</span>
+            <div class="user-card-head">
+              <div class="user-avatar-sphere">
+                <img *ngIf="followed.avatar_url" [src]="followed.avatar_url" alt="Avatar seguito" />
+                <span *ngIf="!followed.avatar_url">{{ followed.name?.slice(0, 2).toUpperCase() }}</span>
+              </div>
+              <div class="user-card-meta">
+                <h4 class="user-card-name">{{ followed.name }}</h4>
+                <p class="user-card-handle">{{ followed.handle || followed.name }}</p>
+              </div>
             </div>
-            <div class="following-info-card__body">
-              <span class="following-name">{{ followed.name }}</span>
-              <span class="following-handle">{{ followed.handle || followed.name }}</span>
-              <span class="following-bio">{{ followed.description || 'Nessuna biografia disponibile.' }}</span>
-            </div>
-            <div class="following-info-card__stats">
-              <div class="stat-item">
-                <strong>{{ followed.followers_count || 0 }}</strong>
-                <span>follower</span>
-              </div>
-              <div class="stat-item">
-                <strong>{{ followed.following_count || 0 }}</strong>
-                <span>seguiti</span>
-              </div>
-              <div class="stat-item">
-                <strong>{{ followed.stories_count || 0 }}</strong>
-                <span>storie</span>
-              </div>
+            <p class="user-card-bio">{{ followed.description || 'Nessuna biografia disponibile.' }}</p>
+            <div class="user-card-stats-bar">
+              <div><strong>{{ followed.followers_count || 0 }}</strong><span>follower</span></div>
+              <div><strong>{{ followed.following_count || 0 }}</strong><span>seguiti</span></div>
+              <div><strong>{{ followed.stories_count || 0 }}</strong><span>storie</span></div>
             </div>
           </div>
         </div>
 
-        <div class="show-more-container" *ngIf="followingList.length > displayedFollowing.length">
-          <button class="show-more-btn" (click)="showMoreFollowing()">Mostra altri</button>
+        <div class="pagination-nexus" *ngIf="followingList.length > displayedFollowing.length">
+          <button class="load-more-action" (click)="showMoreFollowing()">Mostra altri</button>
         </div>
-      </div>
 
-      <ng-template #noFollowing>
-        <div class="empty-state">
-          <p>Questo autore non segue ancora nessuno.</p>
+        <ng-template #noFollowing>
+          <div class="empty-glass-state">
+            <p>Questo autore non segue ancora nessuno.</p>
+          </div>
+        </ng-template>
+      </section>
+
+      <!-- Letture Consigliate in formato griglia (stesso stile dei libri dell'autore) -->
+      <div class="stream-divider" *ngIf="recommendedBooks && recommendedBooks.length > 0"></div>
+
+      <section class="stream-section" *ngIf="recommendedBooks && recommendedBooks.length > 0">
+        <h2 class="stream-title mb-large">Le letture consigliate da {{ author.username }}</h2>
+        
+        <div class="books-dynamic-grid">
+          <div class="premium-book-card" *ngFor="let book of recommendedBooks" [routerLink]="['/book', book.id]">
+            <div class="book-thumbnail-container">
+              <img *ngIf="book.img" [src]="book.img" [alt]="book.title" loading="lazy" class="book-img" />
+              
+              <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"
+                (click)="toggleBookmark(book); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+              </div>
+              <div class="action-icon heart-icon" [class.active]="interactions.isLiked(book.id)"
+                (click)="toggleLike(book); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+            </div>
+            <div class="book-meta-data">
+              <h4 class="book-heading">{{ book.title }}</h4>
+              <span class="book-badge-genre">{{ book.genre || 'Romanzo' }}</span>
+            </div>
+          </div>
         </div>
-      </ng-template>
-    </section>
+      </section>
 
-  </div>
+    </div>
 
-  <!-- Recommended Books Slider -->
-  <div class="author-recommended"
-    *ngIf="recommendedBooks && recommendedBooks.length > 0"
-    style="margin-top: 80px; margin-bottom: 80px; position: relative; z-index: 3; width: 100%;">
-    <app-book-slider [title]="'Le letture consigliate da ' + author.username" [books]="recommendedBooks">
-    </app-book-slider>
   </div>
 </div>
 

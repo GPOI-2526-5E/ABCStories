@@ -1,20 +1,25 @@
 @use "sass:color";
 @use "../../../scss/colori.scss";
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap');
 
+// ─── Design Tokens Specular ───────────────────────────────
+$accent-gold: #fac040;
+$text-slate: var(--text-primary);
+$text-charcoal: var(--text-muted);
+$text-muted-dark: var(--text-muted);
+$text-light: var(--text-primary);
 $accent-yellow: var(--tropicalThemeYellow);
-$text: var(--text-primary);
-$muted: var(--text-muted);
 
-// Mixin Glassmorphism evoluto per integrarsi con il tema grafico
-@mixin glass($opacity: 0.1, $blur: 30px, $border-opacity: 0.25) {
+// ─── Master Refined Glassmorphism Formula ────────────────
+@mixin crystal-glass($opacity: 0.12, $blur: 32px, $border-opacity: 0.3) {
   background: rgba(var(--glass-rgb), $opacity);
-  backdrop-filter: blur($blur) saturate(160%);
-  -webkit-backdrop-filter: blur($blur) saturate(160%);
+  backdrop-filter: blur($blur) saturate(180%);
+  -webkit-backdrop-filter: blur($blur) saturate(180%);
   border: 1px solid rgba(var(--glass-border-rgb), $border-opacity);
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
 }
 
-// Mixin per l'ottimizzazione estetica globale delle barre di scorrimento
+// Barre di scorrimento integrate invisibili/sottili basate su color-mix del tema
 @mixin elegant-scrollbar {
   &::-webkit-scrollbar {
     width: 6px;
@@ -26,544 +31,747 @@ $muted: var(--text-muted);
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.08);
+    background: color-mix(in srgb, var(--text-primary) 15%, transparent);
     border-radius: 10px;
     transition: background 0.2s;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.18);
+      background: color-mix(in srgb, var(--text-primary) 30%, transparent);
     }
   }
 
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
+  scrollbar-color: color-mix(in srgb, var(--text-primary) 15%, transparent) transparent;
 }
 
 .editor-layout {
   display: flex;
   height: 100vh;
   padding: 118px 24px 24px 24px;
-  color: $text;
+  color: $text-light;
   overflow: hidden;
   gap: 24px;
-
-  // Sfondo legato alla variabile del tema passata
   background: var(--tropicalTheme);
   background-size: cover;
   background-position: center;
+  box-sizing: border-box;
 }
 
-/* ── Sidebar Fluttuante ── */
+.glass-core {
+  @include crystal-glass(0.14, 30px, 0.3);
+  border-radius: 28px;
+  box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════
+   WORKSPACE DOCK (SIDEBAR CON CORNER FIX E SCROLLBAR INTERNA)
+   ═══════════════════════════════════════════════════════ */
 .editor-sidebar {
   width: 320px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  @include glass;
+  height: 100%;
+  box-sizing: border-box;
+  @include crystal-glass(0.18, 30px, 0.35);
   border-radius: 24px;
-  overflow-y: auto;
-  transform: translateZ(0);
-  transition: all 0.3s ease;
-  @include elegant-scrollbar;
+  overflow: hidden; // Previene il glitch dei bordi del browser sulle scrollbar
 
   .sidebar-header {
     padding: 20px 24px 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(var(--glass-border-rgb), 0.15);
+    flex-shrink: 0;
 
     .btn-back {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(var(--glass-rgb), 0.2);
+      background: rgba(var(--glass-rgb), 0.25);
       border: 1px solid rgba(var(--glass-border-rgb), 0.3);
-      color: $text;
+      color: $text-light;
       font-family: inherit;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 50px;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
-        background: rgba(var(--glass-rgb), 0.4);
-        color: var(--peachRed);
+        background: rgba(var(--glass-rgb), 0.5);
+        color: var(--peachRed, #ff6b6b);
         transform: translateY(-1px);
       }
     }
   }
 
-  .story-settings {
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    z-index: 50;
+  // Wrapper scrollabile interno per la sidebar
+  .sidebar-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    @include elegant-scrollbar;
+  }
+}
 
-    h4 {
-      font-size: 13px;
+// Moduli contenitori interni della sidebar
+.story-settings {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(var(--glass-border-rgb), 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 4px 0 0 0;
+    letter-spacing: -0.01em;
+  }
+}
+
+.chapters-section {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  .chapters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+      font-size: 18px;
       font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #5a5a6a;
-      margin-top: 0;
-      margin-bottom: 16px;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-
-      label {
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-        color: #6a6a7a;
-        margin-bottom: 6px;
-      }
-
-      .form-control {
-        width: 100%;
-        padding: 10px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        background: rgba(255, 255, 255, 0.45);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        color: #1a1a2a;
-        font-family: inherit;
-        font-size: 15px;
-        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
-        transition: all 0.25s ease;
-
-        &:focus {
-          outline: none;
-          background: rgba(255, 255, 255, 0.7);
-          border-color: #fac040;
-          box-shadow: 0 0 0 4px rgba(250, 192, 64, 0.2);
-        }
-
-        &.desc-input {
-          resize: vertical;
-          min-height: 80px;
-          line-height: 1.5;
-        }
-      }
-
-      /* ── IMPLEMENTAZIONE COMBOBOX CUSTOM ── */
-      .custom-dropdown {
-        position: relative;
-        width: 100%;
-        z-index: 100;
-
-        .custom-dropdown-trigger {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          padding: 10px 14px;
-          border-radius: 14px;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          background: #ffffff;
-          color: #1a1a2a;
-          font-size: 15px;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-          transition: all 0.25s ease;
-
-          &:hover {
-            border-color: rgba(0, 0, 0, 0.2);
-          }
-
-          .arrow-icon {
-            transition: transform 0.2s ease;
-            color: $muted;
-          }
-        }
-
-        // Stato Attivo/Aperto del Selettore
-        &.open {
-          .custom-dropdown-trigger {
-            border-color: #fac040;
-            box-shadow: 0 0 0 4px rgba(250, 192, 64, 0.2);
-
-            .arrow-icon {
-              transform: rotate(180deg);
-              color: $accent-yellow;
-            }
-          }
-        }
-
-        // Il Menu a cascata in puro stile glassmorphic
-        .custom-dropdown-menu {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          width: 100%;
-          max-height: 220px;
-          overflow-y: auto;
-          margin-top: 6px;
-          border-radius: 16px;
-          background: #ffffff;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-          z-index: 1000;
-          display: block; /* Forziamo display block */
-          @include elegant-scrollbar;
-
-          .custom-dropdown-item {
-            padding: 10px 14px;
-            font-size: 15px;
-            color: #1a1a2a;
-            cursor: pointer;
-            transition: all 0.15s ease;
-
-            &:hover {
-              background: #f5f5f5;
-              color: $accent-yellow;
-              padding-left: 18px; // Piacevole feedback di spostamento dinamico
-            }
-
-            &.selected {
-              background: #fafafa;
-              color: $accent-yellow;
-              font-weight: 700;
-            }
-          }
-        }
-      }
-    }
-
-    .btn-save-story {
-      width: 100%;
-      padding: 11px;
-      border-radius: 50px;
-      border: none;
-      background: $accent-yellow;
-      color: #5a3800;
-      font-family: inherit;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(250, 192, 64, 0.25);
-      transition: all 0.2s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(250, 192, 64, 0.38);
-        filter: brightness(1.02);
-      }
+      margin: 4px 0 0 0;
+      letter-spacing: -0.01em;
     }
   }
 
-  .chapters-section {
-    flex: 1;
-    padding: 20px 24px;
+  .btn-add-chapter {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid rgba(var(--glass-border-rgb), 0.25);
+    background: rgba(var(--glass-rgb), 0.2);
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: $text-light;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    .chapters-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    &:hover {
+      background: #fff;
+      color: #12121e;
+      transform: scale(1.05);
+    }
+  }
+}
 
-      h4 {
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #5a5a6a;
-        margin: 0;
-      }
+.section-title-group {
+  display: flex;
+  flex-direction: column;
 
-      .btn-new-story {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.4);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #4a4a5a;
-        transition: all 0.2s;
+  .section-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $text-muted-dark;
+    opacity: 0.8;
+  }
+}
 
-        &:hover {
-          background: linear-gradient(135deg, #ffd954, #fac040);
-          border-color: transparent;
-          color: #5a3800;
-          box-shadow: 0 4px 12px rgba(250, 192, 64, 0.3);
-          transform: scale(1.05);
-        }
-      }
+// Elementi dei Form della Sidebar
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  label {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-charcoal;
+    padding-left: 2px;
+  }
+
+  .glass-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--glass-border-rgb), 0.25);
+    background: rgba(var(--glass-rgb), 0.3);
+    color: $text-light;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      background: rgba(var(--glass-rgb), 0.6);
+      border-color: rgba(var(--glass-border-rgb), 0.7);
+      box-shadow: 0 0 0 3px rgba(var(--glass-border-rgb), 0.1);
     }
 
-    .chapters-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    &.desc-input {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.45;
+    }
+  }
+}
 
-      .chapter-item {
-        display: flex;
-        align-items: center;
-        padding: 12px 14px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        gap: 8px;
+// Combobox Selezione Genere letterario
+.custom-dropdown {
+  position: relative;
+  width: 100%;
 
-        &:hover {
-          background: rgba(255, 255, 255, 0.55);
-          transform: translateX(3px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        }
+  .custom-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--glass-border-rgb), 0.25);
+    background: rgba(var(--glass-rgb), 0.3);
+    color: $text-light;
+    font-size: 14px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
 
-        &.active {
-          background: rgba(255, 255, 255, 0.75);
-          border-color: rgba(250, 192, 64, 0.4);
-          box-shadow: 0 4px 15px rgba(250, 192, 64, 0.12);
-          position: relative;
+    .arrow-icon {
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: $text-muted-dark;
+    }
+  }
 
-          &::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 12px;
-            bottom: 12px;
-            width: 4px;
-            background: #fac040;
-            border-radius: 0 4px 4px 0;
-          }
+  &.open .custom-dropdown-trigger {
+    background: rgba(var(--glass-rgb), 0.6);
+    border-color: rgba(var(--glass-border-rgb), 0.7);
 
-          .chapter-title {
-            color: #5a3800;
-            font-weight: 700;
-          }
-        }
+    .arrow-icon {
+      transform: rotate(180deg);
+      color: $text-light;
+    }
+  }
 
-        .chapter-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: $text;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          flex: 1;
-        }
+  .custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    @include elegant-scrollbar;
 
-        .btn-delete-icon {
-          background: transparent;
-          border: none;
-          color: $muted;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 8px;
-          display: flex;
-          opacity: 0;
-          transition: all 0.2s;
+    .custom-dropdown-item {
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #12121e;
+      cursor: pointer;
+      transition: all 0.1s ease;
 
-          &:hover {
-            color: #e85060;
-            background: rgba(232, 80, 96, 0.1);
-          }
-        }
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+        padding-left: 18px;
+        color: $accent-gold;
+      }
 
-        &:hover .btn-delete-icon {
-          opacity: 1;
-        }
+      &.selected {
+        background: rgba(0, 0, 0, 0.02);
+        color: $accent-gold;
+        font-weight: 700;
       }
     }
   }
 }
 
-/* ── Main Canvas dell'Editor ── */
+// Ripristino del Bottone Salva Impostazioni in Oro
+.btn-save-story-meta {
+  width: 100%;
+  padding: 11px;
+  border-radius: 50px;
+  border: none;
+  background: $accent-yellow;
+  color: #5a3800;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 4px;
+  box-shadow: 0 4px 15px rgba(250, 192, 64, 0.25);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(250, 192, 64, 0.38);
+    filter: brightness(1.02);
+  }
+}
+
+// Lista Statica/Indice dei nodi capitolo
+.chapters-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Ripristino del capitolo attivo della barra a sinistra
+.chapter-node {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  gap: 12px;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .chapter-node-indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(var(--glass-border-rgb), 0.5);
+    transition: all 0.2s ease;
+  }
+
+  .chapter-node-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-light;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    opacity: 0.85;
+  }
+
+  .btn-chapter-delete {
+    background: transparent;
+    border: none;
+    color: rgba(var(--glass-border-rgb), 0.6);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    opacity: 0;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #e85060;
+      background: rgba(232, 80, 96, 0.08);
+    }
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.55);
+    transform: translateX(2px);
+
+    .btn-chapter-delete {
+      opacity: 1;
+    }
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(250, 192, 64, 0.4);
+    box-shadow: 0 4px 15px rgba(250, 192, 64, 0.12);
+
+    .chapter-node-indicator {
+      background: $accent-gold;
+      box-shadow: 0 0 8px $accent-gold;
+      transform: scale(1.2);
+    }
+
+    .chapter-node-title {
+      font-weight: 700;
+      color: #5a3800; // Ripristino del marrone/oro scuro
+      opacity: 1;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ZEN CANVAS PRINCIPALE DI SCRITTURA (FOGLIO DIGITALE)
+   ═══════════════════════════════════════════════════════ */
 .editor-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
 
-  .editor-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-radius: 24px;
-    overflow: hidden;
-    position: relative;
-    transform: translateZ(0);
-    @include glass;
+// FIX ANGOLI GRIGI: Forziamo overflow: hidden, border-radius coerente e transform hardware acceleration
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border-radius: 28px;
+  transform: translateZ(0); // Forza layer hardware ed evita artefatti di clipping
+  @include crystal-glass(0.14, 35px, 0.35);
+}
 
-    .editor-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 32px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-      background: rgba(255, 255, 255, 0.2);
-      gap: 32px;
+.editor-workspace-scroll {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  @include elegant-scrollbar;
+  transform: translateZ(0);
+}
 
-      .header-inputs-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-      }
+// ── HERO IMMAGINE CAPITOLO (Ambient Background inside Editor) ──
+.reader-hero-bg-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
 
-      .chapter-title-input {
-        text-align: center;
-        font-size: 44px;
-        font-weight: 700;
-        border: none;
-        background: transparent;
-        color: #1a1a2a;
-        width: 100%;
-        outline: none;
-        line-height: 1.2;
-        transition: all 0.25s ease;
+  /* Sfuma l'immagine rivelando lo sfondo del contenitore prima dell'inizio del testo */
+  mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 40%,
+      rgba(0, 0, 0, 0.6) 60%,
+      rgba(0, 0, 0, 0.2) 80%,
+      transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 40%,
+      rgba(0, 0, 0, 0.6) 60%,
+      rgba(0, 0, 0, 0.2) 80%,
+      transparent 100%);
+}
 
-        &::placeholder {
-          color: rgba(0, 0, 0, 0.3);
-        }
-      }
+.ambient-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  background-size: cover;
+  background-position: center top;
+  z-index: 0;
+  image-rendering: high-quality;
+}
 
-      .chapter-image-wrapper {
-        display: flex;
-        align-items: center;
-        max-width: 500px;
-        width: 100%;
-      }
-    }
+.ambient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0.45) 30%,
+      rgba(0, 0, 0, 0.55) 60%,
+      rgba(0, 0, 0, 0) 100%);
+  z-index: 1;
 
-    .btn-save-chapter-floating {
-      position: absolute;
-      bottom: 32px;
-      right: 32px;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background: $accent-yellow;
-      color: #5a3800;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(250, 192, 64, 0.4);
-      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 100;
-
-      &:hover:not([disabled]) {
-        transform: translateY(-4px) scale(1.05);
-        box-shadow: 0 12px 30px rgba(250, 192, 64, 0.6);
-      }
-
-      &[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    .editor-content {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      padding: 32px;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.2);
-      @include elegant-scrollbar;
-
-      .chapter-content-input {
-        max-width: 800px;
-        width: 100%;
-        border: none;
-        background: transparent;
-        padding: 32px;
-        resize: none;
-        font-size: 18px;
-        line-height: 2.0;
-        color: #1a1a2a;
-        outline: none;
-        transition: all 0.25s ease;
-
-        &::placeholder {
-          color: rgba(0, 0, 0, 0.3);
-          font-style: italic;
-        }
-      }
-    }
-  }
-
-  /* ── Stato Vuoto ── */
-  .empty-editor {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #5a5a6a;
-    border-radius: 24px;
-    @include glass(0.35, 25px, 0.4);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
-    padding: 40px;
-    text-align: center;
-
-    svg {
-      opacity: 0.4;
-      color: #fac040;
-      filter: drop-shadow(0 4px 10px rgba(250, 192, 64, 0.2));
-    }
-
-    p {
-      margin-top: 24px;
-      font-size: 16px;
-      font-weight: 600;
-      opacity: 0.85;
-    }
-
-    .btn-new-story {
-      margin-top: 8px;
-      padding: 12px 32px;
-      border-radius: 50px;
-      border: none;
-      background: $accent-yellow;
-      color: #5a3800;
-      font-family: inherit;
-      font-weight: 800;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(250, 192, 64, 0.25);
-      transition: all 0.2s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(250, 192, 64, 0.4);
-      }
-    }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 2;
   }
 }
 
-/* ── Upload Immagine (globale) ── */
-.image-upload-area {
-  position: relative;
-  width: 100%;
-  height: 160px;
-  border-radius: 14px;
-  border: 2px dashed rgba(250, 192, 64, 0.5);
-  background: rgba(255, 255, 255, 0.3);
+// Bottone di cambio copertina nella regione hero
+.btn-change-hero-bg {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--glass-rgb), 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--glass-border-rgb), 0.35);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
+  padding: 8px 18px;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: rgba(var(--glass-rgb), 0.5);
+    transform: translateY(-2px);
+    border-color: var(--tropicalThemeYellow);
+    color: var(--tropicalThemeYellow);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  svg {
+    stroke: currentColor;
+  }
+}
+
+.reader-hero-content {
+  max-width: 800px;
+  width: 100%;
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 360px 24px 20px;
+  box-sizing: border-box;
+}
+
+.reader-chapter-label-edit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--tropicalThemeYellow);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px 18px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.title-input-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.reader-chapter-title-input {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.25;
+  text-align: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
   overflow: hidden;
-  transition: all 0.25s ease;
+  box-sizing: border-box;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 8px 30px rgba(0, 0, 0, 0.65);
+  padding: 5px;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+.reader-chapter-author {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 8px 24px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+// ── ARTICLE CONTENT & SERIF EDITING ──
+.reader-article {
+  width: 100%;
+  max-width: 760px;
+  padding: 10px 24px 100px;
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+}
+
+.reader-text {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.reader-text-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.95;
+  color: var(--text-primary);
+  text-align: justify;
+  box-sizing: border-box;
+  padding: 10px 0;
+  margin: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  &::placeholder {
+    color: color-mix(in srgb, var(--text-primary) 35%, transparent);
+    font-style: italic;
+  }
+}
+
+// Ripristino del Bottone Salva Capitolo Sospeso in Oro
+.btn-save-chapter-floating {
+  position: absolute;
+  bottom: 32px;
+  right: 32px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  background: $accent-yellow;
+  color: #5a3800;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(250, 192, 64, 0.4);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+
+  &:hover:not([disabled]) {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(250, 192, 64, 0.6);
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Sfondo Stato Vuoto Cosmos ── */
+.empty-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  border-radius: 28px;
+
+  .empty-cosmos-icon {
+    color: $text-light;
+    opacity: 0.2;
+    margin-bottom: 20px;
+    animation: zenPulse 4s ease-in-out infinite;
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 750;
+    margin: 0 0 6px 0;
+  }
+
+  p {
+    font-size: 15.5px;
+    color: $text-muted-dark;
+    max-width: 440px;
+    line-height: 1.6;
+    margin: 0 0 24px 0;
+  }
+}
+
+@keyframes zenPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.35;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.05));
+  }
+}
+
+.btn-new-chapter-empty {
+  padding: 12px 36px;
+  border-radius: 50px;
+  border: none;
+  background: $accent-yellow;
+  color: #5a3800;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(250, 192, 64, 0.25);
 
   &:hover {
-    border-color: #fac040;
-    background: rgba(255, 255, 255, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(250, 192, 64, 0.38);
+    filter: brightness(1.02);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PREMIUM UPLOADS CHANNELS (IMAGINES COPERTINE)
+   ═══════════════════════════════════════════════════════ */
+.premium-upload-box {
+  position: relative;
+  width: 100%;
+  height: 135px;
+  border-radius: 14px;
+  border: 1.5px dashed rgba(var(--glass-border-rgb), 0.3);
+  background: rgba(var(--glass-rgb), 0.25);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(var(--glass-border-rgb), 0.7);
+    background: rgba(var(--glass-rgb), 0.4);
 
     .image-upload-overlay {
       opacity: 1;
@@ -582,29 +790,30 @@ $muted: var(--text-muted);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    color: #8a8a9a;
+    gap: 3px;
+    color: $text-light;
+    opacity: 0.65;
     text-align: center;
-    padding: 12px;
-    z-index: 1;
 
-    svg { color: #fac040; opacity: 0.7; }
+    svg {
+      margin-bottom: 2px;
+      color: $accent-gold;
+    }
 
     span {
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     small {
       font-size: 11px;
-      opacity: 0.7;
     }
   }
 
   .image-upload-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -615,29 +824,70 @@ $muted: var(--text-muted);
     font-weight: 700;
     opacity: 0;
     transition: opacity 0.2s ease;
-    z-index: 2;
+    z-index: 5;
+  }
+}
 
-    svg { color: #fff; }
+// Widget upload compatto per l'illustrazione interna al capitolo
+.compact-upload-widget {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--glass-border-rgb), 0.25);
+  background: rgba(var(--glass-rgb), 0.35);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(var(--glass-border-rgb), 0.7);
+    background: rgba(var(--glass-rgb), 0.5);
+
+    .image-upload-overlay-compact {
+      opacity: 1;
+    }
   }
 
-  &--compact {
-    height: 44px;
-    border-radius: 10px;
-    border-width: 1px;
-    border-style: dashed;
+  .image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
 
-    .image-upload-placeholder {
-      flex-direction: row;
-      gap: 6px;
-      padding: 4px 10px;
+  .image-upload-placeholder-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    color: $text-light;
+    font-size: 12.5px;
+    font-weight: 600;
+    opacity: 0.7;
 
-      span { font-size: 11px; }
-      small { display: none; }
+    svg {
+      color: $accent-gold;
     }
+  }
 
-    .image-upload-overlay {
-      flex-direction: row;
-      font-size: 11px;
-    }
+  .image-upload-overlay-compact {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0;
+    z-index: 5;
   }
 }
