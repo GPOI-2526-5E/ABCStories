@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Api } from '../../services/api';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +16,13 @@ import { Api } from '../../services/api';
 })
 
 export class Login implements AfterViewInit {
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router, private authService: AuthService, private api: Api) { }
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private router: Router,
+    private authService: AuthService,
+    private api: Api,
+    private dialogService: DialogService
+  ) { }
 
   private readonly validEmail = 'a@a.com';
   private readonly validPassword = 'a';
@@ -57,7 +64,6 @@ export class Login implements AfterViewInit {
     }
   }
 
-
   onLogin(event: Event) {
     event.preventDefault();
 
@@ -70,7 +76,7 @@ export class Login implements AfterViewInit {
       },
       error: (error: any) => {
         console.error('Login failed:', error);
-        alert('Email o password errati');
+        this.dialogService.alert('Errore', 'Email o password errati');
       }
     });
   }

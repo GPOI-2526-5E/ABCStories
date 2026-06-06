@@ -11,12 +11,16 @@
   align-items: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0.4s ease; // transizione per quando scompare
+  transition: opacity 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &.active {
     opacity: 1;
     visibility: visible;
-    transition: none; // compare istantaneamente
+    transition: none; // Compare istantaneamente per bloccare subito la vista
+  }
+
+  [data-theme='dark'] & {
+    background-color: #121212; // Adattamento per eventuale tema scuro
   }
 }
 
@@ -25,6 +29,14 @@
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .spinner {

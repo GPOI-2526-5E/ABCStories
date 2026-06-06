@@ -9,6 +9,7 @@ import { ThemeService, Theme } from '../../services/theme.service';
 import { LoadingService } from '../../services/loading.service';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { DialogService } from '../../services/dialog.service';
 
 import { RouterModule, Router } from '@angular/router';
 
@@ -57,6 +58,7 @@ export class User implements OnInit {
   private loadingService = inject(LoadingService);
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
+  private dialogService = inject(DialogService);
 
   /** Utente loggato (segnale) */
   currentUser = this.authService.currentUser;
@@ -271,7 +273,7 @@ export class User implements OnInit {
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
-      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      this.dialogService.alert('Immagine troppo grande', 'Il limite massimo è 2MB.');
       input.value = '';
       return;
     }

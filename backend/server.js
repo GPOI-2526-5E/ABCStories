@@ -209,7 +209,7 @@ app.get('/api/user/:userId/recommended', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
@@ -504,7 +504,7 @@ app.get('/api/stories', async (req, res) => {
       `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-              s.pages, s.release_year,
+              s.created_at,
               u.username AS author_name
        FROM stories s
        LEFT JOIN users u ON u.id = s.author_id
@@ -527,7 +527,7 @@ app.get('/api/stories/popular', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name,
              COUNT(sv.id) AS view_count
       FROM stories s
@@ -563,7 +563,7 @@ app.get('/api/stories/trending', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name,
              COUNT(sv.id) AS week_views
       FROM stories s
@@ -602,7 +602,7 @@ app.get('/api/stories/similar/:storyId', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name,
              COUNT(sv.id) AS view_count
       FROM stories s
@@ -631,7 +631,7 @@ app.get('/api/stories/genre/:genre', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
@@ -665,7 +665,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name,
              lr.progress_pct,
              lr.chapter_id,
@@ -695,7 +695,9 @@ app.get('/api/stories/:id', async (req, res) => {
       `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-              s.pages, s.release_year,
+              s.created_at,
+              (SELECT COUNT(*) FROM story_likes WHERE story_id = s.id) AS likes_count,
+              (SELECT COUNT(*) FROM story_bookmarks WHERE story_id = s.id) AS bookmarks_count,
               u.username AS author_name,
               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS views_count
        FROM stories s
@@ -933,7 +935,7 @@ app.get('/api/stories/author/:authorId', async (req, res) => {
       SELECT s.id, s.title, s.description, s.genre, s.image_url,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              u.username AS author_name
       FROM stories s
       JOIN users u ON u.id = s.author_id
@@ -956,7 +958,7 @@ app.get('/api/author/my-stories/:userId', async (req, res) => {
       SELECT s.id, s.title, s.description, s.genre, s.image_url, s.status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
-             s.pages, s.release_year,
+             s.created_at,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS views_count
       FROM stories s
       WHERE s.author_id = $1

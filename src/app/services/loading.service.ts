@@ -4,6 +4,7 @@ import { Injectable, signal } from '@angular/core';
 export class LoadingService {
   private _loadingCount = 0;
   public isLoading = signal<boolean>(false);
+  public isBlocked = signal<boolean>(false);
 
   show() {
     this._loadingCount++;
@@ -13,6 +14,14 @@ export class LoadingService {
   hide() {
     this._loadingCount = Math.max(0, this._loadingCount - 1);
     this.update();
+  }
+
+  block() {
+    this.isBlocked.set(true);
+  }
+
+  unblock() {
+    this.isBlocked.set(false);
   }
 
   private update() {

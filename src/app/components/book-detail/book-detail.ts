@@ -9,6 +9,7 @@ import { BookService } from '../../services/book';
 import { BOOK_UUID_MAP } from '../../services/book-uuid-map';
 import { Api } from '../../services/api';
 import { LoadingService } from '../../services/loading.service';
+import { InteractionsService } from '../../services/interactions.service';
 
 export interface Reply {
   id: string;
@@ -190,6 +191,7 @@ export class BookDetail implements OnInit {
   ) { }
 
   private loadingService = inject(LoadingService);
+  public interactions = inject(InteractionsService);
 
   /** Mappa un oggetto storia dal DB nel formato usato dal template */
   private mapDbBook(s: any): any {
@@ -202,8 +204,9 @@ export class BookDetail implements OnInit {
       img: s.image_url ?? s.img ?? 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=320&q=80',
       genre: s.genre ?? '',
       tag: s.tag ?? s.genre ?? '',
-      pages: s.pages ?? 0,
-      year: s.release_year ?? s.year ?? 0,
+      created_at: s.created_at,
+      likesCount: s.likes_count ?? 0,
+      bookmarksCount: s.bookmarks_count ?? 0,
       rating: s.rating ? parseFloat(s.rating) : 0,
       readers: s.readers_count ? String(s.readers_count) : (s.readers ?? '0'),
       chaptersCount: s.chapters_count ?? s.chaptersCount ?? 0,
@@ -214,6 +217,9 @@ export class BookDetail implements OnInit {
   }
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.interactions.loadUserInteractions().subscribe();
+    }
     // Recupera i dati dell'utente loggato
     const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
     if (user) {
@@ -423,7 +429,7 @@ export class BookDetail implements OnInit {
   // La lista capitoli è caricata dall'API in loadChaptersAndProgress()
   // La vecchia lista statica è stata rimossa
 
-  reviews: any[] = [];
+  reviews: any[] | null = null;
 
   similarBooks = [
     { title: '1984', author: 'G. Orwell', img: 'assets/books/1984.jpg' },
@@ -447,6 +453,7 @@ export class BookDetail implements OnInit {
   }
 
   get visibleReviews() {
+    if (!this.reviews) return [];
     return this.showAllReviews ? this.reviews : this.reviews.slice(0, 4);
   }
 

@@ -17,7 +17,7 @@
         [class.prev-slide]="i === (current - 1 + slidesCount) % slidesCount"
         [class.next-slide]="i === (current + 1) % slidesCount">
 
-        <img [src]="slide.img" [alt]="slide.title" loading="lazy" />
+        <img [src]="slide.img" [alt]="slide.title" [loading]="i === current ? 'eager' : 'lazy'" />
 
         @if (i === current) {
         <div class="slide-content">
@@ -124,7 +124,7 @@
     <div class="genres-grid">
       @for (genre of genres; track genre.name) {
       <div class="genre-card" [class.wide]="genre.wide" (click)="onGenreClick(genre)">
-        <img class="genre-bg" [src]="genre.img" [alt]="genre.name" loading="lazy" />
+        <img class="genre-bg" [src]="genre.img" [alt]="genre.name" [loading]="$index < 3 ? 'eager' : 'lazy'" />
         <div class="genre-overlay"></div>
         <span class="genre-name">{{ genre.name }}</span>
       </div>

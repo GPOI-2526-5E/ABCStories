@@ -27,6 +27,17 @@ async function migrate() {
     await pool.query('ALTER TABLE stories DROP COLUMN IF EXISTS readers_count;');
     console.log("Column 'readers_count' dropped from stories table.");
 
+    // Drop release_year and pages columns from stories table
+    await pool.query('ALTER TABLE stories DROP COLUMN IF EXISTS release_year;');
+    console.log("Column 'release_year' dropped from stories table.");
+
+    await pool.query('ALTER TABLE stories DROP COLUMN IF EXISTS pages;');
+    console.log("Column 'pages' dropped from stories table.");
+
+    // Add created_at column to stories table
+    await pool.query('ALTER TABLE stories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();');
+    console.log("Column 'created_at' added/verified in stories table.");
+
     console.log("Database migration completed successfully.");
   } catch (err) {
     console.error("Error running database migration:", err);

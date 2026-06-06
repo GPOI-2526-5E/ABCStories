@@ -14,7 +14,7 @@
         @for (book of books; track $index) {
           <div class="book-card" (click)="onBookClick(book, $index)">
             <div class="book-cover">
-              <img [src]="book.img" [alt]="book.title" loading="lazy" />
+              <img [src]="book.img" [alt]="book.title" [loading]="$index < 4 ? 'eager' : 'lazy'" />
               <div class="book-spine"></div>
 
               <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"

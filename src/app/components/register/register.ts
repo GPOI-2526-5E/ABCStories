@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Api } from '../../services/api';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-register',
@@ -18,7 +19,8 @@ export class Register implements AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
     private authService: AuthService,
-    private api: Api
+    private api: Api,
+    private dialogService: DialogService
   ) {}
 
   email: string = '';
@@ -89,10 +91,10 @@ export class Register implements AfterViewInit {
       },
       error: (error: any) => {
         if (error.status === 409) {
-          alert('Email o username già in uso');
+          this.dialogService.alert('Registrazione fallita', 'Email o username già in uso');
         } else {
           console.error('Registrazione fallita:', error);
-          alert('Errore durante la registrazione. Riprova più tardi.');
+          this.dialogService.alert('Errore', 'Errore durante la registrazione. Riprova più tardi.');
         }
       }
     });

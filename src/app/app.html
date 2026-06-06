@@ -1,2 +1,18 @@
 <app-page-loader></app-page-loader>
 <router-outlet />
+
+<!-- Glassmorphism Custom Modal Dialog Globale -->
+<div class="custom-modal-overlay" *ngIf="dialogService.activeDialog() as dialog">
+  <div class="custom-modal-box glass-core">
+    <div class="custom-modal-header">
+      <h3>{{ dialog.title }}</h3>
+    </div>
+    <div class="custom-modal-body">
+      <p>{{ dialog.message }}</p>
+    </div>
+    <div class="custom-modal-footer">
+      <button class="modal-btn modal-btn-cancel" *ngIf="dialog.type === 'confirm'" (click)="dialogService.resolve(false)">Annulla</button>
+      <button class="modal-btn modal-btn-confirm" (click)="dialogService.resolve(true)">Conferma</button>
+    </div>
+  </div>
+</div>

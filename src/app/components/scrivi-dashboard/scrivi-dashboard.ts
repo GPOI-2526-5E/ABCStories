@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { Api } from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { Navbar } from '../navbar/navbar';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-scrivi-dashboard',
@@ -17,6 +18,7 @@ export class ScriviDashboard implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private dialogService = inject(DialogService);
 
   stories: any[] = [];
   loading = true;
@@ -58,16 +60,17 @@ export class ScriviDashboard implements OnInit {
         // Navigate to editor
         this.router.navigate(['/scrivi', story.id]);
       },
-      error: (err) => {
+      error: async (err) => {
         console.error('Error creating story', err);
-        alert("Errore durante la creazione della storia! Assicurati di aver riavviato il server Node dal terminale.\\n\\nDettaglio: " + err.message);
+        await this.dialogService.alert("Errore", "Errore durante la creazione della storia! Assicurati di aver riavviato il server Node dal terminale.\n\nDettaglio: " + err.message);
       }
     });
   }
 
-  deleteStory(storyId: string, event: Event) {
+  async deleteStory(storyId: string, event: Event) {
     event.stopPropagation();
-    if (confirm("Sei sicuro di voler eliminare questa storia? L'azione è irreversibile.")) {
+    const confirmed = await this.dialogService.confirm("Elimina Storia", "Sei sicuro di voler eliminare questa storia? L'azione è irreversibile.");
+    if (confirmed) {
       this.api.deleteStory(storyId).subscribe({
         next: () => {
           this.stories = this.stories.filter(s => s.id !== storyId);

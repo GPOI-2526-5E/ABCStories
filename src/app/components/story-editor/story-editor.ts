@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
 import { Navbar } from '../navbar/navbar';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -17,6 +18,7 @@ export class StoryEditor implements OnInit {
   private router = inject(Router);
   private api = inject(Api);
   private cdr = inject(ChangeDetectorRef);
+  private dialogService = inject(DialogService);
 
   storyId: string | null = null;
   story: any = null;
@@ -38,6 +40,49 @@ export class StoryEditor implements OnInit {
   storyImagePreview: string | null = null;
   chapterImagePreview: string | null = null;
 
+  originalStory: string | null = null;
+  originalChapter: string | null = null;
+
+  serializeStory(story: any): string {
+    if (!story) return '';
+    return JSON.stringify({
+      title: story.title ?? '',
+      genre: story.genre ?? '',
+      description: story.description ?? '',
+      image_url: story.image_url ?? ''
+    });
+  }
+
+  serializeChapter(chapter: any): string {
+    if (!chapter) return '';
+    return JSON.stringify({
+      title: chapter.title ?? '',
+      content: chapter.content ?? '',
+      image_url: chapter.image_url ?? ''
+    });
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.story && this.originalStory) {
+      if (this.serializeStory(this.story) !== this.originalStory) {
+        return true;
+      }
+    }
+    if (this.selectedChapter && this.originalChapter) {
+      if (this.serializeChapter(this.selectedChapter) !== this.originalChapter) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (this.hasUnsavedChanges()) {
+      $event.returnValue = true;
+    }
+  }
+
   ngOnInit() {
     this.storyId = this.route.snapshot.paramMap.get('storyId');
     if (this.storyId) {
@@ -50,6 +95,7 @@ export class StoryEditor implements OnInit {
     this.api.getStory(this.storyId!).subscribe({
       next: (data) => {
         this.story = data;
+        this.originalStory = this.serializeStory(data);
         // Se l'immagine nel DB è già base64, mostrala come preview
         if (data.image_url && data.image_url.startsWith('data:')) {
           this.storyImagePreview = data.image_url;
@@ -80,13 +126,26 @@ export class StoryEditor implements OnInit {
       description: this.story.description,
       image_url: this.story.image_url || null
     }).subscribe({
-      next: (updated) => alert('Storia aggiornata!'),
-      error: (err) => alert('Errore aggiornamento storia.')
+      next: (updated) => {
+        this.originalStory = this.serializeStory(this.story);
+        this.dialogService.alert('Successo', 'Storia aggiornata con successo!');
+      },
+      error: (err) => this.dialogService.alert('Errore', 'Errore durante l\'aggiornamento della storia.')
     });
   }
 
-  selectChapter(chapter: any) {
+  async selectChapter(chapter: any) {
+    if (this.hasUnsavedChanges()) {
+      const confirmed = await this.dialogService.confirm(
+        'Modifiche non salvate',
+        'Ci sono modifiche non salvate. Vuoi cambiare capitolo ed eliminare le modifiche?'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
     this.selectedChapter = chapter;
+    this.originalChapter = this.serializeChapter(chapter);
     // Mostra preview immagine capitolo se è già base64
     if (chapter.image_url && chapter.image_url.startsWith('data:')) {
       this.chapterImagePreview = chapter.image_url;
@@ -129,7 +188,7 @@ export class StoryEditor implements OnInit {
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
-      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      this.dialogService.alert('Errore', 'Immagine troppo grande! Il limite massimo è 2MB.');
       input.value = '';
       return;
     }
@@ -148,7 +207,7 @@ export class StoryEditor implements OnInit {
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
-      alert('Immagine troppo grande! Il limite massimo è 2MB.');
+      this.dialogService.alert('Errore', 'Immagine troppo grande! Il limite massimo è 2MB.');
       input.value = '';
       return;
     }
@@ -172,12 +231,13 @@ export class StoryEditor implements OnInit {
     }).subscribe({
       next: (chap) => {
         this.chapters.push(chap);
+        this.originalChapter = null; // bypass prompt when changing to new chap
         this.selectChapter(chap);
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
-        alert("Errore nella creazione del capitolo! Dettaglio: " + err.message);
+        this.dialogService.alert("Errore", "Errore nella creazione del capitolo! Dettaglio: " + err.message);
       }
     });
   }
@@ -196,25 +256,34 @@ export class StoryEditor implements OnInit {
         // update local list
         const idx = this.chapters.findIndex(c => c.id === updated.id);
         if (idx !== -1) this.chapters[idx] = updated;
+        this.originalChapter = this.serializeChapter(this.selectedChapter);
         this.cdr.detectChanges();
-        alert('Capitolo salvato con successo!');
+        this.dialogService.alert('Successo', 'Capitolo salvato con successo!');
       },
       error: (err) => {
         console.error(err);
         this.saving = false;
-        alert("Errore nel salvataggio! Dettaglio: " + err.message);
+        this.dialogService.alert('Errore', 'Errore durante il salvataggio: ' + err.message);
       }
     });
   }
 
-  deleteChapter(chapterId: string, event: Event) {
+  async deleteChapter(chapterId: string, event: Event) {
     event.stopPropagation();
-    if (confirm('Eliminare questo capitolo?')) {
+    const confirmed = await this.dialogService.confirm(
+      'Elimina Capitolo',
+      'Vuoi davvero eliminare questo capitolo? L\'azione è irreversibile.'
+    );
+    if (confirmed) {
       this.api.deleteChapter(chapterId).subscribe({
         next: () => {
           this.chapters = this.chapters.filter(c => c.id !== chapterId);
           if (this.selectedChapter?.id === chapterId) {
+            this.originalChapter = null; // reset to prevent prompt
             this.selectedChapter = this.chapters.length > 0 ? this.chapters[0] : null;
+            if (this.selectedChapter) {
+              this.originalChapter = this.serializeChapter(this.selectedChapter);
+            }
           }
           this.cdr.detectChanges();
         },
@@ -253,4 +322,5 @@ export class StoryEditor implements OnInit {
   goBack() {
     this.router.navigate(['/scrivi']);
   }
+
 }

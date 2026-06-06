@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { Routes, CanDeactivateFn } from '@angular/router';
+import { inject } from '@angular/core';
 import { Presentazione } from './components/presentazione/presentazione';
 import { Login } from './components/login/login';
 import { Home } from './components/home/home';
@@ -13,6 +14,18 @@ import { ScriviDashboard } from './components/scrivi-dashboard/scrivi-dashboard'
 import { StoryEditor } from './components/story-editor/story-editor';
 import { authGuard } from './services/auth.guard';
 import { guestGuard } from './services/auth.guard';
+import { DialogService } from './services/dialog.service';
+
+export const storyEditorGuard: CanDeactivateFn<StoryEditor> = (component: StoryEditor) => {
+  if (component.hasUnsavedChanges()) {
+    const dialogService = inject(DialogService);
+    return dialogService.confirm(
+      'Modifiche non salvate',
+      'Hai delle modifiche non salvate! Vuoi davvero uscire dall\'editor?'
+    );
+  }
+  return true;
+};
 
 export const routes: Routes = [
   { path: '',        component: Presentazione, canActivate: [guestGuard] },
@@ -26,5 +39,5 @@ export const routes: Routes = [
   { path: 'user',            component: User,          canActivate: [authGuard] },
   { path: 'author/:id',      component: AuthorDetail,  canActivate: [authGuard] },
   { path: 'scrivi',          component: ScriviDashboard, canActivate: [authGuard] },
-  { path: 'scrivi/:storyId', component: StoryEditor,     canActivate: [authGuard] },
+  { path: 'scrivi/:storyId', component: StoryEditor,     canActivate: [authGuard], canDeactivate: [storyEditorGuard] },
 ];
