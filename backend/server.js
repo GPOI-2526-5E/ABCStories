@@ -280,10 +280,13 @@ app.post('/api/email/send-code', async (req, res) => {
         `
       };
 
-      transporter.sendMail(mailOptions).catch(err => {
-        console.error('[MAIL ERROR] Errore durante l\'invio dell\'email in background:', err);
-      });
-      res.json({ success: true, devMode: false });
+      try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, devMode: false });
+      } catch (err) {
+        console.error('[MAIL ERROR] Errore durante l\'invio dell\'email:', err);
+        res.status(500).json({ error: 'Impossibile inviare l\'email di verifica' });
+      }
     } else {
       res.json({ success: true, devMode: true, code: code });
     }
