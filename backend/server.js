@@ -12,16 +12,24 @@ const SALT_ROUNDS = 12;
 // Permetti richieste dal frontend Vercel (e da localhost in sviluppo)
 const allowedOrigins = [
   'http://localhost:4200',
+  'http://localhost:3000',
   process.env.FRONTEND_URL,
 ].filter(Boolean).map(o => o.replace(/\/$/, '')); // rimuove slash finale
 
 app.use(cors({
   origin: (origin, callback) => {
-    const normalizedOrigin = origin ? origin.replace(/\/$/, '') : origin;
-    if (!normalizedOrigin || allowedOrigins.includes(normalizedOrigin)) {
+    if (!origin) return callback(null, true);
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    const isAllowed = allowedOrigins.includes(normalizedOrigin) ||
+                      normalizedOrigin.startsWith('http://localhost:') ||
+                      normalizedOrigin.startsWith('http://127.0.0.1:') ||
+                      normalizedOrigin.endsWith('.vercel.app');
+                      
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false);
     }
   },
   credentials: true,
