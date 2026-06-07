@@ -71,19 +71,22 @@ const pool = process.env.DATABASE_URL
 
 // Configurazione Nodemailer per invio email di verifica
 const mailConfig = {
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_SECURE === 'true', // true per porta 465, false per altre
+  host: process.env.SMTP_HOST || process.env.BREVO_HOST,
+  port: parseInt(process.env.SMTP_PORT || process.env.BREVO_PORT || '587', 10),
+  secure: (process.env.SMTP_SECURE || process.env.BREVO_SECURE || 'false') === 'true' || (process.env.BREVO_PORT === '465'),
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER || process.env.BREVO_USER,
+    pass: process.env.SMTP_PASS || process.env.BREVO_PASS,
   },
   connectionTimeout: 10000, // 10 secondi di timeout per evitare blocchi infiniti
   greetingTimeout: 10000,
   socketTimeout: 10000,
 };
 
-const hasMailConfig = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const hasMailConfig = !!(
+  (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ||
+  (process.env.BREVO_HOST && process.env.BREVO_USER && process.env.BREVO_PASS)
+);
 const transporter = hasMailConfig ? nodemailer.createTransport(mailConfig) : null;
 
 if (hasMailConfig) {
@@ -275,7 +278,23 @@ app.post('/api/email/send-code', async (req, res) => {
       </div>
     `;
 
-    if (process.env.RESEND_API_KEY) {
+    if (transporter) {
+      const mailOptions = {
+        from: `"ABCStories" <${process.env.SMTP_USER || process.env.BREVO_USER}>`,
+        to: email,
+        subject: 'Codice di Verifica ABCStories',
+        text: `Il tuo codice di verifica per completare la registrazione su ABCStories è: ${code}. Questo codice è valido per 15 minuti.`,
+        html: htmlContent
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, devMode: false });
+      } catch (err) {
+        console.error('[MAIL ERROR] Errore durante l\'invio dell\'email:', err);
+        res.status(500).json({ error: 'Impossibile inviare l\'email di verifica' });
+      }
+    } else if (process.env.RESEND_API_KEY) {
       try {
         const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -300,22 +319,6 @@ app.post('/api/email/send-code', async (req, res) => {
       } catch (err) {
         console.error('[RESEND ERROR] Errore durante l\'invio con Resend:', err);
         res.status(500).json({ error: 'Impossibile inviare l\'email di verifica via Resend' });
-      }
-    } else if (transporter) {
-      const mailOptions = {
-        from: `"ABCStories" <${process.env.SMTP_USER}>`,
-        to: email,
-        subject: 'Codice di Verifica ABCStories',
-        text: `Il tuo codice di verifica per completare la registrazione su ABCStories è: ${code}. Questo codice è valido per 15 minuti.`,
-        html: htmlContent
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true, devMode: false });
-      } catch (err) {
-        console.error('[MAIL ERROR] Errore durante l\'invio dell\'email:', err);
-        res.status(500).json({ error: 'Impossibile inviare l\'email di verifica' });
       }
     } else {
       res.json({ success: true, devMode: true, code: code });
