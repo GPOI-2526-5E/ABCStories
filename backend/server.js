@@ -71,7 +71,6 @@ const pool = process.env.DATABASE_URL
 
 // Configurazione Nodemailer per invio email di verifica
 const mailConfig = {
-  pool: true, // Mantiene le connessioni SMTP aperte per evitare ritardi di handshake
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587', 10),
   secure: process.env.SMTP_SECURE === 'true', // true per porta 465, false per altre
@@ -79,6 +78,9 @@ const mailConfig = {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 10000, // 10 secondi di timeout per evitare blocchi infiniti
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 };
 
 const hasMailConfig = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
