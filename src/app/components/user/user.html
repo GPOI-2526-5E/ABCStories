@@ -325,7 +325,7 @@
       <h2 class="section-title">Autori seguiti</h2>
       <p class="section-sub">Gli scrittori di cui non vuoi perdere gli aggiornamenti ✍️</p>
       <div class="authors-list">
-        <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author', author.id]">
+        <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author']" [state]="{ authorId: author.id }">
           <div class="author-card__avatar" [style.background]="author.avatarGradient">
             <img *ngIf="author.avatar_url" [src]="author.avatar_url"
               style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">

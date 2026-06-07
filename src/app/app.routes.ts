@@ -38,7 +38,7 @@ export const routes: Routes = [
   { path: 'generi',          component: Generi,        canActivate: [authGuard] },
   { path: 'generi/:slug',    component: GeneriDetail,  canActivate: [authGuard] },
   { path: 'user',            component: User,          canActivate: [authGuard] },
-  { path: 'author/:id',      component: AuthorDetail,  canActivate: [authGuard] },
+  { path: 'author',          component: AuthorDetail,  canActivate: [authGuard] },
   { path: 'scrivi',          component: ScriviDashboard, canActivate: [authGuard] },
   { path: 'scrivi/:storyId', component: StoryEditor,     canActivate: [authGuard], canDeactivate: [storyEditorGuard] },
   { path: 'search',          component: Search,         canActivate: [authGuard] },

@@ -17,7 +17,7 @@ export class Api {
   }
 
   getUserProfile(id: string) {
-    return this.http.get<any>(`${this.apiUrl}/api/user/${id}`);
+    return this.http.post<any>(`${this.apiUrl}/api/user/profile`, { id });
   }
 
   updateUserProfile(id: string, data: any) {

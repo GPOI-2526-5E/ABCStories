@@ -116,7 +116,7 @@
             <!-- Dettagli libro -->
             <div class="book-info">
               <p class="book-title">{{ book.title }}</p>
-              <p class="book-author" [routerLink]="['/author', book.author_id]" (click)="$event.stopPropagation()" style="cursor: pointer; position: relative; z-index: 2;">{{ book.author_name }}</p>
+              <p class="book-author" [routerLink]="['/author']" [state]="{ authorId: book.author_id }" (click)="$event.stopPropagation()" style="cursor: pointer; position: relative; z-index: 2;">{{ book.author_name }}</p>
             </div>
           </div>
         </div>
@@ -155,7 +155,7 @@
 
             <!-- Dettagli autore -->
             <div class="author-info">
-              <a [routerLink]="['/author', author.id]" class="author-name">{{ author.username }}</a>
+              <a [routerLink]="['/author']" [state]="{ authorId: author.id }" class="author-name">{{ author.username }}</a>
               <span class="author-location" *ngIf="author.location">
                 <i class="bi bi-geo-alt"></i> {{ author.location }}
               </span>

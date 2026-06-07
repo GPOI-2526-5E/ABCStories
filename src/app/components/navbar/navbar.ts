@@ -126,7 +126,7 @@ export class Navbar implements AfterViewInit, OnInit {
   selectAuthor(authorId: string): void {
     this.showSuggestions = false;
     this.mobileNavOpen = false;
-    this.router.navigate(['/author', authorId]);
+    this.router.navigate(['/author'], { state: { authorId } });
   }
 
   selectGenre(genre: string): void {

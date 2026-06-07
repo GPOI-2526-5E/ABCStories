@@ -340,7 +340,7 @@ export class User implements OnInit {
   goToAuthor(authorId: string | undefined, event: Event) {
     event.stopPropagation();
     if (authorId) {
-      this.router.navigate(['/author', authorId]);
+      this.router.navigate(['/author'], { state: { authorId } });
     }
   }
 

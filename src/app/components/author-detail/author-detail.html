@@ -192,7 +192,7 @@
 
         <div class="followers-masonry-grid" *ngIf="followersList.length > 0; else noFollowers">
           <div class="user-profile-card glass-panel" *ngFor="let follower of displayedFollowers"
-            [routerLink]="['/author', follower.id]">
+            [routerLink]="['/author']" [state]="{ authorId: follower.id }">
             <div class="user-card-head">
               <div class="user-avatar-sphere">
                 <img *ngIf="follower.avatar_url" [src]="follower.avatar_url" alt="Avatar follower" />
@@ -231,7 +231,7 @@
 
         <div class="followers-masonry-grid" *ngIf="followingList.length > 0; else noFollowing">
           <div class="user-profile-card glass-panel" *ngFor="let followed of displayedFollowing"
-            [routerLink]="['/author', followed.id]">
+            [routerLink]="['/author']" [state]="{ authorId: followed.id }">
             <div class="user-card-head">
               <div class="user-avatar-sphere">
                 <img *ngIf="followed.avatar_url" [src]="followed.avatar_url" alt="Avatar seguito" />

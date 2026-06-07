@@ -14,7 +14,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
-    path: 'author/:id',
+    path: 'author',
     renderMode: RenderMode.Server
   },
   {

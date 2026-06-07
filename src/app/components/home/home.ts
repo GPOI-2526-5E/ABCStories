@@ -133,7 +133,7 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
   goToAuthor(authorId: string | undefined, event?: Event) {
     if (event) event.stopPropagation();
     if (authorId) {
-      this.router.navigate(['/author', authorId]);
+      this.router.navigate(['/author'], { state: { authorId } });
     }
   }
 

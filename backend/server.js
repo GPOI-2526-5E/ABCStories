@@ -120,6 +120,24 @@ app.get('/api/user/:id', async (req, res) => {
   }
 });
 
+app.post('/api/user/profile', async (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'User ID is required' });
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id, username, email, avatar_url, bio, location, website_url, created_at,
+        social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
+        (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
+      FROM users WHERE id = $1`, [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.put('/api/user/:id', async (req, res) => {
   const { 
     username, 

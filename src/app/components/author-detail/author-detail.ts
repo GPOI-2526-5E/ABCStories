@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { Api } from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { InteractionsService } from '../../services/interactions.service';
@@ -19,6 +20,7 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class AuthorDetail implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private api = inject(Api);
   private auth = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
@@ -102,14 +104,37 @@ export class AuthorDetail implements OnInit {
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id && id !== this.authorId) {
-        this.authorId = id;
-        this.loadAuthorData();
-      }
+    this.checkAndLoadAuthor();
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.checkAndLoadAuthor();
     });
+
     this.interactions.loadUserInteractions().subscribe();
+  }
+
+  checkAndLoadAuthor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const state = this.router.getCurrentNavigation()?.extras?.state || window.history.state;
+      const stateId = state?.authorId;
+      
+      if (stateId) {
+        if (stateId !== this.authorId) {
+          this.authorId = stateId;
+          this.loadAuthorData();
+        }
+      } else {
+        const currentUser = this.auth.currentUser();
+        if (currentUser) {
+          if (currentUser.id !== this.authorId) {
+            this.authorId = currentUser.id;
+            this.loadAuthorData();
+          }
+        }
+      }
+    }
   }
 
   loadAuthorData() {
