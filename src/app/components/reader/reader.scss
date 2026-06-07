@@ -316,23 +316,23 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 520px;
+  height: 650px;
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
 
-  /* Sfuma l'immagine rivelando lo sfondo del contenitore prima dell'inizio del testo */
+  /* Sfuma l'immagine rivelando lo sfondo del contenitore sotto il blocco di titolo ed autore */
   mask-image: linear-gradient(to bottom,
       black 0%,
-      black 40%,
-      rgba(0, 0, 0, 0.6) 60%,
-      rgba(0, 0, 0, 0.2) 80%,
+      black 50%,
+      rgba(0, 0, 0, 0.6) 70%,
+      rgba(0, 0, 0, 0.25) 85%,
       transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom,
       black 0%,
-      black 40%,
-      rgba(0, 0, 0, 0.6) 60%,
-      rgba(0, 0, 0, 0.2) 80%,
+      black 50%,
+      rgba(0, 0, 0, 0.6) 70%,
+      rgba(0, 0, 0, 0.25) 85%,
       transparent 100%);
 }
 
