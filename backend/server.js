@@ -261,25 +261,53 @@ app.post('/api/email/send-code', async (req, res) => {
     console.log(`[EMAIL VERIFICATION] Codice per ${email}: ${code}`);
     console.log('==================================================\n');
 
-    // 5. Invia l'email se configurata, altrimenti rispondi con successo in modalità dev
-    if (transporter) {
+    // 5. Invia l'email se configurata (preferisci Resend se presente per aggirare blocco SMTP)
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #ff5100; text-align: center;">Benvenuto su ABCStories!</h2>
+        <p>Grazie per aver scelto la nostra piattaforma. Per completare la registrazione, inserisci il seguente codice di verifica a 6 cifre:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333; background-color: #f7f7f7; padding: 10px 20px; border-radius: 4px; border: 1px dashed #ccc;">${code}</span>
+        </div>
+        <p style="color: #555;">Il codice scadrà tra 15 minuti. Se non hai richiesto tu questo codice, ignora questa email.</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size: 12px; color: #888; text-align: center;">ABCStories Staff</p>
+      </div>
+    `;
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: process.env.RESEND_FROM || 'onboarding@resend.dev',
+            to: email,
+            subject: 'Codice di Verifica ABCStories',
+            html: htmlContent
+          })
+        });
+
+        if (!resendRes.ok) {
+          const errData = await resendRes.json().catch(() => ({}));
+          throw new Error(`Resend API Error: ${resendRes.status} ${JSON.stringify(errData)}`);
+        }
+
+        res.json({ success: true, devMode: false });
+      } catch (err) {
+        console.error('[RESEND ERROR] Errore durante l\'invio con Resend:', err);
+        res.status(500).json({ error: 'Impossibile inviare l\'email di verifica via Resend' });
+      }
+    } else if (transporter) {
       const mailOptions = {
         from: `"ABCStories" <${process.env.SMTP_USER}>`,
         to: email,
         subject: 'Codice di Verifica ABCStories',
         text: `Il tuo codice di verifica per completare la registrazione su ABCStories è: ${code}. Questo codice è valido per 15 minuti.`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-            <h2 style="color: #ff5100; text-align: center;">Benvenuto su ABCStories!</h2>
-            <p>Grazie per aver scelto la nostra piattaforma. Per completare la registrazione, inserisci il seguente codice di verifica a 6 cifre:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333; background-color: #f7f7f7; padding: 10px 20px; border-radius: 4px; border: 1px dashed #ccc;">${code}</span>
-            </div>
-            <p style="color: #555;">Il codice scadrà tra 15 minuti. Se non hai richiesto tu questo codice, ignora questa email.</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #888; text-align: center;">ABCStories Staff</p>
-          </div>
-        `
+        html: htmlContent
       };
 
       try {
