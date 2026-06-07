@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +43,44 @@ const pool = process.env.DATABASE_URL
       password: process.env.DB_PASSWORD || 'postgres',
       port: parseInt(process.env.DB_PORT || '5432'),
     });
+
+// Inizializzazione tabella email_verifications
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS email_verifications (
+        email VARCHAR(255) PRIMARY KEY,
+        code VARCHAR(6) NOT NULL,
+        verified BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('[DATABASE] Tabella email_verifications creata o già esistente.');
+  } catch (err) {
+    console.error('[DATABASE ERROR] Errore durante la creazione della tabella email_verifications:', err);
+  }
+})();
+
+// Configurazione Nodemailer per invio email di verifica
+const mailConfig = {
+  pool: true, // Mantiene le connessioni SMTP aperte per evitare ritardi di handshake
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  secure: process.env.SMTP_SECURE === 'true', // true per porta 465, false per altre
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+};
+
+const hasMailConfig = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const transporter = hasMailConfig ? nodemailer.createTransport(mailConfig) : null;
+
+if (hasMailConfig) {
+  console.log('[MAIL] Servizio SMTP configurato con successo.');
+} else {
+  console.log('[MAIL] SMTP non configurato. Abilitata la modalità di sviluppo (il codice viene loggato in console e inviato nella risposta API).');
+}
 
 
 app.get('/api/prova', async (req, res) => {
@@ -164,10 +204,115 @@ app.post('/api/user/login', async (req, res) => {
 });
 
 
+// Endpoint per l'invio del codice di verifica email
+app.post('/api/email/send-code', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email obbligatoria' });
+  }
+  try {
+    // 1. Controlla se l'email è già in uso
+    const userCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (userCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'Email già in uso' });
+    }
+
+    // 2. Genera un codice a 6 cifre casuale
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 3. Upsert nella tabella email_verifications
+    await pool.query(`
+      INSERT INTO email_verifications (email, code, verified, created_at)
+      VALUES ($1, $2, FALSE, NOW())
+      ON CONFLICT (email)
+      DO UPDATE SET code = $2, verified = FALSE, created_at = NOW()
+    `, [email, code]);
+
+    // 4. Stampa il codice nei log del server per il test manuale
+    console.log('\n==================================================');
+    console.log(`[EMAIL VERIFICATION] Codice per ${email}: ${code}`);
+    console.log('==================================================\n');
+
+    // 5. Invia l'email se configurata, altrimenti rispondi con successo in modalità dev
+    if (transporter) {
+      const mailOptions = {
+        from: `"ABCStories" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: 'Codice di Verifica ABCStories',
+        text: `Il tuo codice di verifica per completare la registrazione su ABCStories è: ${code}. Questo codice è valido per 15 minuti.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <h2 style="color: #ff5100; text-align: center;">Benvenuto su ABCStories!</h2>
+            <p>Grazie per aver scelto la nostra piattaforma. Per completare la registrazione, inserisci il seguente codice di verifica a 6 cifre:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333; background-color: #f7f7f7; padding: 10px 20px; border-radius: 4px; border: 1px dashed #ccc;">${code}</span>
+            </div>
+            <p style="color: #555;">Il codice scadrà tra 15 minuti. Se non hai richiesto tu questo codice, ignora questa email.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 12px; color: #888; text-align: center;">ABCStories Staff</p>
+          </div>
+        `
+      };
+
+      transporter.sendMail(mailOptions).catch(err => {
+        console.error('[MAIL ERROR] Errore durante l\'invio dell\'email in background:', err);
+      });
+      res.json({ success: true, devMode: false });
+    } else {
+      res.json({ success: true, devMode: true, code: code });
+    }
+  } catch (error) {
+    console.error('Errore in send-code:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint per verificare il codice inserito dall'utente
+app.post('/api/email/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+  const timerLabel = `[VERIFY-CODE] Tempo totale per ${email}`;
+  console.time(timerLabel);
+  if (!email || !code) {
+    console.timeEnd(timerLabel);
+    return res.status(400).json({ error: 'Email e codice obbligatori' });
+  }
+  try {
+    console.log(`[VERIFY-CODE] Avvio query SELECT per verificare codice di ${email}`);
+    const result = await pool.query('SELECT code FROM email_verifications WHERE email = $1', [email]);
+    console.log(`[VERIFY-CODE] Query SELECT completata per ${email}`);
+    
+    if (result.rows.length === 0 || result.rows[0].code !== code) {
+      console.log(`[VERIFY-CODE] Codice errato o mancante per ${email}`);
+      console.timeEnd(timerLabel);
+      return res.status(400).json({ error: 'Codice non valido o scaduto' });
+    }
+
+    console.log(`[VERIFY-CODE] Avvio query UPDATE per impostare verified = true per ${email}`);
+    await pool.query('UPDATE email_verifications SET verified = TRUE WHERE email = $1', [email]);
+    console.log(`[VERIFY-CODE] Query UPDATE completata per ${email}`);
+    
+    console.timeEnd(timerLabel);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Errore in verify-code:', error);
+    console.timeEnd(timerLabel);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.post('/api/user/register', async (req, res) => {
   const { email, username, password } = req.body;
   try {
-    // Controlla se email o username esistono già
+    // 1. Controlla prima che l'email sia stata verificata
+    const verification = await pool.query(
+      'SELECT verified FROM email_verifications WHERE email = $1',
+      [email]
+    );
+    if (verification.rows.length === 0 || !verification.rows[0].verified) {
+      return res.status(400).json({ error: 'Email non verificata. Completa la verifica prima di registrarti.' });
+    }
+
+    // 2. Controlla se email o username esistono già
     const existing = await pool.query(
       'SELECT id FROM users WHERE email = $1 OR username = $2',
       [email, username]
@@ -176,14 +321,32 @@ app.post('/api/user/register', async (req, res) => {
       return res.status(409).json({ error: 'Email o username già in uso' });
     }
 
-    // Genera l'hash della password prima di salvarla
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    // Controlla requisiti minimi di sicurezza per la password
+    if (
+      !password ||
+      password.length < 8 ||
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[\W_]/.test(password)
+    ) {
+      return res.status(400).json({
+        error: 'La password non rispetta i requisiti minimi di sicurezza (almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale).'
+      });
+    }
 
-    // Salva l'hash nel database anziché la password in chiaro
+    // Genera esplicitamente il salt e poi l'hash della password prima di salvarla
+    const salt = await bcrypt.genSalt(SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Salva l'hash nel database inserendo l'avatar di default
     const result = await pool.query(
-      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
-      [username, email, hashedPassword]
+      'INSERT INTO users (username, email, password_hash, avatar_url) VALUES ($1, $2, $3, $4) RETURNING id, username, email, avatar_url',
+      [username, email, hashedPassword, 'assets/Pippi/pippiIniziale.png']
     );
+
+    // 3. Elimina il record di verifica dell'email
+    await pool.query('DELETE FROM email_verifications WHERE email = $1', [email]);
 
     res.status(201).json({ success: true, user: result.rows[0] });
   } catch (error) {
@@ -314,7 +477,55 @@ app.get('/api/likes/:userId/stories', async (req, res) => {
   }
 });
 
+
+// ═══════════════ SEARCH ═══════════════
+
+app.get('/api/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.json({ stories: [], authors: [], genres: [] });
+  try {
+    const queryStr = `%${q}%`;
+    
+    // 1. Search stories
+    const storiesRes = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.created_at,
+             u.username AS author_name,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      WHERE (s.title ILIKE $1 OR s.description ILIKE $1 OR s.genre ILIKE $1)
+        AND s.status = 'published'
+        AND s.title IS NOT NULL
+        AND s.title != ''
+    `, [queryStr]);
+
+    // 2. Search authors
+    const authorsRes = await pool.query(`
+      SELECT id, username, avatar_url, bio, location,
+             (SELECT COUNT(*) FROM stories WHERE author_id = users.id AND status = 'published') AS stories_count,
+             (SELECT COUNT(*) FROM follows WHERE followed_id = users.id) AS followers_count
+      FROM users
+      WHERE username ILIKE $1
+    `, [queryStr]);
+
+    // 3. Search genres matching the query
+    const genresList = ['horror', 'western', 'fantasy', 'thriller', 'romanzo', 'storico', 'fantascienza', 'avventura', 'biografia'];
+    const matchedGenres = genresList.filter(g => g.toLowerCase().includes(q.toLowerCase()));
+
+    res.json({
+      stories: storiesRes.rows,
+      authors: authorsRes.rows,
+      genres: matchedGenres
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // ═══════════════ BOOKMARKS ═══════════════
+
 
 // Toggle bookmark (inserisce se non esiste, elimina se esiste)
 app.post('/api/bookmarks/toggle', async (req, res) => {

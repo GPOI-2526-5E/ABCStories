@@ -2,7 +2,7 @@ import { Injectable, signal, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from './auth.service';
 
-export type Theme = 'tropical' | 'dark' | 'light';
+export type Theme = 'tropical' | 'dark' | 'light' | 'sunset';
 
 @Injectable({
   providedIn: 'root'

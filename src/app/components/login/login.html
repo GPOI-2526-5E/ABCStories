@@ -12,12 +12,16 @@
         </div>
 
         <form class="w-100 form-wrapper" (ngSubmit)="onLogin($event)">
-          <div class="inputGroup mb-3">
-            <input type="text" required autocomplete="off" id="email" [(ngModel)]="email" name="email">
+          <!-- Campi fittizi nascosti per ingannare l'autocompilazione automatica di Chrome/Edge -->
+          <input type="text" name="chrome_prevent_autofill_email" style="position: absolute; top: -9999px; left: -9999px;" tabindex="-1" aria-hidden="true">
+          <input type="password" name="chrome_prevent_autofill_password" style="position: absolute; top: -9999px; left: -9999px;" tabindex="-1" aria-hidden="true">
+
+          <div class="inputGroup mb-3" [class.has-value]="email && email.length > 0">
+            <input type="text" required autocomplete="off" id="email" [(ngModel)]="email" name="email" placeholder=" ">
             <label for="email">Inserisci l'email</label>
           </div>
-          <div class="inputGroup">
-            <input type="password" required autocomplete="off" id="password" [(ngModel)]="password" name="password">
+          <div class="inputGroup" [class.has-value]="password && password.length > 0">
+            <input type="password" required autocomplete="off" id="password" [(ngModel)]="password" name="password" placeholder=" ">
             <label for="password">Inserisci la tua password</label>
           </div>
           <button class="btnCont5 mt-3 w-100 submit-btn" type="submit">

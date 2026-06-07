@@ -18,7 +18,8 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
     '/api/bookmarks', 
     '/api/reading_progress',
     '/api/follows',
-    '/api/interactions'
+    '/api/interactions',
+    '/api/search'
   ];
   const isQuiet = quietEndpoints.some(ep => req.url.includes(ep));
 

@@ -104,3 +104,101 @@
   --glass-shadow: rgba(0, 0, 0, 0.1);
   --shadow-rgb: 0, 0, 0;
 }
+
+:root[data-theme="sunset"] {
+  /* User provided raw variables */
+  --radius: 1rem;
+  --background: oklch(0.98 0.02 60);
+  --foreground: oklch(0.18 0.03 280);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.03 280);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.03 280);
+  --primary: oklch(0.65 0.22 30);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.04 320);
+  --secondary-foreground: oklch(0.25 0.05 320);
+  --accent: oklch(0.75 0.18 350);
+  --accent-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.96 0.02 60);
+  --muted-foreground: oklch(0.45 0.03 280);
+  --destructive: oklch(0.6 0.24 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.02 60 / 0.4);
+  --input: oklch(0.92 0.02 60);
+  --ring: oklch(0.7 0.18 30);
+  --glass: rgba(255, 255, 255, 0.18);
+  --glass-strong: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --gradient-warm: linear-gradient(135deg, #ff8a65 0%, #ec4899 50%, #a855f7 100%);
+  --gradient-soft: linear-gradient(135deg, #ffd3b6, #ffaaa5, #ff8b94, #c7b8ea, #a8e6cf);
+  --gradient-shimmer: linear-gradient(120deg, #ff8a65, #ec4899, #a855f7, #ec4899, #ff8a65);
+  --blob-peach: #ffaaa5;
+  --blob-lavender: #c7b8ea;
+  --blob-apricot: #ffd3b6;
+  --blob-mint: #a8e6cf;
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  --shadow-glow: 0 20px 60px -20px rgba(236, 72, 153, 0.35);
+
+  /* Project adaptation mapping */
+  --pastelThemeWhite: var(--background);
+  --text-primary: var(--foreground);
+  --text-muted: var(--muted-foreground);
+  --text-muted-dark: var(--secondary-foreground);
+  --text-inverse: var(--primary-foreground);
+  
+  --glass-rgb: 255, 255, 255;
+  --glass-border-rgb: 255, 255, 255;
+  --glass-shadow: rgba(31, 38, 135, 0.12);
+  --shadow-rgb: 236, 72, 153;
+
+  --tropicalTheme: var(--gradient-warm);
+  --tropicalTheme-reverse: linear-gradient(90deg, #a855f7 0%, #ec4899 50%, #ff8a65 100%);
+  --tropicalTheme180deg: linear-gradient(180deg, #ff8a65 0%, #ec4899 50%, #a855f7 100%);
+  --tropicalTheme45deg: linear-gradient(45deg, #ff8a65 0%, #ec4899 50%, #a855f7 100%);
+  --tropicalThemeGreen: var(--secondary);
+  --tropicalThemeYellow: var(--primary);
+  --tropicalThemeRed: var(--destructive);
+
+  --pastelTheme: var(--gradient-soft);
+  --pastelThemeYellow: var(--blob-apricot);
+  --pastelThemeOrange: var(--blob-peach);
+}
+
+[data-theme="sunset"] body {
+  background: var(--gradient-soft) !important;
+}
+
+[data-theme="sunset"] {
+  .layout,
+  .editor-layout,
+  .editor-container,
+  .search-container,
+  .scrivi-container,
+  .reader-root,
+
+  .home-container,
+  .generi-container,
+  .book-detail-container,
+  .author-detail-container,
+  .divStart,
+  .ranking-container,
+  .slider-section,
+  .divDetails,
+  .hero-bottom-fade {
+    background: var(--gradient-soft) !important;
+  }
+
+  .footerSection {
+    background: var(--gradient-soft) !important;
+  }
+
+  .ambient-curtain {
+    background: linear-gradient(to bottom, transparent 0%, var(--gradient-soft) 90%) !important;
+  }
+
+  .glow-2 {
+    background: var(--gradient-soft) !important;
+  }
+}
+

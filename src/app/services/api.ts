@@ -32,6 +32,14 @@ export class Api {
     return this.http.post(`${this.apiUrl}/api/user/register`, { email, username, password });
   }
 
+  sendVerificationCode(email: string) {
+    return this.http.post<any>(`${this.apiUrl}/api/email/send-code`, { email });
+  }
+
+  verifyCode(email: string, code: string) {
+    return this.http.post<any>(`${this.apiUrl}/api/email/verify-code`, { email, code });
+  }
+
   // ═══════════════ LIKES ═══════════════
 
   toggleLike(userId: string, storyId: string) {
@@ -223,4 +231,9 @@ export class Api {
   deleteChapter(chapterId: string) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/chapters/${chapterId}`);
   }
+
+  search(query: string) {
+    return this.http.get<{ stories: any[], authors: any[], genres: string[] }>(`${this.apiUrl}/api/search?q=${query}`);
+  }
 }
+

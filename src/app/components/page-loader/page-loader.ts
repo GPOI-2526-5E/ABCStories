@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, effect, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, Event, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -11,7 +11,7 @@ import { LoadingService } from '../../services/loading.service';
   templateUrl: './page-loader.html',
   styleUrl: './page-loader.scss'
 })
-export class PageLoader implements OnInit {
+export class PageLoader implements OnInit, OnDestroy {
   // Avvia il loader come attivo di default per coprire la schermata iniziale di bootstrap
   isLoading = true;
   showSpinner = false;
@@ -29,7 +29,6 @@ export class PageLoader implements OnInit {
   private isWaitingForResources = false;
   
   // Traccia se siamo in fase di navigazione attiva o di bootstrap iniziale
-  // In questo modo, le chiamate HTTP di background a pagina già caricata non mostreranno l'overlay.
   private isNavigatingOrBootstrapping = true;
 
   constructor() {
@@ -67,6 +66,11 @@ export class PageLoader implements OnInit {
     }, 100);
   }
 
+  ngOnDestroy() {
+    if (this.showSpinnerTimeout) clearTimeout(this.showSpinnerTimeout);
+    if (this.hideTimeout) clearTimeout(this.hideTimeout);
+  }
+
   private updateState() {
     // Carica solo se siamo in fase di transizione rotta/bootstrap e non siamo esplicitamente bloccati da dialogs
     const shouldLoad = this.isNavigatingOrBootstrapping && (this.routerLoading || this.httpLoading) && !this.loadingService.isBlocked();
@@ -78,27 +82,13 @@ export class PageLoader implements OnInit {
       }
       this.isWaitingForResources = false;
 
-      // Mostra l'overlay istantaneamente per coprire l'intera pagina prima di mostrare elementi parziali
+      // Mostra l'overlay istantaneamente
       if (!this.isLoading) {
         this.showTime = Date.now();
         this.isLoading = true;
         this.cdr.detectChanges();
       }
-
-      // Mostra lo spinner visivo e il testo solo se il caricamento supera i 200ms
-      // Previene piccoli flash fastidiosi ("piccoli caricamenti") durante passaggi rapidi
-      if (!this.showSpinner && !this.showSpinnerTimeout) {
-        this.showSpinnerTimeout = setTimeout(() => {
-          this.showSpinner = true;
-          this.cdr.detectChanges();
-        }, 200);
-      }
     } else {
-      if (this.showSpinnerTimeout) {
-        clearTimeout(this.showSpinnerTimeout);
-        this.showSpinnerTimeout = null;
-      }
-
       if (this.isLoading && !this.hideTimeout && !this.isWaitingForResources) {
         this.isWaitingForResources = true;
         this.waitForAllPageResources().then(() => {
@@ -110,19 +100,32 @@ export class PageLoader implements OnInit {
           const elapsed = Date.now() - this.showTime;
           const minDuration = 400; // Tempo minimo per far finire l'animazione CSS
           const remaining = Math.max(0, minDuration - elapsed);
-
-          // 50ms di grazia per beccare chiamate API concatenate
           const delay = Math.max(50, remaining);
 
           this.hideTimeout = setTimeout(() => {
             this.isLoading = false;
-            this.showSpinner = false;
             this.isNavigatingOrBootstrapping = false; // Fine transizione
             this.cdr.detectChanges();
             this.hideTimeout = null;
           }, delay);
         });
       }
+    }
+
+    // Gestione dello spinner visivo: mostra lo spinner se isLoading rimane true per più di 200ms
+    if (this.isLoading) {
+      if (!this.showSpinner && !this.showSpinnerTimeout) {
+        this.showSpinnerTimeout = setTimeout(() => {
+          this.showSpinner = true;
+          this.cdr.detectChanges();
+        }, 200);
+      }
+    } else {
+      if (this.showSpinnerTimeout) {
+        clearTimeout(this.showSpinnerTimeout);
+        this.showSpinnerTimeout = null;
+      }
+      this.showSpinner = false;
     }
   }
 
@@ -133,16 +136,11 @@ export class PageLoader implements OnInit {
     return new Promise((resolve) => {
       const urls = new Set<string>();
       const loadedUrls = new Set<string>();
-      let resolveTimeout: any;
 
       const checkAndResolve = () => {
         const pending = Array.from(urls).filter(url => !loadedUrls.has(url));
         if (pending.length === 0) {
-          if (resolveTimeout) clearTimeout(resolveTimeout);
-          // Attende 100ms di stabilità per essere sicuri che non vengano inserite nuove immagini
-          resolveTimeout = setTimeout(() => {
-            resolve();
-          }, 100);
+          resolve();
         }
       };
 
@@ -203,33 +201,18 @@ export class PageLoader implements OnInit {
         checkAndResolve();
       };
 
-      // Eseguiamo una scansione iniziale
+      // Scansiona il DOM per raccogliere le immagini caricate
       scanDOM();
 
-      // Utilizziamo un MutationObserver per intercettare qualsiasi inserimento asincrono di immagini o cambi di stile
-      const observer = new MutationObserver(() => {
-        scanDOM();
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['src', 'style', 'class']
-      });
-
-      // Timeout di sicurezza massimo di 3 secondi per evitare blocchi infiniti dell'UI
+      // Timeout di sicurezza massimo di 1 secondo per evitare blocchi dell'UI dovuti a caricamenti infiniti
       const safetyTimeout = setTimeout(() => {
-        observer.disconnect();
         resolve();
-      }, 3000);
+      }, 1000);
 
-      // Sovrascriviamo la resolve per disconnettere l'observer in ogni caso di uscita
+      // Sovrascriviamo la resolve per pulire i timer
       const originalResolve = resolve;
       resolve = () => {
         clearTimeout(safetyTimeout);
-        if (resolveTimeout) clearTimeout(resolveTimeout);
-        observer.disconnect();
         originalResolve();
       };
     });

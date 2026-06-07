@@ -19,56 +19,90 @@
 
         <form class="w-100 form-wrapper" (ngSubmit)="onRegister($event)" novalidate>
 
+          <!-- Sezione Email -->
           <div class="mb-3">
-            <div class="inputGroup">
-              <input type="text" autocomplete="off" id="email" name="email" [(ngModel)]="email">
-              <label for="email">Inserisci la tua email</label>
+            <div class="inputGroup" [class.verified]="isEmailVerified" [class.has-value]="email && email.length > 0" [class.readonly]="isCodeSent || isEmailVerified">
+              <input type="text" autocomplete="off" id="email" name="email" [(ngModel)]="email" [readonly]="isCodeSent || isEmailVerified" required>
+              <label for="email">{{ isEmailVerified ? 'Email Verificata' : 'Inserisci la tua email' }}</label>
+              <span *ngIf="isEmailVerified" class="verified-checkmark">✓</span>
             </div>
             <div *ngIf="errors['email']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['email'] }}</div>
-          </div>
-
-          <div class="mb-3">
-            <div class="inputGroup">
-              <input type="text" autocomplete="off" id="username" name="username" [(ngModel)]="username">
-              <label for="username">Inserisci il tuo nome utente</label>
-            </div>
-            <div *ngIf="errors['username']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['username'] }}
+            <div *ngIf="isCodeSent && !isEmailVerified" class="text-end mt-1">
+              <a href="javascript:void(0)" (click)="modifyEmail()" class="small text-muted animated-underline">Modifica email</a>
             </div>
           </div>
 
-          <div class="mb-3">
-            <div class="inputGroup">
-              <input type="password" autocomplete="off" id="password" name="password" [(ngModel)]="password">
-              <label for="password">Inserisci una password</label>
+          <!-- Pulsante Invia Codice (mostrato solo inizialmente) -->
+          <div *ngIf="!isCodeSent && !isEmailVerified" class="mb-4">
+            <button class="btnCont5 w-100 submit-btn" type="button" (click)="sendCode()" [disabled]="isSendingCode">
+              {{ isSendingCode ? 'Invio in corso...' : 'Invia Codice di Verifica' }}
+            </button>
+          </div>
+
+          <!-- Sezione Inserimento Codice -->
+          <div *ngIf="isCodeSent && !isEmailVerified" class="mb-4 verification-code-section">
+            <div class="mb-3">
+              <div class="inputGroup" [class.has-value]="verificationCode && verificationCode.length > 0">
+                <input type="text" autocomplete="off" id="verification-code" name="verificationCode" [(ngModel)]="verificationCode" required maxlength="6">
+                <label for="verification-code">Codice a 6 cifre</label>
+              </div>
+              <div *ngIf="errors['code']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['code'] }}</div>
             </div>
-            <div *ngIf="errors['password']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['password'] }}
+
+            <div class="d-flex gap-2">
+              <button class="btnCont5 w-50" type="button" (click)="verifyCode()" [disabled]="isVerifyingCode">
+                {{ isVerifyingCode ? 'Verifica...' : 'Verifica Codice' }}
+              </button>
+              <button class="btnCont3 w-50" type="button" (click)="sendCode()" [disabled]="resendCountdown > 0 || isSendingCode">
+                {{ resendCountdown > 0 ? 'Rimanda (' + resendCountdown + 's)' : 'Rimanda Codice' }}
+              </button>
             </div>
           </div>
 
-          <div class="mb-3">
-            <div class="inputGroup">
-              <input type="password" autocomplete="off" id="confirm-password" name="confirmPassword"
-                [(ngModel)]="confirmPassword">
-              <label for="confirm-password">Ripeti la password</label>
+          <!-- Campi di registrazione aggiuntivi (mostrati dopo la verifica dell'email) -->
+          <div *ngIf="isEmailVerified" class="reveal-fields-container">
+            <div class="mb-3 reveal-field">
+              <div class="inputGroup" [class.has-value]="username && username.length > 0">
+                <input type="text" required autocomplete="off" id="username" name="username" [(ngModel)]="username">
+                <label for="username">Inserisci il tuo nome utente</label>
+              </div>
+              <div *ngIf="errors['username']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['username'] }}</div>
             </div>
-            <div *ngIf="errors['confirmPassword']" class="text-danger small mt-1 ps-1 animate-fade-in">{{
-              errors['confirmPassword'] }}</div>
+
+            <div class="mb-3 reveal-field">
+              <div class="inputGroup" [class.has-value]="password && password.length > 0">
+                <input type="password" required autocomplete="off" id="password" name="password" [(ngModel)]="password">
+                <label for="password">Inserisci una password</label>
+              </div>
+              <div *ngIf="errors['password']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['password'] }}</div>
+            </div>
+
+            <div class="mb-3 reveal-field">
+              <div class="inputGroup" [class.has-value]="confirmPassword && confirmPassword.length > 0">
+                <input type="password" required autocomplete="off" id="confirm-password" name="confirmPassword" [(ngModel)]="confirmPassword">
+                <label for="confirm-password">Ripeti la password</label>
+              </div>
+              <div *ngIf="errors['confirmPassword']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['confirmPassword'] }}</div>
+            </div>
+
+            <button class="btnCont5 mt-3 w-100 submit-btn reveal-field" type="submit">Registrati</button>
           </div>
 
-          <button class="btnCont5 mt-3 w-100 submit-btn" type="submit">Registrati</button>
+          <!-- Google login (nascosto dopo che l'email è verificata) -->
+          <div *ngIf="!isEmailVerified" class="google-section">
+            <div class="divisore">
+              <span></span>
+              <span>or</span>
+              <span></span>
+            </div>
 
-          <div class="divisore">
-            <span></span>
-            <span>or</span>
-            <span></span>
+            <button class="btnCont3 w-100 d-flex align-items-center justify-content-center google-btn" type="button">
+              <span class="me-2">
+                <img src="assets/Icone/google.png" alt="" height="25px">
+              </span>
+              Continua con Google
+            </button>
           </div>
-
-          <button class="btnCont3 w-100 d-flex align-items-center justify-content-center google-btn" type="button">
-            <span class="me-2">
-              <img src="assets/Icone/google.png" alt="" height="25px">
-            </span>
-            Continua con Google
-          </button>
 
           <p class="text-center mt-4">
             Hai già un account?

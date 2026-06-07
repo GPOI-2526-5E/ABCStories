@@ -44,14 +44,14 @@
   height: 60px;
   border-radius: 50%;
   border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--primary);
-  border-right-color: var(--accent);
+  border-top-color: var(--primary, #f2787c);
+  border-right-color: var(--accent, #f7d487);
   animation: spin 1s linear infinite;
   
   [data-theme='light'] & {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top-color: var(--primary);
-    border-right-color: var(--accent);
+    border-top-color: var(--primary, #f2787c);
+    border-right-color: var(--accent, #f7d487);
   }
 }
 
@@ -59,7 +59,7 @@
   font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background: linear-gradient(135deg, var(--primary, #f2787c), var(--accent, #f7d487));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

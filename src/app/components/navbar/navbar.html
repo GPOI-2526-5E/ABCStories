@@ -24,126 +24,39 @@
           <ul class="dropdown-menu mega-menu">
             <div class="mega-wrapper">
               <div class="mega-left">
-
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'horror']"><img src="assets/Icone/horror.png"
-                      height="25px"> Horror</a>
-                  <div class="mega-right">
-                    <div class="image-slider">
-                      <button class="img-arrow left">&#10094;</button>
-                      <div class="scroll-images d-flex p-3">
-                        <div class="container"><img src="assets/Presentazione/gattopardo.jpg" alt="" height="210px">
+                @for (g of genresList; track g.name; let last = $last) {
+                  <div class="mega-item">
+                    <a class="dropdown-item" [routerLink]="['/generi', g.name]"><img [src]="'assets/Icone/' + g.icon"
+                        height="25px"> {{ g.label }}</a>
+                    <div class="mega-right">
+                      @if (!genreBooks[g.name] || genreBooks[g.name].length === 0) {
+                        <app-image-carousel-skeleton [cardCount]="3"></app-image-carousel-skeleton>
+                      } @else {
+                        <div class="image-slider">
+                          <button class="img-arrow left">&#10094;</button>
+                          <div class="scroll-images d-flex p-3">
+                            @for (book of genreBooks[g.name]; track book.id; let idx = $index) {
+                              <div class="container" [routerLink]="['/generi', g.name]">
+                                <img [src]="book.img" [alt]="book.title" />
+                              </div>
+                            }
+                          </div>
+                          <button class="img-arrow right">&#10095;</button>
                         </div>
-                        <div class="container"><img src="assets/Presentazione/la-strada.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container"><img src="assets/Presentazione/siddhartha.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container"><img src="assets/Presentazione/dune.jpg" alt="" height="210px"></div>
-                        <div class="container"><img src="assets/Presentazione/codice-da-vinci.jpg" alt=""
-                            height="210px"></div>
-                        <div class="container"><img src="assets/Presentazione/hp1.jpg" alt="" height="210px"></div>
-                        <div class="container"><img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
-                        </div>
+                      }
+                      <hr class="dropdown-divider" />
+                      <div class="fixed-content d-flex justify-content-center align-items-center">
+                        <a [routerLink]="['/generi', g.name]" style="text-decoration: none; color: var(--text-primary);"
+                          class="link arrow">
+                          Esplora il catalogo <i class="bi bi-arrow-right"></i>
+                        </a>
                       </div>
-                      <button class="img-arrow right">&#10095;</button>
                     </div>
+                  </div>
+                  @if (!last) {
                     <hr class="dropdown-divider" />
-                    <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <a [routerLink]="['/generi', 'horror']" style="text-decoration: none; color: var(--text-primary);"
-                        class="link arrow">
-                        Esplora il catalogo <i class="bi bi-arrow-right"></i>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'western']"><img src="assets/Icone/western.png"
-                      height="25px"> Western</a>
-                  <div class="mega-right">
-                    <div class="image-slider">
-                      <button class="img-arrow left">&#10094;</button>
-                      <div class="scroll-images d-flex p-3">
-                        <div class="container"><img src="assets/Presentazione/codice-da-vinci.jpg" alt=""
-                            height="210px"></div>
-                        <div class="container"><img src="assets/Presentazione/hp1.jpg" alt="" height="210px"></div>
-                        <div class="container"><img src="assets/Presentazione/metamorfosi.jpg" alt="" height="210px">
-                        </div>
-                        <div class="container"><img src="assets/Presentazione/promessi-sposi.jpg" alt="" height="210px">
-                        </div>
-                      </div>
-                      <button class="img-arrow right">&#10095;</button>
-                    </div>
-                    <hr class="dropdown-divider" />
-                    <div class="fixed-content d-flex justify-content-center align-items-center">
-                      <a [routerLink]="['/generi', 'western']" style="text-decoration: none; color: var(--text-primary);"
-                        class="link arrow">
-                        Esplora il catalogo <i class="bi bi-arrow-right"></i>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'fantasy']"><img src="assets/Icone/fantasy.png"
-                      height="25px"> Fantasy</a>
-                  <div class="mega-right">
-                    <div>fantasy 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'thriller']"><img src="assets/Icone/thriller.png"
-                      height="25px"> Thriller</a>
-                  <div class="mega-right">
-                    <div>thriller 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'romanzo']"><img src="assets/Icone/romanzo.png"
-                      height="25px"> Romanzo</a>
-                  <div class="mega-right">
-                    <div>romanzo 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'storico']"><img src="assets/Icone/storico.png"
-                      height="25px"> Storico</a>
-                  <div class="mega-right">
-                    <div>storico 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'fantascienza']"><img
-                      src="assets/Icone/fantascienza.png" height="25px"> Fantascienza</a>
-                  <div class="mega-right">
-                    <div>fantascienza 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'avventura']"><img src="assets/Icone/avventura.png"
-                      height="25px"> Avventura</a>
-                  <div class="mega-right">
-                    <div>avventura 1</div>
-                  </div>
-                </div>
-                <hr class="dropdown-divider" />
-                <div class="mega-item">
-                  <a class="dropdown-item" [routerLink]="['/generi', 'biografia']"><img src="assets/Icone/biografia.png"
-                      height="25px"> Biografia</a>
-                  <div class="mega-right">
-                    <div>biografia 1</div>
-                  </div>
-                </div>
-
+                  }
+                }
               </div>
             </div>
           </ul>
@@ -166,9 +79,15 @@
       <div class="d-flex align-items-center gap-3">
 
         <!-- Barra di ricerca — sempre visibile -->
-        <div class="container-input me-2">
-          <input type="text" placeholder="Search" name="text" class="input" />
-          <svg style="fill: var(--text-primary);" width="20px" height="20px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+        <div class="container-input" style="position: relative;">
+          <input type="text" placeholder="Search" name="text" class="input" #desktopSearch 
+                 autocomplete="off"
+                 (input)="onSearchInput(desktopSearch.value)" 
+                 (focus)="onSearchFocus(desktopSearch.value)" 
+                 (blur)="onSearchBlur()"
+                 (keyup.enter)="onSearch(desktopSearch.value)" />
+          <svg style="fill: var(--text-primary);" width="20px" height="20px" viewBox="0 0 1920 1920"
+            xmlns="http://www.w3.org/2000/svg">
             <path d="M790.588 1468.235c-373.722 0-677.647-303.924-677.647-677.647
               0-373.722 303.925-677.647 677.647-677.647 373.723 0 677.647 303.925
               677.647 677.647 0 373.723-303.924 677.647-677.647 677.647Zm596.781-160.715
@@ -177,6 +96,68 @@
               790.588c197.647 0 378.24-73.411 516.932-193.807l516.028 516.142
               79.963-79.963-516.142-516.028Z" fill-rule="evenodd" />
           </svg>
+
+          <!-- Suggestions Dropdown Desktop -->
+          @if (showSuggestions && (suggestedStories.length > 0 || suggestedAuthors.length > 0 || suggestedGenres.length > 0)) {
+            <div class="search-suggestions-dropdown glass-dropdown" (mousedown)="$event.preventDefault()">
+              
+              <!-- Storie Section -->
+              @if (suggestedStories.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Storie</div>
+                  @for (story of suggestedStories; track story.id) {
+                    <div class="suggestion-item" (mousedown)="selectStory(story.id)">
+                      <img [src]="story.image_url || 'assets/Presentazione/promessi-sposi.jpg'" class="suggestion-img" />
+                      <div class="suggestion-info">
+                        <span class="suggestion-name">{{ story.title }}</span>
+                        <span class="suggestion-sub">di {{ story.author_name }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Autori Section -->
+              @if (suggestedAuthors.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Autori</div>
+                  @for (author of suggestedAuthors; track author.id) {
+                    <div class="suggestion-item" (mousedown)="selectAuthor(author.id)">
+                      <div class="suggestion-avatar">
+                        @if (author.avatar_url) {
+                          <img [src]="author.avatar_url" class="avatar-img" />
+                        } @else {
+                          <span class="avatar-fallback">{{ getInitials(author.username) }}</span>
+                        }
+                      </div>
+                      <div class="suggestion-info">
+                        <span class="suggestion-name">{{ author.username }}</span>
+                        <span class="suggestion-sub">{{ author.stories_count || 0 }} Storie • {{ author.followers_count || 0 }} Follower</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Generi Section -->
+              @if (suggestedGenres.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Generi</div>
+                  @for (genre of suggestedGenres; track genre) {
+                    <div class="suggestion-item" (mousedown)="selectGenre(genre)">
+                      <div class="suggestion-genre-icon">
+                        <img [src]="getGenreIcon(genre)" class="genre-icon-img" />
+                      </div>
+                      <div class="suggestion-info">
+                        <span class="suggestion-name text-capitalize">{{ genre }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
+          }
         </div>
 
         <!-- NON loggato: testo Login + Registrati -->
@@ -207,12 +188,12 @@
           <span class="nav-notif-dot"></span>
         </button>
 
-        <button class="nav-icon-btn" title="Profilo" (click)="onUserClick()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+        <button class="nav-icon-btn nav-profile-btn" title="Profilo" (click)="onUserClick()">
+          @if (authService.currentUser()?.avatar_url) {
+          <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="nav-avatar-img" />
+          } @else {
+          <div class="nav-avatar-fallback">{{ userInitials() }}</div>
+          }
         </button>
 
         }
@@ -238,12 +219,12 @@
       <!-- Icone utente/notifica visibili solo da loggato (sopra il drawer) -->
       @if (authService.isLoggedIn()) {
       <div class="mn-auth-icons">
-        <button class="mn-icon-btn" title="Profilo" (click)="onUserClick()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+        <button class="mn-icon-btn mn-profile-btn" title="Profilo" (click)="onUserClick()">
+          @if (authService.currentUser()?.avatar_url) {
+          <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="mn-avatar-img" />
+          } @else {
+          <div class="mn-avatar-fallback">{{ userInitials() }}</div>
+          }
         </button>
         <button class="mn-icon-btn mn-notif-btn" title="Esci" (click)="onLogout()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -266,12 +247,79 @@
       <div class="mn-drawer-inner">
 
         <!-- Search -->
-        <div class="mn-search">
+        <div class="mn-search" style="position: relative;">
           <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style="color: var(--text-muted);">
             <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8" />
             <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg>
-          <input type="text" placeholder="Cerca libri, autori..." />
+          <input type="text" placeholder="Cerca libri, autori..." #mobileSearch 
+                 autocomplete="off"
+                 (input)="onSearchInput(mobileSearch.value)" 
+                 (focus)="onSearchFocus(mobileSearch.value)" 
+                 (blur)="onSearchBlur()"
+                 (keyup.enter)="onSearch(mobileSearch.value)" />
+
+          <!-- Suggestions Dropdown Mobile -->
+          @if (showSuggestions && (suggestedStories.length > 0 || suggestedAuthors.length > 0 || suggestedGenres.length > 0)) {
+            <div class="search-suggestions-dropdown mobile-dropdown glass-dropdown" (mousedown)="$event.preventDefault()">
+              
+              <!-- Storie Section -->
+              @if (suggestedStories.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Storie</div>
+                  @for (story of suggestedStories; track story.id) {
+                    <div class="suggestion-item" (mousedown)="selectStory(story.id)">
+                      <img [src]="story.image_url || 'assets/Presentazione/promessi-sposi.jpg'" class="suggestion-img" />
+                      <div class="suggestion-info">
+                        <span class="suggestion-name">{{ story.title }}</span>
+                        <span class="suggestion-sub">di {{ story.author_name }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Autori Section -->
+              @if (suggestedAuthors.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Autori</div>
+                  @for (author of suggestedAuthors; track author.id) {
+                    <div class="suggestion-item" (mousedown)="selectAuthor(author.id)">
+                      <div class="suggestion-avatar">
+                        @if (author.avatar_url) {
+                          <img [src]="author.avatar_url" class="avatar-img" />
+                        } @else {
+                          <span class="avatar-fallback">{{ getInitials(author.username) }}</span>
+                        }
+                      </div>
+                      <div class="suggestion-info">
+                        <span class="suggestion-name">{{ author.username }}</span>
+                        <span class="suggestion-sub">{{ author.stories_count || 0 }} Storie • {{ author.followers_count || 0 }} Follower</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Generi Section -->
+              @if (suggestedGenres.length > 0) {
+                <div class="suggestions-section">
+                  <div class="section-title">Generi</div>
+                  @for (genre of suggestedGenres; track genre) {
+                    <div class="suggestion-item" (mousedown)="selectGenre(genre)">
+                      <div class="suggestion-genre-icon">
+                        <img [src]="getGenreIcon(genre)" class="genre-icon-img" />
+                      </div>
+                      <div class="suggestion-info">
+                        <span class="suggestion-name text-capitalize">{{ genre }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
+          }
         </div>
 
         <div class="mn-divider"></div>
@@ -285,70 +333,14 @@
         </div>
 
         <div class="mn-genres-panel" [class.mn-genres-panel--open]="mobileGenresOpen">
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('horror')">
-              <div class="mn-genre-icon"><img src="assets/Icone/horror.png" height="25px"></div>
-              <span>Horror</span>
+          @for (g of genresList; track g.name) {
+            <div class="mn-genre-item">
+              <div class="mn-genre-header" (click)="toggleMobileGenre(g.name)">
+                <div class="mn-genre-icon"><img [src]="'assets/Icone/' + g.icon" height="25px"></div>
+                <span>{{ g.label }}</span>
+              </div>
             </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('western')">
-              <div class="mn-genre-icon"><img src="assets/Icone/western.png" height="25px"></div>
-              <span>Western</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('fantasy')">
-              <div class="mn-genre-icon"><img src="assets/Icone/fantasy.png" height="25px"></div>
-              <span>Fantasy</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('thriller')">
-              <div class="mn-genre-icon"><img src="assets/Icone/thriller.png" height="25px"></div>
-              <span>Thriller</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('romanzo')">
-              <div class="mn-genre-icon"><img src="assets/Icone/romanzo.png" height="25px"></div>
-              <span>Romanzo</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('storico')">
-              <div class="mn-genre-icon"><img src="assets/Icone/storico.png" height="25px"></div>
-              <span>Storico</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('fantascienza')">
-              <div class="mn-genre-icon"><img src="assets/Icone/fantascienza.png" height="25px"></div>
-              <span>Fantascienza</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('avventura')">
-              <div class="mn-genre-icon"><img src="assets/Icone/avventura.png" height="25px"></div>
-              <span>Avventura</span>
-            </div>
-          </div>
-
-          <div class="mn-genre-item">
-            <div class="mn-genre-header" (click)="toggleMobileGenre('biografia')">
-              <div class="mn-genre-icon"><img src="assets/Icone/biografia.png" height="25px"></div>
-              <span>Biografia</span>
-            </div>
-          </div>
-
+          }
         </div>
 
         <div class="mn-divider"></div>
