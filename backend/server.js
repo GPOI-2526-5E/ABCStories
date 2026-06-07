@@ -83,11 +83,12 @@ const mailConfig = {
   socketTimeout: 10000,
 };
 
-const hasMailConfig = !!(
+const hasSmtpConfig = !!(
   (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ||
   (process.env.BREVO_HOST && process.env.BREVO_USER && process.env.BREVO_PASS)
 );
-const transporter = hasMailConfig ? nodemailer.createTransport(mailConfig) : null;
+const hasMailConfig = hasSmtpConfig || !!(process.env.RESEND_API_KEY || process.env.BREVO_API_KEY);
+const transporter = hasSmtpConfig ? nodemailer.createTransport(mailConfig) : null;
 
 if (hasMailConfig) {
   console.log('[MAIL] Servizio SMTP configurato con successo.');
@@ -278,7 +279,34 @@ app.post('/api/email/send-code', async (req, res) => {
       </div>
     `;
 
-    if (transporter) {
+    if (process.env.BREVO_API_KEY) {
+      try {
+        const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': process.env.BREVO_API_KEY,
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: { name: 'ABCStories', email: process.env.BREVO_USER || 'lucaascone93@gmail.com' },
+            to: [{ email: email }],
+            subject: 'Codice di Verifica ABCStories',
+            htmlContent: htmlContent
+          })
+        });
+
+        if (!brevoRes.ok) {
+          const errData = await brevoRes.json().catch(() => ({}));
+          throw new Error(`Brevo API Error: ${brevoRes.status} ${JSON.stringify(errData)}`);
+        }
+
+        res.json({ success: true, devMode: false });
+      } catch (err) {
+        console.error('[BREVO API ERROR] Errore durante l\'invio con Brevo API:', err);
+        res.status(500).json({ error: 'Impossibile inviare l\'email di verifica via Brevo' });
+      }
+    } else if (transporter) {
       const mailOptions = {
         from: `"ABCStories" <${process.env.SMTP_USER || process.env.BREVO_USER}>`,
         to: email,
