@@ -15,7 +15,7 @@ const pool = process.env.DATABASE_URL
 async function migrate() {
   try {
     console.log("Starting database migration for notifications table...");
-    
+
     // Drop the notifications table if it exists
     await pool.query('DROP TABLE IF EXISTS notifications CASCADE;');
     console.log("Notifications table dropped.");
