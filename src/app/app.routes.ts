@@ -13,6 +13,7 @@ import { AuthorDetail } from './components/author-detail/author-detail';
 import { ScriviDashboard } from './components/scrivi-dashboard/scrivi-dashboard';
 import { StoryEditor } from './components/story-editor/story-editor';
 import { Search } from './components/search/search';
+import { Notifications } from './components/notifications/notifications';
 import { authGuard } from './services/auth.guard';
 import { guestGuard } from './services/auth.guard';
 import { DialogService } from './services/dialog.service';
@@ -42,5 +43,6 @@ export const routes: Routes = [
   { path: 'scrivi',          component: ScriviDashboard, canActivate: [authGuard] },
   { path: 'scrivi/:storyId', component: StoryEditor,     canActivate: [authGuard], canDeactivate: [storyEditorGuard] },
   { path: 'search',          component: Search,         canActivate: [authGuard] },
+  { path: 'notifications',   component: Notifications,  canActivate: [authGuard] },
 ];
 

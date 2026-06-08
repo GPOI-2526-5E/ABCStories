@@ -1,0 +1,440 @@
+@use "sass:color";
+@use "../../../scss/colori.scss";
+
+// Mixin glassmorphism coordinato con la pagina utente
+@mixin glass-panel($alpha: 0.12, $blur: 30px, $border-alpha: 0.25) {
+  background: rgba(255, 255, 255, $alpha);
+  backdrop-filter: blur($blur) saturate(190%);
+  -webkit-backdrop-filter: blur($blur) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, $border-alpha);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.06),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.03);
+}
+
+.notifications-layout {
+  position: relative;
+  min-height: 100vh;
+  background: var(--tropicalTheme);
+  color: var(--text-primary);
+  padding: 120px 40px 15px 40px; // Ridotta la spaziatura in basso a 15px per allineare il pannello al fondo
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    padding: 110px 20px 20px 20px;
+  }
+}
+
+// ── Main Content Container ──
+.notifications-main {
+  width: 100%;
+  max-width: 1400px; // Allargato ulteriormente per occupare meglio la larghezza dello schermo
+  position: relative;
+  z-index: 2;
+}
+
+.notifications-card {
+  @include glass-panel(0.12, 30px, 0.25);
+  border-radius: 24px;
+  height: calc(100vh - 135px); // Ottimizzato per allinearsi perfettamente a 15px dal fondo (120px top + 15px bottom)
+  min-height: 550px;
+  max-height: 980px; // Aumentato il limite massimo per schermi alti per ridurre la spaziatura
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+    border-radius: 20px;
+    gap: 20px;
+    height: calc(100vh - 130px); // Adattato per il padding mobile (110px top + 20px bottom)
+  }
+}
+
+// ── Header Section ──
+.card-header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 24px;
+  width: 100%;
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-title {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 850;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .page-sub {
+    font-size: 14.5px;
+    color: var(--text-muted-dark);
+    margin: 0;
+  }
+}
+
+// ── Bottoni stile search.html ──
+.btn-read-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-primary);
+  background: rgba(var(--glass-rgb, 255, 255, 255), 0.25);
+  border: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.4);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s ease;
+  font-family: inherit;
+
+  svg {
+    stroke: currentColor;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    background: white;
+    color: black;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ── Filtri stile search.html ──
+.filters-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.tab-btn {
+  padding: 12px 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+
+  &:hover {
+    background: rgba(var(--glass-rgb, 255, 255, 255), 0.2);
+  }
+
+  &--active {
+    background: rgba(var(--glass-rgb, 255, 255, 255), 0.45) !important;
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.04),
+      inset 0 1px 1px rgba(var(--glass-border-rgb, 255, 255, 255), 0.4);
+    transform: translateY(-1px);
+  }
+
+  .count-badge {
+    font-size: 11px;
+    background: rgba(var(--glass-rgb), 0.25);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+
+    &--unread {
+      background: var(--tropicalThemeRed, #e05a30);
+      color: white;
+
+      &.count-badge--zero {
+        background: rgba(var(--glass-rgb), 0.25);
+        color: var(--text-primary);
+        opacity: 0.6;
+      }
+    }
+  }
+}
+
+// ── Lista Notifiche ──
+.notifications-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.notifications-stack {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  padding: 6px 12px 6px 6px; // Spazio interno per evitare che le ombre e il movimento dell'hover vengano tagliati ai lati
+  box-sizing: border-box;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.35);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    transform: translateY(-3px); // Rimosso scale(1.01) per evitare il ritaglio laterale e migliorata la traslazione
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+
+    .action-btn-check {
+      opacity: 1;
+    }
+  }
+
+  &--unread {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(var(--glass-border-rgb, 255, 255, 255), 0.8);
+    box-shadow: 0 6px 18px rgba(var(--glass-shadow), 0.15);
+  }
+
+  @media (max-width: 576px) {
+    padding: 14px 16px;
+    gap: 14px;
+  }
+}
+
+// ── Avatar e Badges ──
+.notification-avatar-container {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+
+  .sender-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .sender-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--tropicalTheme45deg);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .type-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    &[data-type="new_story"] {
+      background: #e3f2fd;
+    }
+    &[data-type="update_story"] {
+      background: #fff3e0;
+    }
+    &[data-type="new_chapter"] {
+      background: #e8f5e9;
+    }
+    &[data-type="update_chapter"] {
+      background: #ede7f6;
+    }
+  }
+}
+
+// ── Corpo Notifica (Testi Scuri per Massima Leggibilità) ──
+.notification-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .notification-message {
+    font-size: 15px;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.45;
+    font-weight: 500;
+    text-align: left;
+    
+    ::ng-deep strong {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+  }
+
+  .notification-time {
+    font-size: 12px;
+    color: var(--text-muted-dark);
+    font-weight: 500;
+    text-align: left;
+  }
+}
+
+// ── Azioni Notifica ──
+.notification-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.action-btn-check {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  .dot-unread {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tropicalThemeRed, #e05a30);
+    box-shadow: 0 0 8px var(--tropicalThemeRed);
+    transition: transform 0.2s ease;
+  }
+
+  &:hover .dot-unread {
+    transform: scale(1.4);
+    background: var(--tropicalThemeGreen);
+    box-shadow: 0 0 8px var(--tropicalThemeGreen);
+  }
+}
+
+// ── Loading & Empty states (Centrati) ──
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+  color: var(--text-muted-dark);
+  width: 100%;
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--tropicalThemeYellow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 40px;
+  color: var(--text-muted-dark);
+  width: 100%;
+
+  .empty-icon {
+    margin-bottom: 20px;
+    color: var(--text-muted-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.6;
+
+    svg {
+      stroke: currentColor;
+    }
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 850;
+    color: var(--text-primary);
+    margin: 0 0 10px;
+  }
+
+  p {
+    font-size: 14.5px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

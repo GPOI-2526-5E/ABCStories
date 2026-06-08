@@ -285,4 +285,12 @@ export class AuthorDetail implements OnInit {
       this.interactions.toggleBookmark(book.id);
     }
   }
+
+  navigateToAuthor(authorId: string) {
+    if (authorId !== this.authorId) {
+      this.authorId = authorId;
+      this.loadAuthorData();
+      this.router.navigate(['/author'], { state: { authorId } });
+    }
+  }
 }

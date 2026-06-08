@@ -1,6 +1,6 @@
 import {
   AfterViewInit, Component, HostListener,
-  Inject, PLATFORM_ID, inject, computed
+  Inject, PLATFORM_ID, inject, computed, effect
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
@@ -155,13 +155,43 @@ export class Navbar implements AfterViewInit, OnInit {
     return `assets/Icone/${file}`;
   }
 
+  loadUnreadNotificationsCount(userId: string): void {
+    this.api.getNotifications(userId).subscribe({
+      next: (notifications) => {
+        this.unreadCount = notifications.filter((n: any) => !n.is_read).length;
+      },
+      error: (err) => {
+        console.error('Errore nel caricamento del conteggio notifiche:', err);
+      }
+    });
+  }
+
   // ── Mobile nav state ─────────────────────────────────────────────
 
   private activeMobileGenre: string | null = null;
   mobileNavOpen = false;
   mobileGenresOpen = false;
+  unreadCount = 0;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private api: Api) { }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private api: Api) {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.loadUnreadNotificationsCount(user.id);
+      } else {
+        this.unreadCount = 0;
+      }
+    });
+
+    if (isPlatformBrowser(this.platformId)) {
+      setInterval(() => {
+        const user = this.authService.currentUser();
+        if (user) {
+          this.loadUnreadNotificationsCount(user.id);
+        }
+      }, 30000);
+    }
+  }
 
   ngOnInit(): void {
     this.api.getUsers().subscribe((data: any) => {

@@ -52,7 +52,7 @@ const pool = process.env.DATABASE_URL
       port: parseInt(process.env.DB_PORT || '5432'),
     });
 
-// Inizializzazione tabella email_verifications
+// Inizializzazione tabella email_verifications e notifications
 (async () => {
   try {
     await pool.query(`
@@ -64,10 +64,115 @@ const pool = process.env.DATABASE_URL
       );
     `);
     console.log('[DATABASE] Tabella email_verifications creata o già esistente.');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
+        chapter_id UUID REFERENCES chapters(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        message TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('[DATABASE] Tabella notifications creata o già esistente.');
   } catch (err) {
-    console.error('[DATABASE ERROR] Errore durante la creazione della tabella email_verifications:', err);
+    console.error('[DATABASE ERROR] Errore durante la creazione delle tabelle iniziali:', err);
   }
 })();
+
+// Helper per generare e inserire notifiche per autori seguiti, like e preferiti
+async function triggerNotifications({ senderId, storyId, chapterId, type }) {
+  try {
+    // 1. Recupera lo username del mittente
+    const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [senderId]);
+    if (senderRes.rows.length === 0) return;
+    const senderUsername = senderRes.rows[0].username;
+
+    // 2. Recupera il titolo della storia se storyId è presente
+    let storyTitle = '';
+    if (storyId) {
+      const storyRes = await pool.query('SELECT title FROM stories WHERE id = $1', [storyId]);
+      if (storyRes.rows.length > 0) {
+        storyTitle = storyRes.rows[0].title;
+      }
+    }
+
+    // 3. Recupera il titolo del capitolo se chapterId è presente
+    let chapterTitle = '';
+    if (chapterId) {
+      const chapterRes = await pool.query('SELECT title FROM chapters WHERE id = $1', [chapterId]);
+      if (chapterRes.rows.length > 0) {
+        chapterTitle = chapterRes.rows[0].title;
+      }
+    }
+
+    let message = '';
+    let recipientQuery = '';
+    let queryParams = [];
+
+    if (type === 'new_story') {
+      message = `${senderUsername} ha pubblicato una nuova storia: "${storyTitle}"`;
+      recipientQuery = 'SELECT DISTINCT follower_id AS user_id FROM follows WHERE followed_id = $1 AND follower_id != $1';
+      queryParams = [senderId];
+    } else if (type === 'update_story') {
+      message = `${senderUsername} ha modificato la storia: "${storyTitle}"`;
+      recipientQuery = `
+        SELECT DISTINCT user_id FROM (
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          UNION
+          SELECT user_id FROM story_likes WHERE story_id = $2
+          UNION
+          SELECT user_id FROM story_bookmarks WHERE story_id = $2
+        ) as recipients WHERE user_id != $1
+      `;
+      queryParams = [senderId, storyId];
+    } else if (type === 'new_chapter') {
+      message = `${senderUsername} ha aggiunto un nuovo capitolo a "${storyTitle}": "${chapterTitle}"`;
+      recipientQuery = `
+        SELECT DISTINCT user_id FROM (
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          UNION
+          SELECT user_id FROM story_likes WHERE story_id = $2
+          UNION
+          SELECT user_id FROM story_bookmarks WHERE story_id = $2
+        ) as recipients WHERE user_id != $1
+      `;
+      queryParams = [senderId, storyId];
+    } else if (type === 'update_chapter') {
+      message = `${senderUsername} ha modificato il capitolo "${chapterTitle}" nella storia "${storyTitle}"`;
+      recipientQuery = `
+        SELECT DISTINCT user_id FROM (
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          UNION
+          SELECT user_id FROM story_likes WHERE story_id = $2
+          UNION
+          SELECT user_id FROM story_bookmarks WHERE story_id = $2
+        ) as recipients WHERE user_id != $1
+      `;
+      queryParams = [senderId, storyId];
+    }
+
+    if (!message || !recipientQuery) return;
+
+    // 5. Trova i destinatari
+    const recipientsRes = await pool.query(recipientQuery, queryParams);
+    const recipients = recipientsRes.rows;
+
+    // 6. Inserisci le notifiche nel database
+    for (const r of recipients) {
+      await pool.query(`
+        INSERT INTO notifications (user_id, sender_id, story_id, chapter_id, type, message)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [r.user_id, senderId, storyId || null, chapterId || null, type, message]);
+    }
+  } catch (error) {
+    console.error('[NOTIFICATIONS ERROR] Errore durante l invio delle notifiche:', error);
+  }
+}
 
 // Configurazione Nodemailer per invio email di verifica
 const mailConfig = {
@@ -1295,6 +1400,9 @@ app.put('/api/stories/:id', async (req, res) => {
   // Se image_url è vuota o non fornita, mantieni quella esistente (COALESCE gestisce null)
   const imageToSave = (image_url && image_url.trim() !== '') ? image_url : null;
   try {
+    const oldStoryRes = await pool.query('SELECT * FROM stories WHERE id = $1', [req.params.id]);
+    const oldStory = oldStoryRes.rows[0];
+
     const result = await pool.query(`
       UPDATE stories
       SET title = COALESCE($1, title),
@@ -1305,7 +1413,25 @@ app.put('/api/stories/:id', async (req, res) => {
       WHERE id = $6
       RETURNING *
     `, [title, description, genre, imageToSave, status, req.params.id]);
-    res.json(result.rows[0]);
+    const updatedStory = result.rows[0];
+
+    if (oldStory && updatedStory) {
+      if (oldStory.status === 'draft' && updatedStory.status === 'published') {
+        triggerNotifications({
+          senderId: updatedStory.author_id,
+          storyId: updatedStory.id,
+          type: 'new_story'
+        });
+      } else if (oldStory.status === 'published' && updatedStory.status === 'published') {
+        triggerNotifications({
+          senderId: updatedStory.author_id,
+          storyId: updatedStory.id,
+          type: 'update_story'
+        });
+      }
+    }
+
+    res.json(updatedStory);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -1347,7 +1473,21 @@ app.post('/api/chapters', async (req, res) => {
       VALUES ($1, $2, $3, $4, 'published', $5)
       RETURNING *
     `, [story_id, title || 'Nuovo Capitolo', content || '', order_index || 1, defaultImage]);
-    res.json(result.rows[0]);
+    const newChapter = result.rows[0];
+
+    const storyRes = await pool.query('SELECT * FROM stories WHERE id = $1', [story_id]);
+    const story = storyRes.rows[0];
+
+    if (story && story.status === 'published' && newChapter.status === 'published') {
+      triggerNotifications({
+        senderId: story.author_id,
+        storyId: story.id,
+        chapterId: newChapter.id,
+        type: 'new_chapter'
+      });
+    }
+
+    res.json(newChapter);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -1360,6 +1500,9 @@ app.put('/api/chapters/:id', async (req, res) => {
   // Se image_url è vuota o non fornita, mantieni quella esistente (COALESCE gestisce null)
   const imageToSave = (image_url && image_url.trim() !== '') ? image_url : null;
   try {
+    const oldChapterRes = await pool.query('SELECT * FROM chapters WHERE id = $1', [req.params.id]);
+    const oldChapter = oldChapterRes.rows[0];
+
     const result = await pool.query(`
       UPDATE chapters
       SET title = COALESCE($1, title),
@@ -1369,7 +1512,32 @@ app.put('/api/chapters/:id', async (req, res) => {
       WHERE id = $5
       RETURNING *
     `, [title, content, status, imageToSave, req.params.id]);
-    res.json(result.rows[0]);
+    const updatedChapter = result.rows[0];
+
+    if (oldChapter && updatedChapter) {
+      const storyRes = await pool.query('SELECT * FROM stories WHERE id = $1', [updatedChapter.story_id]);
+      const story = storyRes.rows[0];
+
+      if (story && story.status === 'published') {
+        if (oldChapter.status === 'draft' && updatedChapter.status === 'published') {
+          triggerNotifications({
+            senderId: story.author_id,
+            storyId: story.id,
+            chapterId: updatedChapter.id,
+            type: 'new_chapter'
+          });
+        } else if (oldChapter.status === 'published' && updatedChapter.status === 'published') {
+          triggerNotifications({
+            senderId: story.author_id,
+            storyId: story.id,
+            chapterId: updatedChapter.id,
+            type: 'update_chapter'
+          });
+        }
+      }
+    }
+
+    res.json(updatedChapter);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -1387,7 +1555,59 @@ app.delete('/api/chapters/:id', async (req, res) => {
   }
 });
 
+// ── NOTIFICATIONS ENDPOINTS ──
+
+app.get('/api/notifications/:userId', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        n.id, n.user_id, n.sender_id, n.story_id, n.chapter_id, n.type, n.message, n.is_read, n.created_at,
+        u.username as sender_username, u.avatar_url as sender_avatar,
+        s.title as story_title, s.image_url as story_image
+      FROM notifications n
+      JOIN users u ON n.sender_id = u.id
+      LEFT JOIN stories s ON n.story_id = s.id
+      WHERE n.user_id = $1
+      ORDER BY n.created_at DESC
+    `, [req.params.userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE notifications
+      SET is_read = TRUE
+      WHERE id = $1
+      RETURNING *
+    `, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Notification not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/notifications/user/:userId/read-all', async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE notifications
+      SET is_read = TRUE
+      WHERE user_id = $1
+    `, [req.params.userId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-})
+});
 

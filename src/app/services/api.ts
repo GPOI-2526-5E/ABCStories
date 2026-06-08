@@ -235,5 +235,19 @@ export class Api {
   search(query: string) {
     return this.http.get<{ stories: any[], authors: any[], genres: string[] }>(`${this.apiUrl}/api/search?q=${query}`);
   }
+
+  // ═══════════════ NOTIFICATIONS ═══════════════
+
+  getNotifications(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/notifications/${userId}`);
+  }
+
+  markNotificationAsRead(id: string) {
+    return this.http.put<any>(`${this.apiUrl}/api/notifications/${id}/read`, {});
+  }
+
+  markAllNotificationsAsRead(userId: string) {
+    return this.http.put<any>(`${this.apiUrl}/api/notifications/user/${userId}/read-all`, {});
+  }
 }
 

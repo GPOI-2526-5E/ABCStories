@@ -1,0 +1,101 @@
+<app-navbar></app-navbar>
+
+<div class="notifications-layout">
+  <main class="notifications-main">
+    <div class="notifications-card glass">
+      
+      <!-- Header del Centro Notifiche -->
+      <div class="card-header-section">
+        <div class="header-titles">
+          <h1 class="page-title">Centro Notifiche</h1>
+          <p class="page-sub">Rimani aggiornato sulle novità degli autori che segui e delle tue storie preferite</p>
+        </div>
+        
+        <button *ngIf="unreadCount > 0" class="btn-read-all" (click)="markAllAsRead()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Segna tutte come lette
+        </button>
+      </div>
+
+      <!-- Filtri -->
+      <div class="filters-row">
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'all'" (click)="setFilter('all')">
+          Tutte <span class="count-badge">{{ notifications.length }}</span>
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'unread'" (click)="setFilter('unread')">
+          Non lette <span class="count-badge count-badge--unread" [class.count-badge--zero]="unreadCount === 0">{{ unreadCount }}</span>
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'likes'" (click)="setFilter('likes')">
+          Mi piace <span class="count-badge">{{ likesCount }}</span>
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'bookmarks'" (click)="setFilter('bookmarks')">
+          Preferiti <span class="count-badge">{{ bookmarksCount }}</span>
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'authors'" (click)="setFilter('authors')">
+          Autori seguiti <span class="count-badge">{{ authorsCount }}</span>
+        </button>
+      </div>
+
+      <!-- Lista Notifiche -->
+      <div class="notifications-list">
+        
+        <!-- Loading state -->
+        <div *ngIf="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Caricamento notifiche...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && filteredNotifications.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <h3>Tutto tranquillo qui</h3>
+          <p *ngIf="filter === 'all'">Non hai ancora ricevuto nessuna notifica. Le notifiche appariranno qui quando gli autori che segui pubblicheranno nuove storie o capitoli!</p>
+          <p *ngIf="filter === 'unread'">Non hai notifiche non lette. Ottimo lavoro!</p>
+        </div>
+
+        <!-- Notifiche Effettive -->
+        <div *ngIf="!loading" class="notifications-stack">
+          <div *ngFor="let n of filteredNotifications" 
+               class="notification-item" 
+               [class.notification-item--unread]="!n.is_read"
+               (click)="onNotificationClick(n)">
+            
+            <!-- Avatar dell'autore -->
+            <div class="notification-avatar-container">
+              <img *ngIf="n.sender_avatar" [src]="n.sender_avatar" alt="Avatar" class="sender-avatar" />
+              <div *ngIf="!n.sender_avatar" class="sender-avatar-fallback">{{ getInitials(n.sender_username) }}</div>
+              
+              <!-- Badge del Tipo di Notifica -->
+              <span class="type-badge" [attr.data-type]="n.type">
+                {{ getNotificationIcon(n.type) }}
+              </span>
+            </div>
+
+            <!-- Contenuto della Notifica -->
+            <div class="notification-body">
+              <p class="notification-message">{{ n.message }}</p>
+              <span class="notification-time">{{ formatTimeAgo(n.created_at) }}</span>
+            </div>
+
+            <!-- Azioni veloci sulla notifica -->
+            <div class="notification-actions">
+              <!-- Bottone per segnare come letta -->
+              <button *ngIf="!n.is_read" class="action-btn-check" (click)="markAsRead(n, $event)" title="Segna come letta">
+                <span class="dot-unread"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>

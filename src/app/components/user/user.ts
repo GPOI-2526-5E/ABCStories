@@ -231,6 +231,11 @@ export class User implements OnInit {
     });
   }
 
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/']);
+  }
+
   saveSettings(): void {
     this.themeService.setTheme(this.settings.tema);
     

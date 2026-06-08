@@ -16,11 +16,125 @@ nav {
   .nav-link,
   .nav-link span,
   .link,
-  .link span,
-  .nav-scrivi-btn {
+  .link span {
     color: var(--text-primary) !important;
   }
 }
+
+// ═══════════════ SEZIONE DESTRA AGGIORNATA ═══════════════
+
+// 1. PULSANTE SCRIVI AGGIORNATO (Testo più grande ed estetica Premium)
+.nav-scrivi-btn {
+  background: linear-gradient(135deg, #ffd954 0%, #f08870 100%) !important;
+  color: #12121e !important;
+  font-weight: 700;
+  font-size: 17px; // Incrementato da 14.5px a 16px per risaltare maggiormente
+  padding: 10px 26px;
+  border-radius: 50px;
+  border: none;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(240, 136, 112, 0.25);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  span {
+    color: #12121e !important;
+    font-weight: 700;
+    font-size: 16px; // Uniformato a 16px
+  }
+
+  .write-icon {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(240, 136, 112, 0.45);
+    filter: brightness(1.03);
+
+    .write-icon {
+      transform: rotate(-10deg) scale(1.1);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 2. ICONE NUDE CON ANIMAZIONE TRANSLATE DI "SCRIVI" E DIMENSIONI MAGGIORATE
+.nav-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // Utilizza la stessa identica curva elastica e tempo di transizione del pulsante scrivi
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+
+  &:hover {
+    transform: translateY(-2px) !important; // Stessa identica animazione di sollevamento del tasto scrivi
+  }
+
+  // Dimensione dell'icona notifica maggiorata (da 28px a 34px)
+  .nav-icon-img {
+    width: 34px !important;
+    height: 34px !important;
+    object-fit: contain;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: block;
+  }
+
+  // Dimensione dell'immagine avatar maggiorata (da 32px a 38px)
+  .nav-avatar-img {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    width: 38px !important;
+    height: 38px !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: block;
+  }
+
+  // Dimensione del fallback avatar con iniziali maggiorato coerentemente
+  .nav-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd954, #f08870);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+  }
+
+  // Punto di notifica riposizionato per adattarsi alla nuova dimensione
+  .nav-notif-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #e05a30;
+    border-radius: 50%;
+    border: 1.5px solid var(--tropicalTheme, #fff);
+  }
+}
+
+// ───────────────────────────────────────────────────────────────
 
 .mn-root {
 
@@ -35,7 +149,6 @@ nav {
   }
 }
 
-// ── Search Suggestions Dropdown ───────────────────────────────
 .container-input,
 .mn-search {
   position: relative !important;
@@ -59,7 +172,6 @@ nav {
     0 15px 35px rgba(0, 0, 0, 0.12),
     inset 0 1px 1px rgba(255, 255, 255, 0.45);
 
-  // Custom scrollbar
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -153,7 +265,7 @@ nav {
     height: 38px;
     border-radius: 8px;
     background: rgba(var(--glass-rgb, 255, 255, 255), 0.35);
-    border: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.5);
+    border: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.32);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -190,7 +302,6 @@ nav {
   }
 }
 
-// Override mega-menu left side list item hover to remove the grey background
 .mega-left {
   .mega-item:hover {
     background: transparent !important;
@@ -202,7 +313,6 @@ nav {
   }
 }
 
-// ── Mega Dropdown Book Cards Styling ─────────────────────────────
 .mega-right {
   .image-slider {
     mask-image: none !important;
@@ -277,4 +387,9 @@ nav {
       }
     }
   }
+}
+
+.mn-icon-btn img {
+  width: 18px;
+  height: 18px;
 }
