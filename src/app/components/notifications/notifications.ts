@@ -135,10 +135,19 @@ export class Notifications implements OnInit {
   onNotificationClick(notification: any): void {
     this.markAsRead(notification);
 
+    if (!notification.story_id) {
+      // La storia è stata eliminata, segna solo come letto senza reindirizzare
+      return;
+    }
+
     if (notification.type === 'new_story' || notification.type === 'update_story') {
       this.router.navigate(['/book', notification.story_id]);
     } else if (notification.type === 'new_chapter' || notification.type === 'update_chapter') {
-      this.router.navigate(['/reader', notification.story_id, notification.chapter_id]);
+      if (notification.chapter_id) {
+        this.router.navigate(['/reader', notification.story_id, notification.chapter_id]);
+      } else {
+        this.router.navigate(['/book', notification.story_id]);
+      }
     }
   }
 

@@ -335,10 +335,13 @@
             <span class="author-card__name">{{ author.name }}</span>
             <span class="author-card__desc">{{ author.description || 'Nessuna biografia disponibile.' }}</span>
           </div>
-          <div class="author-card__stories">
-            <strong>{{ author.stories }}</strong>
-            <span>storie</span>
-          </div>
+          <button class="notifications-toggle-btn"
+                  [class.notifications-disabled]="author.enable_notifications === false"
+                  [title]="author.enable_notifications !== false ? 'Disattiva notifiche' : 'Attiva notifiche'"
+                  (click)="$event.stopPropagation(); toggleNotifications(author)"
+                  style="border: none !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 !important; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: 0 20px;">
+            <img src="assets/Icone/notifica.png" alt="Notifiche" style="width: 26px; height: 26px; object-fit: contain; transition: all 0.3s;" />
+          </button>
           <button class="follow-btn follow-btn--active" (click)="$event.stopPropagation(); toggleFollow(author)">
             Unfollow
           </button>
@@ -349,104 +352,26 @@
     <!-- ── IMPOSTAZIONI ── -->
     <section class="section section--padded" *ngIf="activeSection() === 'impostazioni'">
       <h2 class="section-title">Impostazioni</h2>
-      <p class="section-sub">Gestisci il tuo account e le preferenze ⚙️</p>
+      <p class="section-sub">
+        Le modifiche vengono salvate automaticamente ⚡
+        <span *ngIf="savedFeedback" class="save-toast-indicator">✅ Salvato!</span>
+      </p>
 
       <div class="settings-stack">
 
-        <!-- Info personali -->
+        <!-- Dati Account -->
         <div class="settings-card glass">
-          <h3 class="settings-card__title">Informazioni personali</h3>
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Nome utente</span>
-              <small>Il tuo nome visualizzato sulla piattaforma</small>
-            </div>
-            <input class="setting-input" type="text" [(ngModel)]="settings.nome" />
-          </div>
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Handle</span>
-              <small>Il tuo @identificativo univoco</small>
-            </div>
-            <input class="setting-input" type="text" [(ngModel)]="settings.handle" />
-          </div>
-          <div class="setting-row">
+          <h3 class="settings-card__title">Dati Account</h3>
+          <div class="setting-row setting-row--last">
             <div class="setting-row__label">
               <span>Email</span>
-              <small>Email associata all'account</small>
+              <small>L'indirizzo email associato al tuo account (non modificabile)</small>
             </div>
-            <input class="setting-input" type="email" [(ngModel)]="settings.email" />
-          </div>
-          <div class="setting-row setting-row--last">
-            <div class="setting-row__label">
-              <span>Posizione</span>
-              <small>Città o paese (facoltativo)</small>
-            </div>
-            <input class="setting-input" type="text" [(ngModel)]="settings.posizione" />
+            <input class="setting-input" type="text" [value]="settings.email" readonly style="opacity: 0.7; cursor: not-allowed;" />
           </div>
         </div>
 
-        <!-- Link Social -->
-        <div class="settings-card glass">
-          <h3 class="settings-card__title">Link Social</h3>
-          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem; text-align: left;">Collega i tuoi
-            profili social per farti trovare dai lettori.</p>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Instagram</span>
-              <small>Link al tuo profilo</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://instagram.com/..."
-              [(ngModel)]="settings.social_instagram" />
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>X (Twitter)</span>
-              <small>Link al tuo profilo</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://x.com/..."
-              [(ngModel)]="settings.social_twitter" />
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Facebook</span>
-              <small>Link alla tua pagina</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://facebook.com/..."
-              [(ngModel)]="settings.social_facebook" />
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>TikTok</span>
-              <small>Link al tuo profilo</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://tiktok.com/..."
-              [(ngModel)]="settings.social_tiktok" />
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>LinkedIn</span>
-              <small>Link al tuo profilo</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://linkedin.com/in/..."
-              [(ngModel)]="settings.social_linkedin" />
-          </div>
-
-          <div class="setting-row setting-row--last">
-            <div class="setting-row__label">
-              <span>Sito Web</span>
-              <small>Il tuo sito personale</small>
-            </div>
-            <input class="setting-input" type="url" placeholder="https://..." [(ngModel)]="settings.social_website" />
-          </div>
-        </div>
-
-        <!-- Tema -->
+        <!-- Aspetto -->
         <div class="settings-card glass">
           <h3 class="settings-card__title">Aspetto</h3>
           <div class="setting-row setting-row--last">
@@ -454,7 +379,7 @@
               <span>Tema dell'applicazione</span>
               <small>Scegli il tuo stile preferito</small>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.tema">
+            <select class="setting-input" [(ngModel)]="settings.tema" (change)="themeService.setTheme(settings.tema)" (ngModelChange)="saveSettings()">
               <option value="tropical">Tropicale (Predefinito)</option>
               <option value="dark">Scuro (Nero)</option>
               <option value="light">Chiaro</option>
@@ -463,47 +388,71 @@
           </div>
         </div>
 
-        <!-- Letture Consigliate (Autore) -->
+        <!-- Preferenze di Lettura -->
         <div class="settings-card glass">
-          <h3 class="settings-card__title">Letture Consigliate</h3>
-          <p class="section-sub" style="font-size: 0.9rem; margin-bottom: 1rem; text-align: left;">Seleziona fino a 10
-            storie da raccomandare sul tuo profilo pubblico.</p>
-
-          <div class="setting-row"
-            style="flex-direction: column; align-items: flex-start; gap: 0.5rem; position: relative;">
-            <div class="setting-row__label" style="width: 100%;">
-              <span>Cerca una storia</span>
+          <h3 class="settings-card__title">Preferenze di Lettura</h3>
+          <p style="font-size: 0.85rem; opacity: 0.7; margin-top: -12px; margin-bottom: 16px; color: var(--text-muted);">
+            Queste preferenze verranno applicate durante la lettura dei capitoli nel lettore (reader.html).
+          </p>
+          
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Font di lettura</span>
+              <small>Scegli il tipo di carattere per le storie</small>
             </div>
-            <input class="setting-input" type="text" [(ngModel)]="searchStoryText" (focus)="showStoryDropdown = true"
-              placeholder="Digita il titolo..." style="width: 100%;" />
-
-            <div class="dropdown-list glass" *ngIf="showStoryDropdown && searchStoryText"
-              style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; max-height: 200px; overflow-y: auto;">
-              <div *ngFor="let s of filteredStoriesForSearch" class="dropdown-item" (click)="addRecommendedStory(s)"
-                style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <strong>{{ s.title }}</strong> - <small>{{ s.author_name || s.author_id }}</small>
-              </div>
-              <div *ngIf="filteredStoriesForSearch.length === 0" style="padding: 0.5rem; color: #888;">
-                Nessuna storia trovata
-              </div>
-            </div>
+            <select class="setting-input" [(ngModel)]="settings.reading_font" (ngModelChange)="saveSettings()">
+              <option value="sans-serif">Sans-serif (Lineare)</option>
+              <option value="serif">Serif (Grazie)</option>
+              <option value="monospace">Monospace (Spazio Fisso)</option>
+              <option value="opendyslexic">OpenDyslexic (Alta Leggibilità)</option>
+            </select>
           </div>
 
-          <div class="setting-row setting-row--last" style="flex-direction: column; align-items: flex-start;">
-            <div class="setting-row__label" style="margin-bottom: 1rem;">
-              <span>Storie selezionate ({{ recommendedStoryIds.length }}/10)</span>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Dimensione carattere</span>
+              <small>Regola la grandezza del testo</small>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
-              <div *ngFor="let s of recommendedStoriesDetails"
-                style="display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 1rem; background: rgba(255,255,255,0.08); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                <span style="font-size: 0.9rem;"><strong>{{ s.title }}</strong></span>
-                <button (click)="removeRecommendedStory(s.id)"
-                  style="background: none; border: none; color: #ff5555; cursor: pointer; font-weight: 500;">✕
-                  Rimuovi</button>
-              </div>
-              <div *ngIf="recommendedStoryIds.length === 0" style="color: #888; font-size: 0.9rem;">Nessuna storia
-                raccomandata.</div>
+            <select class="setting-input" [(ngModel)]="settings.reading_font_size" (ngModelChange)="saveSettings()">
+              <option value="small">Piccolo</option>
+              <option value="medium">Medio</option>
+              <option value="large">Grande</option>
+              <option value="x-large">Molto Grande</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Modalità di lettura</span>
+              <small>Scegli come scorrere tra i capitoli (Continuo verticale vs Pagine ebook)</small>
             </div>
+            <select class="setting-input" [(ngModel)]="settings.reading_mode" (ngModelChange)="saveSettings()">
+              <option value="scroll">Continuo (Scroll)</option>
+              <option value="page">Pagine (Page-by-page)</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Larghezza layout</span>
+              <small>Larghezza massima dell'area del testo</small>
+            </div>
+            <select class="setting-input" [(ngModel)]="settings.reading_width" (ngModelChange)="saveSettings()">
+              <option value="narrow">Stretto</option>
+              <option value="medium">Medio</option>
+              <option value="wide">Largo</option>
+            </select>
+          </div>
+
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Filtro contenuti sensibili</span>
+              <small>Nascondi storie o capitoli contrassegnati come sensibili/NSFW</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.sensitive_filter" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
           </div>
         </div>
 
@@ -516,7 +465,7 @@
               <small>Ricevi notifiche per i commenti alle tue storie</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.commenti" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.commenti" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -526,7 +475,7 @@
               <small>Avviso quando qualcuno inizia a seguirti</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.seguaci" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.seguaci" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -536,7 +485,7 @@
               <small>Notifica quando gli autori seguiti pubblicano</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -546,7 +495,7 @@
               <small>Ricevi i consigli di lettura mensili</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.newsletter" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.newsletter" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -561,7 +510,7 @@
               <small>Il tuo profilo è visibile a tutti gli utenti</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.profiloPubblico" />
+              <input type="checkbox" [(ngModel)]="settings.privacy.profiloPubblico" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -571,7 +520,7 @@
               <small>Rendi visibili i tuoi libri preferiti</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.mostraLibreria" />
+              <input type="checkbox" [(ngModel)]="settings.privacy.mostraLibreria" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -581,7 +530,7 @@
               <small>Consenti a Google di indicizzare il tuo profilo</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.indicizza" />
+              <input type="checkbox" [(ngModel)]="settings.privacy.indicizza" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -589,9 +538,7 @@
 
         <!-- Actions -->
         <div class="settings-actions">
-          <button class="btn-save" (click)="saveSettings()">
-            {{ savedFeedback ? '✅ Salvato!' : '💾 Salva modifiche' }}
-          </button>
+          <button class="btn-logout" (click)="restoreDefaults()">🔄 Ripristina predefiniti</button>
           <button class="btn-logout" (click)="logout()">🚪 Esci</button>
           <button class="btn-danger">🗑️ Elimina account</button>
         </div>

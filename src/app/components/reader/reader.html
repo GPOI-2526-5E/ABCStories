@@ -80,12 +80,29 @@
       <p class="reader-chapter-author">{{ chapter.story_title }} · {{ chapter.author_name }}</p>
     </div>
 
-    <article class="reader-article">
+    <article class="reader-article" [ngClass]="readingWidthClass()">
+      <div class="reader-page-card glass" [class.page-mode-card]="isPageMode()">
+        
+        <div class="reader-text" 
+             #readerText
+             [ngClass]="[readingFontClass(), readingFontSizeClass(), readingModeClass()]"
+             (scroll)="onReaderTextScroll($event)">
+          @for (para of paragraphs; track $index) {
+          <p>{{ para }}</p>
+          }
+        </div>
 
-      <div class="reader-text">
-        @for (para of paragraphs; track $index) {
-        <p>{{ para }}</p>
-        }
+        <!-- Controlli di pagina per la modalità orizzontale a pagine -->
+        <div class="page-controls" *ngIf="isPageMode()">
+          <button class="page-arrow page-arrow--left" [disabled]="currentPage() === 1" (click)="scrollPage(-1)" aria-label="Pagina precedente">
+            ‹
+          </button>
+          <span class="page-indicator">Pagina {{ currentPage() }} di {{ totalPages() }}</span>
+          <button class="page-arrow page-arrow--right" [disabled]="currentPage() === totalPages()" (click)="scrollPage(1)" aria-label="Pagina successiva">
+            ›
+          </button>
+        </div>
+
       </div>
     </article>
 

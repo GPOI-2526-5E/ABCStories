@@ -35,9 +35,18 @@
         <p class="author-bio missing-bio" *ngIf="!author.bio">Questo autore preferisce mantenere un alone di mistero.
         </p>
 
-        <div class="identity-actions" *ngIf="!isCurrentUser">
+        <div class="identity-actions" *ngIf="!isCurrentUser" style="display: flex; align-items: center; gap: 12px; justify-content: center; margin-top: 15px;">
           <button class="action-follow-btn" [class.action-follow-btn--active]="isFollowing" (click)="toggleFollow()">
             {{ isFollowing ? '✓ Seguendo' : '+ Segui' }}
+          </button>
+          
+          <button *ngIf="isFollowing" 
+                  class="notifications-toggle-btn"
+                  [class.notifications-disabled]="!notificationsEnabled"
+                  [title]="notificationsEnabled ? 'Disattiva notifiche' : 'Attiva notifiche'" 
+                  (click)="toggleNotifications()"
+                  style="border: none !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 !important; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <img src="assets/Icone/notifica.png" alt="Notifiche" style="width: 26px; height: 26px; object-fit: contain; transition: all 0.3s;" />
           </button>
         </div>
       </div>

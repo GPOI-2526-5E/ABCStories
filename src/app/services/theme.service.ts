@@ -15,6 +15,14 @@ export class ThemeService {
   constructor() {
     this.loadTheme();
 
+    // Sincronizza il tema con le impostazioni dell'utente loggato
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user && (user as any).theme) {
+        this.currentTheme.set((user as any).theme);
+      }
+    });
+
     // Effect to apply theme to document root whenever it changes
     effect(() => {
       const theme = this.currentTheme();

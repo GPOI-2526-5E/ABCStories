@@ -7,6 +7,26 @@ export interface AuthUser {
   username: string;
   avatar_url?: string;
   bio?: string;
+  location?: string;
+  social_instagram?: string;
+  social_twitter?: string;
+  social_facebook?: string;
+  social_website?: string;
+  social_tiktok?: string;
+  social_linkedin?: string;
+  theme?: string;
+  notifiche_commenti?: boolean;
+  notifiche_seguaci?: boolean;
+  notifiche_aggiornamenti?: boolean;
+  notifiche_newsletter?: boolean;
+  privacy_profilo_pubblico?: boolean;
+  privacy_mostra_libreria?: boolean;
+  privacy_indicizza?: boolean;
+  reading_font?: string;
+  reading_font_size?: string;
+  reading_mode?: string;
+  reading_width?: string;
+  sensitive_filter?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -105,6 +105,11 @@ export class User implements OnInit {
     tema: 'tropical' as Theme,
     notifiche: { commenti: true, seguaci: true, aggiornamenti: false, newsletter: true },
     privacy: { profiloPubblico: true, mostraLibreria: false, indicizza: true },
+    reading_font: 'sans-serif',
+    reading_font_size: 'medium',
+    reading_mode: 'scroll',
+    reading_width: 'medium',
+    sensitive_filter: false
   };
 
   // Letture Consigliate (Author setting)
@@ -142,7 +147,6 @@ export class User implements OnInit {
 
       this.interactions.loadUserInteractions().subscribe();
 
-      // Fetch user profile from DB to get fresh data
       this.api.getUserProfile(u.id).subscribe({
         next: (profile) => {
           this.fullProfile = profile;
@@ -155,6 +159,22 @@ export class User implements OnInit {
           if (profile.social_website) this.settings.social_website = profile.social_website;
           if (profile.social_tiktok) this.settings.social_tiktok = profile.social_tiktok;
           if (profile.social_linkedin) this.settings.social_linkedin = profile.social_linkedin;
+          
+          if (profile.theme) this.settings.tema = profile.theme;
+          if (profile.notifiche_commenti !== undefined && profile.notifiche_commenti !== null) this.settings.notifiche.commenti = profile.notifiche_commenti;
+          if (profile.notifiche_seguaci !== undefined && profile.notifiche_seguaci !== null) this.settings.notifiche.seguaci = profile.notifiche_seguaci;
+          if (profile.notifiche_aggiornamenti !== undefined && profile.notifiche_aggiornamenti !== null) this.settings.notifiche.aggiornamenti = profile.notifiche_aggiornamenti;
+          if (profile.notifiche_newsletter !== undefined && profile.notifiche_newsletter !== null) this.settings.notifiche.newsletter = profile.notifiche_newsletter;
+          if (profile.privacy_profilo_pubblico !== undefined && profile.privacy_profilo_pubblico !== null) this.settings.privacy.profiloPubblico = profile.privacy_profilo_pubblico;
+          if (profile.privacy_mostra_libreria !== undefined && profile.privacy_mostra_libreria !== null) this.settings.privacy.mostraLibreria = profile.privacy_mostra_libreria;
+          if (profile.privacy_indicizza !== undefined && profile.privacy_indicizza !== null) this.settings.privacy.indicizza = profile.privacy_indicizza;
+
+          if (profile.reading_font) this.settings.reading_font = profile.reading_font;
+          if (profile.reading_font_size) this.settings.reading_font_size = profile.reading_font_size;
+          if (profile.reading_mode) this.settings.reading_mode = profile.reading_mode;
+          if (profile.reading_width) this.settings.reading_width = profile.reading_width;
+          if (profile.sensitive_filter !== undefined && profile.sensitive_filter !== null) this.settings.sensitive_filter = profile.sensitive_filter;
+
           this.cdr.detectChanges();
         },
         error: (err) => console.warn('Errore caricamento profilo:', err)
@@ -231,6 +251,20 @@ export class User implements OnInit {
     });
   }
 
+  toggleNotifications(author: any): void {
+    const u = this.currentUser();
+    if (!u) return;
+
+    const nextState = author.enable_notifications === false;
+    this.api.toggleFollowNotifications(u.id, author.id, nextState).subscribe({
+      next: () => {
+        author.enable_notifications = nextState;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Errore modifica notifiche autore', err)
+    });
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
@@ -257,7 +291,20 @@ export class User implements OnInit {
         social_facebook: this.settings.social_facebook || null,
         social_website: this.settings.social_website || null,
         social_tiktok: this.settings.social_tiktok || null,
-        social_linkedin: this.settings.social_linkedin || null
+        social_linkedin: this.settings.social_linkedin || null,
+        theme: this.settings.tema,
+        notifiche_commenti: this.settings.notifiche.commenti,
+        notifiche_seguaci: this.settings.notifiche.seguaci,
+        notifiche_aggiornamenti: this.settings.notifiche.aggiornamenti,
+        notifiche_newsletter: this.settings.notifiche.newsletter,
+        privacy_profilo_pubblico: this.settings.privacy.profiloPubblico,
+        privacy_mostra_libreria: this.settings.privacy.mostraLibreria,
+        privacy_indicizza: this.settings.privacy.indicizza,
+        reading_font: this.settings.reading_font,
+        reading_font_size: this.settings.reading_font_size,
+        reading_mode: this.settings.reading_mode,
+        reading_width: this.settings.reading_width,
+        sensitive_filter: this.settings.sensitive_filter
       }).subscribe({
         next: (updatedUser) => {
           console.log('Profilo social e dettagli aggiornati:', updatedUser);
@@ -271,6 +318,24 @@ export class User implements OnInit {
 
     this.savedFeedback = true;
     setTimeout(() => (this.savedFeedback = false), 2000);
+  }
+
+  restoreDefaults(): void {
+    this.settings.tema = 'tropical';
+    this.settings.reading_font = 'sans-serif';
+    this.settings.reading_font_size = 'medium';
+    this.settings.reading_mode = 'scroll';
+    this.settings.reading_width = 'medium';
+    this.settings.sensitive_filter = false;
+    this.settings.notifiche.commenti = true;
+    this.settings.notifiche.seguaci = true;
+    this.settings.notifiche.aggiornamenti = false;
+    this.settings.notifiche.newsletter = true;
+    this.settings.privacy.profiloPubblico = true;
+    this.settings.privacy.mostraLibreria = false;
+    this.settings.privacy.indicizza = true;
+
+    this.saveSettings();
   }
 
   onAvatarImageSelected(event: Event) {

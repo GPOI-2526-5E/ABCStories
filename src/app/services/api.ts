@@ -185,7 +185,15 @@ export class Api {
   }
 
   checkFollowStatus(followerId: string, followedId: string) {
-    return this.http.get<{ following: boolean }>(`${this.apiUrl}/api/follows/check/${followerId}/${followedId}`);
+    return this.http.get<{ following: boolean, enable_notifications?: boolean }>(`${this.apiUrl}/api/follows/check/${followerId}/${followedId}`);
+  }
+
+  toggleFollowNotifications(followerId: string, followedId: string, enableNotifications: boolean) {
+    return this.http.put<{ success: boolean }>(`${this.apiUrl}/api/follows/notifications`, {
+      follower_id: followerId,
+      followed_id: followedId,
+      enable_notifications: enableNotifications
+    });
   }
 
   getAuthorStories(authorId: string) {

@@ -34,6 +34,7 @@ export class AuthorDetail implements OnInit {
 
   isFollowing = false;
   isCurrentUser = false;
+  notificationsEnabled = true;
 
   // Followers Info
   followersList: any[] = [];
@@ -213,11 +214,11 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error fetching recommended', err)
       });
 
-      // Check follow status
       if (currentUser && !this.isCurrentUser) {
         this.api.checkFollowStatus(currentUser.id, this.authorId).subscribe({
           next: (data) => {
             this.isFollowing = data.following;
+            this.notificationsEnabled = data.enable_notifications !== false;
             this.cdr.detectChanges();
           },
           error: (err) => console.error('Error checking follow status', err)
@@ -244,6 +245,7 @@ export class AuthorDetail implements OnInit {
       this.api.followUser(currentUser.id, this.authorId).subscribe({
         next: () => {
           this.isFollowing = true;
+          this.notificationsEnabled = true;
           this.followersCount += 1;
 
           // Aggiungi immediatamente l'utente corrente alla lista
@@ -263,6 +265,20 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error following', err)
       });
     }
+  }
+
+  toggleNotifications() {
+    const currentUser = this.auth.currentUser();
+    if (!currentUser || !this.authorId || !this.isFollowing) return;
+
+    const nextState = !this.notificationsEnabled;
+    this.api.toggleFollowNotifications(currentUser.id, this.authorId, nextState).subscribe({
+      next: () => {
+        this.notificationsEnabled = nextState;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error toggling notifications', err)
+    });
   }
 
   private preloadImage(url: string) {

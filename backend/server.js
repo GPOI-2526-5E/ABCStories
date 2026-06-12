@@ -70,8 +70,8 @@ const pool = process.env.DATABASE_URL
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
-        story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
-        chapter_id UUID REFERENCES chapters(id) ON DELETE CASCADE,
+        story_id UUID REFERENCES stories(id) ON DELETE SET NULL,
+        chapter_id UUID REFERENCES chapters(id) ON DELETE SET NULL,
         type VARCHAR(50) NOT NULL,
         message TEXT NOT NULL,
         is_read BOOLEAN DEFAULT FALSE,
@@ -79,6 +79,29 @@ const pool = process.env.DATABASE_URL
       );
     `);
     console.log('[DATABASE] Tabella notifications creata o già esistente.');
+
+    await pool.query(`
+      ALTER TABLE follows ADD COLUMN IF NOT EXISTS enable_notifications BOOLEAN DEFAULT TRUE;
+    `);
+    console.log('[DATABASE] Colonna enable_notifications verificata/creata in tabella follows.');
+
+    await pool.query(`
+      ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'tropical',
+        ADD COLUMN IF NOT EXISTS notifiche_commenti BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_seguaci BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_aggiornamenti BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS notifiche_newsletter BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS privacy_profilo_pubblico BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS privacy_mostra_libreria BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS privacy_indicizza BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS reading_font VARCHAR(50) DEFAULT 'sans-serif',
+        ADD COLUMN IF NOT EXISTS reading_font_size VARCHAR(50) DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS reading_mode VARCHAR(50) DEFAULT 'scroll',
+        ADD COLUMN IF NOT EXISTS reading_width VARCHAR(50) DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS sensitive_filter BOOLEAN DEFAULT FALSE;
+    `);
+    console.log('[DATABASE] Colonne impostazioni verificate/create in tabella users.');
   } catch (err) {
     console.error('[DATABASE ERROR] Errore durante la creazione delle tabelle iniziali:', err);
   }
@@ -116,13 +139,13 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
 
     if (type === 'new_story') {
       message = `${senderUsername} ha pubblicato una nuova storia: "${storyTitle}"`;
-      recipientQuery = 'SELECT DISTINCT follower_id AS user_id FROM follows WHERE followed_id = $1 AND follower_id != $1';
+      recipientQuery = 'SELECT DISTINCT follower_id AS user_id FROM follows WHERE followed_id = $1 AND enable_notifications = TRUE AND follower_id != $1';
       queryParams = [senderId];
     } else if (type === 'update_story') {
       message = `${senderUsername} ha modificato la storia: "${storyTitle}"`;
       recipientQuery = `
         SELECT DISTINCT user_id FROM (
-          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1 AND enable_notifications = TRUE
           UNION
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
@@ -134,7 +157,7 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
       message = `${senderUsername} ha aggiunto un nuovo capitolo a "${storyTitle}": "${chapterTitle}"`;
       recipientQuery = `
         SELECT DISTINCT user_id FROM (
-          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1 AND enable_notifications = TRUE
           UNION
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
@@ -146,7 +169,7 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
       message = `${senderUsername} ha modificato il capitolo "${chapterTitle}" nella storia "${storyTitle}"`;
       recipientQuery = `
         SELECT DISTINCT user_id FROM (
-          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1
+          SELECT follower_id AS user_id FROM follows WHERE followed_id = $1 AND enable_notifications = TRUE
           UNION
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
@@ -229,6 +252,9 @@ app.get('/api/user/:id', async (req, res) => {
       SELECT 
         id, username, email, avatar_url, bio, location, website_url, created_at,
         social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
+        theme, notifiche_commenti, notifiche_seguaci, notifiche_aggiornamenti, notifiche_newsletter,
+        privacy_profilo_pubblico, privacy_mostra_libreria, privacy_indicizza,
+        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter,
         (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
       FROM users WHERE id = $1`, [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -247,6 +273,9 @@ app.post('/api/user/profile', async (req, res) => {
       SELECT 
         id, username, email, avatar_url, bio, location, website_url, created_at,
         social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
+        theme, notifiche_commenti, notifiche_seguaci, notifiche_aggiornamenti, notifiche_newsletter,
+        privacy_profilo_pubblico, privacy_mostra_libreria, privacy_indicizza,
+        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter,
         (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
       FROM users WHERE id = $1`, [id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -268,7 +297,20 @@ app.put('/api/user/:id', async (req, res) => {
     social_facebook, 
     social_website, 
     social_tiktok, 
-    social_linkedin 
+    social_linkedin,
+    theme,
+    notifiche_commenti,
+    notifiche_seguaci,
+    notifiche_aggiornamenti,
+    notifiche_newsletter,
+    privacy_profilo_pubblico,
+    privacy_mostra_libreria,
+    privacy_indicizza,
+    reading_font,
+    reading_font_size,
+    reading_mode,
+    reading_width,
+    sensitive_filter
   } = req.body;
   try {
     const result = await pool.query(`
@@ -283,8 +325,21 @@ app.put('/api/user/:id', async (req, res) => {
         social_facebook = $7,
         social_website = $8,
         social_tiktok = $9,
-        social_linkedin = $10
-      WHERE id = $11
+        social_linkedin = $10,
+        theme = COALESCE($11, theme),
+        notifiche_commenti = COALESCE($12, notifiche_commenti),
+        notifiche_seguaci = COALESCE($13, notifiche_seguaci),
+        notifiche_aggiornamenti = COALESCE($14, notifiche_aggiornamenti),
+        notifiche_newsletter = COALESCE($15, notifiche_newsletter),
+        privacy_profilo_pubblico = COALESCE($16, privacy_profilo_pubblico),
+        privacy_mostra_libreria = COALESCE($17, privacy_mostra_libreria),
+        privacy_indicizza = COALESCE($18, privacy_indicizza),
+        reading_font = COALESCE($19, reading_font),
+        reading_font_size = COALESCE($20, reading_font_size),
+        reading_mode = COALESCE($21, reading_mode),
+        reading_width = COALESCE($22, reading_width),
+        sensitive_filter = COALESCE($23, sensitive_filter)
+      WHERE id = $24
       RETURNING *
     `, [
       username || null,
@@ -297,6 +352,19 @@ app.put('/api/user/:id', async (req, res) => {
       social_website || null,
       social_tiktok || null,
       social_linkedin || null,
+      theme || null,
+      notifiche_commenti !== undefined ? notifiche_commenti : null,
+      notifiche_seguaci !== undefined ? notifiche_seguaci : null,
+      notifiche_aggiornamenti !== undefined ? notifiche_aggiornamenti : null,
+      notifiche_newsletter !== undefined ? notifiche_newsletter : null,
+      privacy_profilo_pubblico !== undefined ? privacy_profilo_pubblico : null,
+      privacy_mostra_libreria !== undefined ? privacy_mostra_libreria : null,
+      privacy_indicizza !== undefined ? privacy_indicizza : null,
+      reading_font || null,
+      reading_font_size || null,
+      reading_mode || null,
+      reading_width || null,
+      sensitive_filter !== undefined ? sensitive_filter : null,
       req.params.id
     ]);
     
@@ -1305,6 +1373,7 @@ app.get('/api/follows/:userId', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         u.id, u.username as name, u.email as handle, u.avatar_url, u.bio as description,
+        f.enable_notifications,
         (SELECT COUNT(*) FROM stories WHERE author_id = u.id AND status = 'published') as stories_count,
         (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) as followers_count,
         (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count
@@ -1324,10 +1393,35 @@ app.get('/api/follows/:userId', async (req, res) => {
 app.get('/api/follows/check/:followerId/:followedId', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT 1 FROM follows WHERE follower_id = $1 AND followed_id = $2',
+      'SELECT enable_notifications FROM follows WHERE follower_id = $1 AND followed_id = $2',
       [req.params.followerId, req.params.followedId]
     );
-    res.json({ following: result.rows.length > 0 });
+    if (result.rows.length > 0) {
+      res.json({ following: true, enable_notifications: result.rows[0].enable_notifications });
+    } else {
+      res.json({ following: false, enable_notifications: true });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Attiva/disattiva notifiche per un autore seguito
+app.put('/api/follows/notifications', async (req, res) => {
+  const { follower_id, followed_id, enable_notifications } = req.body;
+  try {
+    const result = await pool.query(`
+      UPDATE follows
+      SET enable_notifications = $1
+      WHERE follower_id = $2 AND followed_id = $3
+      RETURNING *
+    `, [enable_notifications, follower_id, followed_id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Follow relationship not found' });
+    }
+    res.json({ success: true, follow: result.rows[0] });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -1,6 +1,6 @@
 import {
   Component, OnInit, OnDestroy, Inject, PLATFORM_ID,
-  HostListener, signal, computed, ChangeDetectorRef
+  HostListener, signal, computed, ChangeDetectorRef, inject
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,6 +19,74 @@ export class Reader implements OnInit, OnDestroy {
   chapters: any[] = [];
   isLoading = true;
   error: string | null = null;
+
+  currentUser = inject(AuthService).currentUser;
+
+  readingFontClass = computed(() => {
+    const user = this.currentUser();
+    const font = (user as any)?.reading_font || 'sans-serif';
+    return `font-${font}`;
+  });
+
+  readingFontSizeClass = computed(() => {
+    const user = this.currentUser();
+    const size = (user as any)?.reading_font_size || 'medium';
+    return `size-${size}`;
+  });
+
+  readingWidthClass = computed(() => {
+    const user = this.currentUser();
+    const width = (user as any)?.reading_width || 'medium';
+    return `width-${width}`;
+  });
+
+  readingModeClass = computed(() => {
+    const user = this.currentUser();
+    return `mode-${(user as any)?.reading_mode || 'scroll'}`;
+  });
+
+  isPageMode = computed(() => {
+    const user = this.currentUser();
+    return (user as any)?.reading_mode === 'page';
+  });
+
+  currentPage = signal(1);
+  totalPages = signal(1);
+
+  updatePageCount(el: HTMLElement) {
+    if (!el) return;
+    const w = el.clientWidth;
+    const s = el.scrollWidth;
+    if (w > 0) {
+      this.totalPages.set(Math.max(1, Math.round(s / w)));
+      this.currentPage.set(Math.max(1, Math.round(el.scrollLeft / w) + 1));
+    }
+  }
+
+  scrollPage(direction: number) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const el = document.querySelector('.reader-text') as HTMLElement;
+    if (el) {
+      const w = el.clientWidth;
+      el.scrollBy({
+        left: direction * w,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  onReaderTextScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    this.updatePageCount(el);
+
+    const user = this.currentUser();
+    if ((user as any)?.reading_mode !== 'page') return;
+    
+    const scrolled = el.scrollLeft;
+    const total = el.scrollWidth - el.clientWidth;
+    const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+    this.scrollPercent.set(Math.min(100, pct));
+  }
 
   // Sidebar capitoli
   sidebarOpen = false;
@@ -79,6 +147,10 @@ export class Reader implements OnInit, OnDestroy {
         }
         // Recupera progresso salvato
         if (user) {
+          if ((user as any).reading_mode === 'page') {
+            this.isScrolled.set(true);
+            this.isPastTitle.set(true);
+          }
           this.api.getReadingProgress(user.id, data.story_id).subscribe({
             next: (prog) => {
               const me = prog.find((p: any) => p.chapter_id === chapterId);
@@ -88,6 +160,10 @@ export class Reader implements OnInit, OnDestroy {
         }
         if (isPlatformBrowser(this.platformId)) {
           setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 50);
+          setTimeout(() => {
+            const el = document.querySelector('.reader-text') as HTMLElement;
+            if (el) this.updatePageCount(el);
+          }, 300);
         }
         this.startSaveTimer();
       },
@@ -115,6 +191,13 @@ export class Reader implements OnInit, OnDestroy {
     const user = this.auth.currentUser();
     if (!user || !this.chapter) return;
     this.api.saveReadingProgress(user.id, this.chapter.id, this.scrollPercent()).subscribe();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const el = document.querySelector('.reader-text') as HTMLElement;
+    if (el) this.updatePageCount(el);
   }
 
   @HostListener('window:scroll')
