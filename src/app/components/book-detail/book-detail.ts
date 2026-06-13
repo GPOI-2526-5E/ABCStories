@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
@@ -45,12 +45,18 @@ const VISIBLE_STEP = 4;
   styleUrl: './book-detail.scss',
 })
 
-export class BookDetail implements OnInit {
+export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
   book: any = null;
   chapters: any[] = [];
-  readingProgress: any[] = []; // progresso per capitolo
-  firstUnreadChapter: any = null;  // capitolo da cui riprendere
-  overallProgress = 0; // % totale lettura
+  readingProgress: any[] = [];
+  firstUnreadChapter: any = null;
+  overallProgress = 0;
+  isSticky = false;
+  isOverLightSection = false;
+
+  @ViewChild('actionsRow') actionsRowRef!: ElementRef<HTMLElement>;
+  private actionsObserver: IntersectionObserver | null = null;
+  private lightSectionObserver: IntersectionObserver | null = null;
 
   booksD: any[] = [];
 
@@ -67,11 +73,6 @@ export class BookDetail implements OnInit {
   get visibleComments(): Comment[] {
     return this.comments.slice(0, this.visibleCount);
   }
-
-  // ────────────────────────────────────────────────────────────
-  // METODI da aggiungere in BookDetail
-  // ────────────────────────────────────────────────────────────
-
 
   addComment(): void {
     const text = this.newCommentText.trim();
@@ -131,16 +132,14 @@ export class BookDetail implements OnInit {
 
   toggleLike(item: any, isReply: boolean = false): void {
     const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
-    if (!user) return; // Dev'essere loggato
+    if (!user) return;
 
-    // Aggiornamento ottimistico
     item.liked = !item.liked;
     item.likes += item.liked ? 1 : -1;
 
     if (isReply) {
       this.api.toggleReplyLike(item.id, user.id).subscribe({
         error: () => {
-          // Revert on error
           item.liked = !item.liked;
           item.likes += item.liked ? 1 : -1;
           this.cdr.detectChanges();
@@ -149,7 +148,6 @@ export class BookDetail implements OnInit {
     } else {
       this.api.toggleCommentLike(item.id, user.id).subscribe({
         error: () => {
-          // Revert on error
           item.liked = !item.liked;
           item.likes += item.liked ? 1 : -1;
           this.cdr.detectChanges();
@@ -193,7 +191,40 @@ export class BookDetail implements OnInit {
   private loadingService = inject(LoadingService);
   public interactions = inject(InteractionsService);
 
-  /** Mappa un oggetto storia dal DB nel formato usato dal template */
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Observer 1: mostra/nasconde il dock quando la riga inline esce dal viewport
+    this.actionsObserver = new IntersectionObserver(
+      (entries) => {
+        this.isSticky = !entries[0].isIntersecting;
+        this.cdr.detectChanges();
+      },
+      { threshold: 0, rootMargin: '0px' }
+    );
+    if (this.actionsRowRef?.nativeElement) {
+      this.actionsObserver.observe(this.actionsRowRef.nativeElement);
+    }
+
+    // Observer 2: cambia colore testo del dock quando si entra nella sezione chiara
+    const detailsEl = document.querySelector('.divDetails');
+    if (detailsEl) {
+      this.lightSectionObserver = new IntersectionObserver(
+        (entries) => {
+          this.isOverLightSection = entries[0].isIntersecting;
+          this.cdr.detectChanges();
+        },
+        { threshold: 0, rootMargin: '0px' }
+      );
+      this.lightSectionObserver.observe(detailsEl);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.actionsObserver?.disconnect();
+    this.lightSectionObserver?.disconnect();
+  }
+
   private mapDbBook(s: any): any {
     return {
       id: s.id,
@@ -222,7 +253,6 @@ export class BookDetail implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.interactions.loadUserInteractions().subscribe();
     }
-    // Recupera i dati dell'utente loggato
     const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
     if (user) {
       this.currentUserInitial = user.username ? user.username[0].toUpperCase() : 'U';
@@ -232,27 +262,19 @@ export class BookDetail implements OnInit {
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-
-      // Pre-caricamento ottimistico: mostra subito il libro dallo state se disponibile
-      // (es. click da slider) — ma chiamiamo SEMPRE l'API per sicurezza
       const navState = isPlatformBrowser(this.platformId)
         ? (history.state as any)?.book
         : null;
 
       if (navState && navState.id) {
-        // Mostra subito il libro dallo state mentre l'API carica
         this.book = this.mapDbBook(navState);
       } else {
-        this.book = null; // Resetta il libro corrente
+        this.book = null;
       }
 
-      // Chiama sempre l'API con l'UUID nell'URL
       const storyId = id ?? navState?.id;
       if (storyId) {
-        // Carica recensioni, commenti e simili in parallelo
         this.loadSideDetails(storyId, user);
-
-        // Registra visualizzazione unica e poi carica i dettagli della storia principale
         this.api.recordView(storyId, user?.id).subscribe({
           next: () => this.loadMainStory(storyId),
           error: (err) => {
@@ -322,7 +344,7 @@ export class BookDetail implements OnInit {
           id: c.id,
           author: c.author_name,
           handle: c.author_handle,
-          timeAgo: new Date(c.created_at).toLocaleDateString(), // Semplice formattazione data
+          timeAgo: new Date(c.created_at).toLocaleDateString(),
           text: c.text,
           tags: [],
           likes: parseInt(c.likes_count),
@@ -340,6 +362,7 @@ export class BookDetail implements OnInit {
             liked: r.user_liked
           })) : []
         }));
+        this.dynamicSortComments();
         this.cdr.detectChanges();
       },
       error: err => console.error("Errore fetch commenti", err)
@@ -354,6 +377,13 @@ export class BookDetail implements OnInit {
     });
   }
 
+  private dynamicSortComments() {
+    this.comments.sort((a, b) => this.sortNewest
+      ? b.id.localeCompare(a.id)
+      : a.id.localeCompare(b.id)
+    );
+  }
+
   private preloadImage(url: string) {
     if (!isPlatformBrowser(this.platformId) || !url) return;
     this.loadingService.show();
@@ -363,7 +393,6 @@ export class BookDetail implements OnInit {
     img.src = url;
   }
 
-  /** Carica capitoli e progresso di lettura */
   private loadChaptersAndProgress(storyId: string): void {
     this.api.getChapters(storyId).subscribe({
       next: (chapters) => {
@@ -374,12 +403,10 @@ export class BookDetail implements OnInit {
           this.api.getReadingProgress(user.id, storyId).subscribe({
             next: (prog) => {
               this.readingProgress = prog;
-              // Calcola % globale
               if (prog.length > 0 && chapters.length > 0) {
                 const total = prog.reduce((s: number, p: any) => s + p.progress_pct, 0);
                 this.overallProgress = Math.round(total / chapters.length);
               }
-              // Trova il primo capitolo non completato (< 100%)
               const readMap = new Map(prog.map((p: any) => [p.chapter_id, p.progress_pct]));
               this.firstUnreadChapter = chapters.find(
                 c => !readMap.has(c.id) || (readMap.get(c.id) ?? 0) < 100
@@ -395,12 +422,10 @@ export class BookDetail implements OnInit {
     });
   }
 
-  /** Naviga al Reader */
   startReading(): void {
     if (!this.book?.id) return;
     const chapter = this.firstUnreadChapter ?? this.chapters[0];
     if (!chapter) return;
-    // Registra visualizzazione
     const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
     this.api.recordView(this.book.id, user?.id).subscribe();
     this.router.navigate(['/reader', this.book.id, chapter.id]);
@@ -420,11 +445,10 @@ export class BookDetail implements OnInit {
     }
   }
 
-  /** Label dinamica del bottone */
   get readButtonLabel(): string {
     if (!this.chapters.length) return 'Inizia a Leggere';
     if (this.overallProgress > 0 && this.overallProgress < 100) {
-      return `Continua a Leggere (${this.overallProgress}%)`;
+      return `Continua a Leggere`;
     }
     if (this.overallProgress >= 100) return 'Rileggi';
     return 'Inizia a Leggere';
@@ -433,9 +457,6 @@ export class BookDetail implements OnInit {
   goBack() {
     this.router.navigate(['/home']);
   }
-
-  // La lista capitoli è caricata dall'API in loadChaptersAndProgress()
-  // La vecchia lista statica è stata rimossa
 
   reviews: any[] | null = null;
 
@@ -456,7 +477,6 @@ export class BookDetail implements OnInit {
   showAllReviews = false;
 
   get visibleChapters() {
-    // Usa i capitoli dall'API se disponibili, altrimenti array vuoto
     return this.showAllChapters ? this.chapters : this.chapters.slice(0, 4);
   }
 

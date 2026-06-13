@@ -14,7 +14,8 @@
       </div>
 
       <div class="detail-info">
-        <div class="detail-tags-row" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center;">
+        <div class="detail-tags-row"
+          style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center;">
           <span class="detail-tag">{{ book.tag || 'Romanzo' }}</span>
           <span class="detail-tag status-tag" [ngClass]="book.completion_status" *ngIf="book.completion_status">
             {{ getFriendlyStatusLabel(book.completion_status) }}
@@ -24,25 +25,34 @@
           </span>
         </div>
         <h1>{{ book.title }}</h1>
-        <p class="detail-author" (click)="goToAuthor(book?.author_id, $event)" style="cursor: pointer;">{{ book.author }}</p>
+        <p class="detail-author" (click)="goToAuthor(book?.author_id, $event)" style="cursor: pointer;">{{ book.author
+          }}</p>
         <p class="detail-desc">{{ book.desc }}</p>
-        <div class="detail-actions-row mt-4">
+
+        <div #actionsRow class="detail-actions-row mt-4">
           <button class="btnContGlass fade-button" (click)="startReading()">
             {{ readButtonLabel }}
-            @if (overallProgress > 0 && overallProgress < 100) {
-              <span class="read-progress-badge">{{ overallProgress }}%</span>
-            }
+            @if (overallProgress > 0 && overallProgress < 100) { <span class="read-progress-badge">{{ overallProgress
+              }}%</span>
+              }
           </button>
 
-          <button class="btn-interaction-glass like-btn" [class.active]="interactions.isLiked(book.id)" (click)="interactions.toggleLike(book.id)" aria-label="Mi piace">
-            <svg viewBox="0 0 24 24" [attr.fill]="interactions.isLiked(book.id) ? '#e74c3c' : 'none'" [attr.stroke]="interactions.isLiked(book.id) ? '#e74c3c' : '#fff'" stroke-width="2" width="22" height="22">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <button class="btn-interaction-glass like-btn" [class.active]="interactions.isLiked(book.id)"
+            (click)="interactions.toggleLike(book.id)" aria-label="Mi piace">
+            <svg viewBox="0 0 24 24" [attr.fill]="interactions.isLiked(book.id) ? '#e74c3c' : 'none'"
+              [attr.stroke]="interactions.isLiked(book.id) ? '#e74c3c' : '#fff'" stroke-width="2" width="22"
+              height="22">
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
           </button>
 
-          <button class="btn-interaction-glass bookmark-btn" [class.active]="interactions.isBookmarked(book.id)" (click)="interactions.toggleBookmark(book.id)" aria-label="Preferito">
-            <svg viewBox="0 0 24 24" [attr.fill]="interactions.isBookmarked(book.id) ? '#f1c40f' : 'none'" [attr.stroke]="interactions.isBookmarked(book.id) ? '#f1c40f' : '#fff'" stroke-width="2" width="22" height="22">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          <button class="btn-interaction-glass bookmark-btn" [class.active]="interactions.isBookmarked(book.id)"
+            (click)="interactions.toggleBookmark(book.id)" aria-label="Preferito">
+            <svg viewBox="0 0 24 24" [attr.fill]="interactions.isBookmarked(book.id) ? '#f1c40f' : 'none'"
+              [attr.stroke]="interactions.isBookmarked(book.id) ? '#f1c40f' : '#fff'" stroke-width="2" width="22"
+              height="22">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
         </div>
@@ -54,10 +64,9 @@
       <div class="stat-item">
         <div class="stars">
           @for (fill of getStars(book.rating); track $index) {
-          <span class="star" 
-                [style.background]="fill > 0 && fill < 100 ? 'linear-gradient(90deg, #f1c40f ' + fill + '%, rgba(255, 255, 255, 0.3) ' + fill + '%)' : null"
-                [class.filled]="fill === 100"
-                [class.partial]="fill > 0 && fill < 100">★</span>
+          <span class="star"
+            [style.background]="fill > 0 && fill < 100 ? 'linear-gradient(90deg, #f1c40f ' + fill + '%, rgba(255, 255, 255, 0.3) ' + fill + '%)' : null"
+            [class.filled]="fill === 100" [class.partial]="fill > 0 && fill < 100">★</span>
           }
         </div>
         <span class="stat-label">{{ book.rating ? (book.rating | number:'1.1-1') : 'N/A' }} / 5.0</span>
@@ -88,12 +97,39 @@
   </div>
   }
 
+  @if (book && isSticky) {
+  <div class="floating-action-dock dock-visible" [class.over-light-section]="isOverLightSection">
+    <button class="btnContGlass fade-button" (click)="startReading()">
+      {{ readButtonLabel }}
+      @if (overallProgress > 0 && overallProgress < 100) { <span class="read-progress-badge">{{ overallProgress
+        }}%</span>
+        }
+    </button>
+
+    <button class="btn-interaction-glass like-btn" [class.active]="interactions.isLiked(book.id)"
+      (click)="interactions.toggleLike(book.id)" aria-label="Mi piace">
+      <svg viewBox="0 0 24 24" [attr.fill]="interactions.isLiked(book.id) ? '#e74c3c' : 'none'"
+        [attr.stroke]="interactions.isLiked(book.id) ? '#e74c3c' : '#fff'" stroke-width="2" width="22" height="22">
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+    </button>
+
+    <button class="btn-interaction-glass bookmark-btn" [class.active]="interactions.isBookmarked(book.id)"
+      (click)="interactions.toggleBookmark(book.id)" aria-label="Preferito">
+      <svg viewBox="0 0 24 24" [attr.fill]="interactions.isBookmarked(book.id) ? '#f1c40f' : 'none'"
+        [attr.stroke]="interactions.isBookmarked(book.id) ? '#f1c40f' : '#fff'" stroke-width="2" width="22" height="22">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      </svg>
+    </button>
+  </div>
+  }
+
 </div>
 
 <div class="divDetails">
   <div class="container">
 
-    <!-- DETTAGLI LIBRO -->
     <section class="dd-section">
       <h2 class="text-center mb-4">Dettagli Libro</h2>
       <div class="dd-card">
@@ -123,7 +159,8 @@
           <div class="dd-detail-item">
             <span class="dd-detail-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               Mi piace
             </span>
@@ -149,7 +186,6 @@
 
     <hr class="dd-divider">
 
-    <!-- CAPITOLI -->
     <section class="dd-section">
       <h2 class="text-center mb-4">Capitoli</h2>
       @if (chapters.length > 0) {
@@ -157,7 +193,9 @@
         @for (chapter of visibleChapters; track chapter.id) {
         <div class="dd-chapter-card" (click)="goToChapter(chapter.id)">
           <div class="dd-chapter-img-wrap">
-            <img [src]="chapter.image_url || book?.img || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80'" [alt]="chapter.title" class="dd-chapter-img" />
+            <img
+              [src]="chapter.image_url || book?.img || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80'"
+              [alt]="chapter.title" class="dd-chapter-img" />
           </div>
           <div class="dd-chapter-body">
             <div class="dd-chapter-num">{{ chapter.order_index }}</div>
@@ -181,45 +219,43 @@
 
     <hr class="dd-divider">
 
-    <!-- RECENSIONI -->
     <section class="dd-section">
       <h2 class="text-center mb-4">Recensioni degli utenti</h2>
       @if (reviews !== null) {
-        @if (reviews.length > 0) {
-        <div class="dd-reviews-grid">
-          @for (review of visibleReviews; track review.id) {
-          <div class="dd-review-card">
-            <div class="dd-reviewer-row">
-              <div class="dd-avatar">{{ review.name[0] }}</div>
-              <div>
-                <div class="dd-reviewer-name">{{ review.name }}</div>
-                <div class="dd-stars">
-                  @for (fill of getStars(review.rating); track $index) {
-                  <span class="star" 
-                        [style.background]="fill > 0 && fill < 100 ? 'linear-gradient(90deg, #c8862a ' + fill + '%, rgba(20, 20, 10, 0.2) ' + fill + '%)' : null"
-                        [class.filled]="fill === 100"
-                        [class.partial]="fill > 0 && fill < 100">★</span>
-                  }
-                </div>
+      @if (reviews.length > 0) {
+      <div class="dd-reviews-grid">
+        @for (review of visibleReviews; track review.id) {
+        <div class="dd-review-card">
+          <div class="dd-reviewer-row">
+            <div class="dd-avatar">{{ review.name[0] }}</div>
+            <div>
+              <div class="dd-reviewer-name">{{ review.name }}</div>
+              <div class="dd-stars">
+                @for (fill of getStars(review.rating); track $index) {
+                <span class="star"
+                  [style.background]="fill > 0 && fill < 100 ? 'linear-gradient(90deg, #c8862a ' + fill + '%, rgba(20, 20, 10, 0.2) ' + fill + '%)' : null"
+                  [class.filled]="fill === 100" [class.partial]="fill > 0 && fill < 100">★</span>
+                }
               </div>
             </div>
-            <div class="dd-review-text">{{ review.content }}</div>
           </div>
-          }
-        </div>
-        @if (reviews.length > 4) {
-        <button class="dd-show-more" (click)="toggleReviews()">
-          {{ showAllReviews ? 'Mostra meno' : 'Vedi altre recensioni' }}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-            <polyline [attr.points]="showAllReviews ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
-          </svg>
-        </button>
-        }
-        } @else {
-        <div class="empty-glass-state">
-          <p>Nessuna recensione per questa storia. Sii il primo a scriverne una!</p>
+          <div class="dd-review-text">{{ review.content }}</div>
         </div>
         }
+      </div>
+      @if (reviews.length > 4) {
+      <button class="dd-show-more" (click)="toggleReviews()">
+        {{ showAllReviews ? 'Mostra meno' : 'Vedi altre recensioni' }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline [attr.points]="showAllReviews ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" />
+        </svg>
+      </button>
+      }
+      } @else {
+      <div class="empty-glass-state">
+        <p>Nessuna recensione per questa storia. Sii il primo a scriverne una!</p>
+      </div>
+      }
       } @else {
       <p class="text-center" style="color: var(--muted)">Recensioni in caricamento...</p>
       }
@@ -231,12 +267,10 @@
   <app-book-slider [title]="'Potrebbero Piacerti Anche...'" subtitle="" [books]="booksD">
   </app-book-slider>
 
-  <!-- ── Sezione Commenti ─────────────────────────────────────── -->
   <div class="container">
     <section class="dd-section" aria-labelledby="comments-heading">
       <h2 class="text-center mb-5" id="comments-heading">Commenti</h2>
 
-      <!-- Form: scrivi un commento -->
       <div class="dd-card cm-input-card">
         <div class="cm-input-row">
           <div class="dd-avatar cm-avatar-me">{{ currentUserInitial }}</div>
@@ -253,7 +287,6 @@
         </div>
       </div>
 
-      <!-- Intestazione lista -->
       <div class="cm-list-header">
         <span class="cm-count">Commenti ({{ comments.length }})</span>
         <button class="dd-show-more cm-sort-btn" type="button" (click)="toggleSort()">
@@ -264,12 +297,10 @@
         </button>
       </div>
 
-      <!-- Lista commenti -->
       <div class="cm-list">
         @for (comment of visibleComments; track comment.id) {
         <div class="cm-thread">
 
-          <!-- Card principale -->
           <div class="dd-review-card cm-card">
             <div class="dd-reviewer-row">
               <div class="dd-avatar">{{ comment.author[0].toUpperCase() }}</div>
@@ -309,7 +340,6 @@
             </div>
           </div>
 
-          <!-- Box risposta inline -->
           @if (comment.replyBoxOpen) {
           <div class="cm-reply-input">
             <div class="dd-avatar cm-avatar-me cm-avatar-sm">{{ currentUserInitial }}</div>
@@ -322,7 +352,6 @@
           </div>
           }
 
-          <!-- Pulsante mostra/nascondi risposte -->
           @if (comment.replies.length) {
           <button class="cm-show-replies-btn" (click)="toggleReplies(comment)" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
@@ -334,7 +363,6 @@
           </button>
           }
 
-          <!-- Risposte annidate -->
           @if (comment.repliesOpen && comment.replies.length) {
           <div class="cm-replies-wrap">
             @for (reply of comment.replies; track reply.id) {
@@ -348,7 +376,8 @@
               </div>
               <p class="dd-review-text cm-text">{{ reply.text }}</p>
               <div class="cm-actions">
-                <button class="cm-act-btn" [class.cm-act-liked]="reply.liked" (click)="toggleLike(reply, true)" type="button">
+                <button class="cm-act-btn" [class.cm-act-liked]="reply.liked" (click)="toggleLike(reply, true)"
+                  type="button">
                   <svg viewBox="0 0 24 24" [attr.fill]="reply.liked ? '#c8862a' : 'none'" stroke="currentColor"
                     stroke-width="2" width="13" height="13">
                     <path
@@ -366,7 +395,6 @@
         }
       </div>
 
-      <!-- Carica altri -->
       @if (comments.length > visibleCount) {
       <button class="dd-show-more cm-load-more" (click)="loadMore()" type="button">
         Carica altri commenti

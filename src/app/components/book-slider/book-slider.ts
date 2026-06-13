@@ -26,6 +26,9 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
   cardWidth = 204.2;
   currentIndex = 0;
 
+  // Throttle scroll tramite rAF: evita decine di chiamate/secondo durante lo swipe
+  private rafPending = false;
+
   constructor(private router: Router) { }
 
   ngOnInit(): void {
@@ -78,9 +81,17 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
 
   updateArrows() {
     if (!this.scrollContainer) return;
-    const el = this.scrollContainer.nativeElement;
-    this.canScrollLeft = el.scrollLeft > 5;
-    this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+    // Throttle con rAF: una sola esecuzione per frame, anche durante scroll rapido
+    if (this.rafPending) return;
+    this.rafPending = true;
+    requestAnimationFrame(() => {
+      const el = this.scrollContainer?.nativeElement;
+      if (el) {
+        this.canScrollLeft = el.scrollLeft > 5;
+        this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+      }
+      this.rafPending = false;
+    });
   }
 
   next() {

@@ -31,28 +31,16 @@
 
       <!-- Navigazione Tab — centrata -->
       <div class="search-tabs-row">
-        <button
-          class="tab-btn"
-          [class.tab-btn--active]="selectedTab === 'Tutti'"
-          (click)="setTab('Tutti')">
+        <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'Tutti'" (click)="setTab('Tutti')">
           Tutti
         </button>
-        <button
-          class="tab-btn"
-          [class.tab-btn--active]="selectedTab === 'Storie'"
-          (click)="setTab('Storie')">
+        <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'Storie'" (click)="setTab('Storie')">
           Storie ({{ stories.length }})
         </button>
-        <button
-          class="tab-btn"
-          [class.tab-btn--active]="selectedTab === 'Autori'"
-          (click)="setTab('Autori')">
+        <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'Autori'" (click)="setTab('Autori')">
           Autori ({{ authors.length }})
         </button>
-        <button
-          class="tab-btn"
-          [class.tab-btn--active]="selectedTab === 'Generi'"
-          (click)="setTab('Generi')">
+        <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'Generi'" (click)="setTab('Generi')">
           Generi ({{ genres.length }})
         </button>
       </div>
@@ -74,21 +62,23 @@
       <div class="results-wrapper" *ngIf="!loading">
 
         <!-- STATO VUOTO -->
-        <div class="empty-state" *ngIf="selectedTab === 'Tutti' && stories.length === 0 && authors.length === 0 && genres.length === 0">
+        <div class="empty-state"
+          *ngIf="selectedTab === 'Tutti' && stories.length === 0 && authors.length === 0 && genres.length === 0">
           <div class="empty-icon-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </div>
           <h3>Nessun risultato trovato</h3>
-          <p>Non siamo riusciti a trovare corrispondenze per "{{ searchQuery }}". Prova a controllare l'ortografia o cerca termini diversi.</p>
+          <p>Non siamo riusciti a trovare corrispondenze per "{{ searchQuery }}". Prova a controllare l'ortografia o
+            cerca termini diversi.</p>
           <a routerLink="/home" class="btn-home">Torna alla Home</a>
         </div>
 
         <!-- ==================== SEZIONE STORIE ==================== -->
-        <section
-          class="results-section"
+        <section class="results-section"
           *ngIf="selectedTab === 'Storie' || (stories.length > 0 && selectedTab === 'Tutti')">
           <div class="section-title-wrap">
             <h2>Storie</h2>
@@ -98,24 +88,22 @@
           <div class="books-grid" *ngIf="stories.length > 0; else noStories">
             <div class="book-card" *ngFor="let book of stories; let i = index" [routerLink]="['/book', book.id]">
               <div class="book-cover">
-                <img [src]="book.image_url || 'assets/Presentazione/promessi-sposi.jpg'" [alt]="book.title" [loading]="i < 6 ? 'eager' : 'lazy'" />
+                <img [src]="book.image_url || 'assets/Presentazione/promessi-sposi.jpg'" [alt]="book.title"
+                  [loading]="i < 6 ? 'eager' : 'lazy'" />
 
                 <!-- Icone di interazione sopra la copertina -->
-                <div
-                  class="action-icon bookmark-icon"
-                  [class.active]="interactions.isBookmarked(book.id)"
+                <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(book.id)"
                   (click)="toggleBookmark(book); $event.stopPropagation()">
                   <svg viewBox="0 0 24 24">
                     <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
                   </svg>
                 </div>
 
-                <div
-                  class="action-icon heart-icon"
-                  [class.active]="interactions.isLiked(book.id)"
+                <div class="action-icon heart-icon" [class.active]="interactions.isLiked(book.id)"
                   (click)="toggleLike(book); $event.stopPropagation()">
                   <svg viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    <path
+                      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
                 </div>
               </div>
@@ -123,7 +111,9 @@
               <!-- Dettagli libro -->
               <div class="book-info">
                 <p class="book-title">{{ book.title }}</p>
-                <p class="book-author" [routerLink]="['/author']" [state]="{ authorId: book.author_id }" (click)="$event.stopPropagation()" style="cursor: pointer; position: relative; z-index: 2;">{{ book.author_name }}</p>
+                <p class="book-author" [routerLink]="['/author']" [state]="{ authorId: book.author_id }"
+                  (click)="$event.stopPropagation()" style="cursor: pointer; position: relative; z-index: 2;">{{
+                  book.author_name }}</p>
               </div>
             </div>
           </div>
@@ -136,8 +126,7 @@
         </section>
 
         <!-- ==================== SEZIONE AUTORI ==================== -->
-        <section
-          class="results-section"
+        <section class="results-section"
           *ngIf="selectedTab === 'Autori' || (authors.length > 0 && selectedTab === 'Tutti')">
           <div class="section-title-wrap">
             <h2>Autori</h2>
@@ -149,10 +138,7 @@
               <!-- Header autore con Avatar -->
               <div class="author-avatar-wrap">
                 <div class="avatar-aura">
-                  <img
-                    *ngIf="author.avatar_url"
-                    [src]="author.avatar_url"
-                    alt="{{ author.username }}"
+                  <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="{{ author.username }}"
                     class="author-img" />
                   <div *ngIf="!author.avatar_url" class="author-fallback">
                     {{ getInitials(author.username) }}
@@ -162,7 +148,8 @@
 
               <!-- Dettagli autore -->
               <div class="author-info">
-                <a [routerLink]="['/author']" [state]="{ authorId: author.id }" class="author-name">{{ author.username }}</a>
+                <a [routerLink]="['/author']" [state]="{ authorId: author.id }" class="author-name">{{ author.username
+                  }}</a>
                 <span class="author-location" *ngIf="author.location">
                   <i class="bi bi-geo-alt"></i> {{ author.location }}
                 </span>
@@ -182,11 +169,8 @@
                     </div>
                   </div>
 
-                  <button
-                    *ngIf="!isCurrentUser(author.id)"
-                    class="action-follow-btn"
-                    [class.action-follow-btn--active]="followedStatusMap[author.id]"
-                    (click)="toggleFollow(author)">
+                  <button *ngIf="!isCurrentUser(author.id)" class="action-follow-btn"
+                    [class.action-follow-btn--active]="followedStatusMap[author.id]" (click)="toggleFollow(author)">
                     {{ followedStatusMap[author.id] ? '✓ Seguendo' : '+ Segui' }}
                   </button>
                   <span *ngIf="isCurrentUser(author.id)" class="self-tag">Tu</span>
@@ -203,8 +187,7 @@
         </section>
 
         <!-- ==================== SEZIONE GENERI ==================== -->
-        <section
-          class="results-section"
+        <section class="results-section"
           *ngIf="selectedTab === 'Generi' || (genres.length > 0 && selectedTab === 'Tutti')">
           <div class="section-title-wrap">
             <h2>Generi</h2>
@@ -212,10 +195,7 @@
           </div>
 
           <div class="genres-grid" *ngIf="genres.length > 0; else noGenres">
-            <a
-              [routerLink]="['/generi', genre]"
-              class="genre-card glass-panel"
-              *ngFor="let genre of genres">
+            <a [routerLink]="['/generi', genre]" class="genre-card glass-panel" *ngFor="let genre of genres">
               <div class="genre-icon-wrap">
                 <img [src]="getGenreIcon(genre)" alt="{{ genre }}" />
               </div>
