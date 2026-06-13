@@ -34,6 +34,7 @@ export class StoryEditor implements OnInit {
 
   selectedChapter: any = null;
   saving = false;
+  mobileSidebarOpen = false;
 
   // Upload immagini
   MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -49,7 +50,9 @@ export class StoryEditor implements OnInit {
       title: story.title ?? '',
       genre: story.genre ?? '',
       description: story.description ?? '',
-      image_url: story.image_url ?? ''
+      image_url: story.image_url ?? '',
+      is_18_plus: !!story.is_18_plus,
+      completion_status: story.completion_status ?? 'in_corso'
     });
   }
 
@@ -124,7 +127,9 @@ export class StoryEditor implements OnInit {
       title: this.story.title,
       genre: this.story.genre,
       description: this.story.description,
-      image_url: this.story.image_url || null
+      image_url: this.story.image_url || null,
+      is_18_plus: !!this.story.is_18_plus,
+      completion_status: this.story.completion_status || 'in_corso'
     }).subscribe({
       next: (updated) => {
         this.originalStory = this.serializeStory(this.story);
@@ -152,6 +157,7 @@ export class StoryEditor implements OnInit {
     } else {
       this.chapterImagePreview = null;
     }
+    this.mobileSidebarOpen = false;
     this.cdr.detectChanges();
     this.autoResizeTextareas();
   }
@@ -293,6 +299,14 @@ export class StoryEditor implements OnInit {
   }
 
   isGenreDropdownOpen = false;
+  isStatusDropdownOpen = false;
+
+  statusOptions = [
+    { value: 'in_corso', label: 'In corso' },
+    { value: 'completato', label: 'Completato' },
+    { value: 'incompleto', label: 'Incompleto' },
+    { value: 'sospeso', label: 'Sospeso' }
+  ];
 
   toggleGenreDropdown(event: Event) {
     event.stopPropagation();
@@ -309,6 +323,27 @@ export class StoryEditor implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleStatusDropdown(event: Event) {
+    event.stopPropagation();
+    this.isStatusDropdownOpen = !this.isStatusDropdownOpen;
+    this.cdr.detectChanges();
+  }
+
+  selectStatus(status: string, event: Event) {
+    event.stopPropagation();
+    if (this.story) {
+      this.story.completion_status = status;
+    }
+    this.isStatusDropdownOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  getFriendlyStatusLabel(status: string): string {
+    if (!status) return 'In corso';
+    const option = this.statusOptions.find(o => o.value === status);
+    return option ? option.label : 'In corso';
+  }
+
   // HostListener per chiudere il menu cliccando fuori
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -316,11 +351,17 @@ export class StoryEditor implements OnInit {
     // target.closest may not exist on some SVGElements in older setups, but stopPropagation covers us
     if (target && typeof target.closest === 'function' && !target.closest('.custom-dropdown')) {
       this.isGenreDropdownOpen = false;
+      this.isStatusDropdownOpen = false;
     }
   }
 
   goBack() {
     this.router.navigate(['/scrivi']);
+  }
+
+  toggleMobileSidebar() {
+    this.mobileSidebarOpen = !this.mobileSidebarOpen;
+    this.cdr.detectChanges();
   }
 
 }

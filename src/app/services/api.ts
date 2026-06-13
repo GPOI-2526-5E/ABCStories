@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +11,14 @@ import { environment } from '../../environments/environment';
 export class Api {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
+
+  private filter18Plus(stories: any[] | null | undefined): any[] {
+    if (!stories) return [];
+    const show18Plus = this.authService.currentUser()?.visualizza_18plus === true;
+    if (show18Plus) return stories;
+    return stories.filter(s => !s.is_18_plus);
+  }
 
 
   getUsers() {
@@ -71,7 +80,9 @@ export class Api {
   // ═══════════════ STORIES ═══════════════
 
   getStories() {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   getStory(id: string) {
@@ -79,25 +90,35 @@ export class Api {
   }
 
   getPopularStories() {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/popular`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/popular`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   getStoriesByGenre(genre: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/genre/${genre}`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/genre/${genre}`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   getTrendingStories(userId?: string) {
     let url = `${this.apiUrl}/api/stories/trending`;
     if (userId) url += `?userId=${userId}`;
-    return this.http.get<any[]>(url);
+    return this.http.get<any[]>(url).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   getSimilarStories(storyId: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/similar/${storyId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/similar/${storyId}`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   getContinueReading(userId: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/continue/${userId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/continue/${userId}`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   // ═══════════════ VIEWS ═══════════════
@@ -197,13 +218,17 @@ export class Api {
   }
 
   getAuthorStories(authorId: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/api/stories/author/${authorId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/author/${authorId}`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   // ═══════════════ USER SETTINGS & RECOMMENDED ═══════════════
 
   getAuthorRecommended(userId: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/api/user/${userId}/recommended`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/user/${userId}/recommended`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
   }
 
   updateAuthorRecommended(userId: string, storyIds: string[]) {
@@ -241,7 +266,12 @@ export class Api {
   }
 
   search(query: string) {
-    return this.http.get<{ stories: any[], authors: any[], genres: string[] }>(`${this.apiUrl}/api/search?q=${query}`);
+    return this.http.get<{ stories: any[], authors: any[], genres: string[] }>(`${this.apiUrl}/api/search?q=${query}`).pipe(
+      map(res => ({
+        ...res,
+        stories: this.filter18Plus(res.stories)
+      }))
+    );
   }
 
   // ═══════════════ NOTIFICATIONS ═══════════════
@@ -256,6 +286,24 @@ export class Api {
 
   markAllNotificationsAsRead(userId: string) {
     return this.http.put<any>(`${this.apiUrl}/api/notifications/user/${userId}/read-all`, {});
+  }
+
+  // ═══════════════ COLLECTIONS ═══════════════
+
+  getCollections(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/users/${userId}/collections`);
+  }
+
+  createCollection(userId: string, data: { name: string, description: string, storyIds: string[] }) {
+    return this.http.post<any>(`${this.apiUrl}/api/users/${userId}/collections`, data);
+  }
+
+  updateCollection(collectionId: string, data: { name: string, description: string, storyIds: string[] }) {
+    return this.http.put<any>(`${this.apiUrl}/api/collections/${collectionId}`, data);
+  }
+
+  deleteCollection(collectionId: string) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/collections/${collectionId}`);
   }
 }
 

@@ -214,24 +214,7 @@
         <img src="assets/Loghi/Logo2.png" alt="Logo" height="60px" class="ms-2" />
       </a>
 
-      <!-- Icone utente/notifica visibili solo da loggato (sopra il drawer) -->
-      @if (authService.isLoggedIn()) {
-      <div class="mn-auth-icons">
-        <button class="mn-icon-btn mn-profile-btn" title="Profilo" (click)="onUserClick()">
-          @if (authService.currentUser()?.avatar_url) {
-          <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="mn-avatar-img" />
-          } @else {
-          <div class="mn-avatar-fallback">{{ userInitials() }}</div>
-          }
-        </button>
-        <button class="mn-icon-btn mn-notif-btn" title="Notifiche" [routerLink]="['/notifications']">
-          <img src="assets/Icone/notifica.png" alt="Notifiche" class="mn-icon-img" style="width: 18px; height: 18px; object-fit: contain;" />
-          @if (unreadCount > 0) {
-            <span class="mn-notif-dot"></span>
-          }
-        </button>
-      </div>
-      }
+      
 
       <button class="mn-burger" [class.mn-burger--active]="mobileNavOpen" (click)="toggleMobileNav()" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -345,12 +328,7 @@
           <span>Community</span>
         </a>
 
-        <!-- Scrivi nel drawer solo da loggato -->
-        @if (authService.isLoggedIn()) {
-        <a routerLink="/scrivi" class="mn-link-row">
-          <span>Scrivi</span>
-        </a>
-        }
+        
 
         <a href="#" class="mn-link-row">
           <span>Supporto</span>
@@ -366,12 +344,27 @@
         </div>
         }
 
-        <!-- Loggato: bottone Scrivi prominente nel drawer -->
+        <!-- Loggato: bottone Scrivi prominente nel drawer + icone profilo/notifiche desktop -->
         @if (authService.isLoggedIn()) {
-        <div class="mn-auth-row">
-          <a routerLink="/scrivi" class="mn-btn mn-btn--solid mn-btn--scrivi">
+        <div class="mn-auth-row d-flex align-items-center gap-3 w-100 justify-content-center" style="margin-top: 14px; padding: 0 4px;">
+          <a routerLink="/scrivi" class="mn-btn mn-btn--solid mn-btn--scrivi flex-grow-1" style="margin: 0; font-size: 13.5px; font-weight: 700; height: 42px; display: flex; align-items: center; justify-content: center;" (click)="toggleMobileNav()">
             Inizia a scrivere
           </a>
+          
+          <button class="nav-icon-btn nav-notif-btn" title="Notifiche" [routerLink]="['/notifications']" (click)="toggleMobileNav()" style="flex-shrink: 0;">
+            <img src="assets/Icone/notifica.png" alt="Notifiche" class="nav-icon-img" style="width: 34px !important; height: 34px !important;" />
+            @if (unreadCount > 0) {
+              <span class="nav-notif-dot"></span>
+            }
+          </button>
+ 
+          <button class="nav-icon-btn nav-profile-btn" title="Profilo" (click)="onUserClick(); toggleMobileNav()" style="flex-shrink: 0;">
+            @if (authService.currentUser()?.avatar_url) {
+            <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="nav-avatar-img" />
+            } @else {
+            <div class="nav-avatar-fallback">{{ userInitials() }}</div>
+            }
+          </button>
         </div>
         }
 

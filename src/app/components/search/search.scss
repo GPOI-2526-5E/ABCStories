@@ -21,12 +21,12 @@ $danger: var(--tropicalThemeRed, #f2787c);
     inset 0 1px 1px rgba(var(--glass-border-rgb, 255, 255, 255), 0.35);
 }
 
-// ─── Search Container ─────────────────────────────────────
+// ─── Search Container ─────────────────────────────────
 .search-container {
   min-height: 100vh;
   background: var(--tropicalTheme);
   color: $text;
-  padding: 130px 40px 60px 40px; // spazio per navbar fluttuante
+  padding: 120px 40px 60px 40px; // Margini laterali contenuti, come le notifiche
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -76,35 +76,29 @@ $danger: var(--tropicalThemeRed, #f2787c);
   }
 }
 
-// ─── Content Wrapper ──────────────────────────────────────
+// ─── Content Wrapper ──────────────────────────────────
 .search-content {
   position: relative;
   z-index: 10;
-  width: 100%;
-  max-width: 1200px;
+  width: 100%; // Nessun max-width: si estende a tutto lo schermo
   display: flex;
   flex-direction: column;
-  gap: 30px;
-}
-
-.glass-panel {
-  @include glass-card(0.12, 35px, 0.22);
-  border-radius: 24px;
-  box-sizing: border-box;
-}
-
-// ─── Page Header ─────────────────────────────────────────
-.search-header {
-  padding: 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 20px;
-  flex-wrap: wrap;
+}
+
+// ─── Pannello Unificato Header + Tabs ───────────────────
+.search-top-panel {
+  padding: 36px 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; // tutto centrato orizzontalmente
+  text-align: center;
+  gap: 20px;
 
   .header-info {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 6px;
   }
 
@@ -149,46 +143,77 @@ $danger: var(--tropicalThemeRed, #f2787c);
   }
 }
 
-// ─── Tabs Bar ────────────────────────────────────────────
-.search-tabs {
-  padding: 10px;
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+// Separatore interno al top-panel
+.top-panel-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0;
+}
 
-  &::-webkit-scrollbar {
-    display: none;
+// Riga tab centrata
+.search-tabs-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.glass-panel {
+  @include glass-card(0.12, 35px, 0.22);
+  border-radius: 24px;
+  box-sizing: border-box;
+}
+
+// ─── Tab Button (usato in .search-tabs-row) ──────────────────
+.tab-btn {
+  padding: 12px 28px;
+  border: none;
+  background: transparent;
+  color: $text;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(var(--glass-rgb, 255, 255, 255), 0.2);
   }
 
-  .tab-btn {
-    padding: 12px 28px;
-    border: none;
-    background: transparent;
-    color: $text;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    white-space: nowrap;
-
-    &:hover {
-      background: rgba(var(--glass-rgb, 255, 255, 255), 0.2);
-    }
-
-    &--active {
-      background: rgba(var(--glass-rgb, 255, 255, 255), 0.45) !important;
-      box-shadow:
-        0 8px 20px rgba(0, 0, 0, 0.04),
-        inset 0 1px 1px rgba(var(--glass-border-rgb, 255, 255, 255), 0.4);
-      transform: translateY(-1px);
-    }
+  &--active {
+    background: rgba(var(--glass-rgb, 255, 255, 255), 0.45) !important;
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.04),
+      inset 0 1px 1px rgba(var(--glass-border-rgb, 255, 255, 255), 0.4);
+    transform: translateY(-1px);
   }
 }
 
-// ─── Results Sections ─────────────────────────────────────
+// ─── Pannello Risultati ─────────────────────────────
+.results-panel {
+  padding: 40px 48px;
+  box-sizing: border-box;
+  height: auto; // si restringe al contenuto, nessuno spazio vuoto
+  overflow-y: visible;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+// ─── Results Sections ───────────────────────────────
 .results-wrapper {
   display: flex;
   flex-direction: column;
@@ -792,18 +817,19 @@ $danger: var(--tropicalThemeRed, #f2787c);
 // ─── Responsive Adjustments ──────────────────────────────
 @media (max-width: 768px) {
   .search-container {
-    padding: 110px 20px 40px 20px;
+    padding: 110px 12px 40px 12px;
   }
 
-  .search-header {
-    padding: 24px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+  .search-top-panel {
+    padding: 24px 20px 18px;
 
     .stats-pills {
       width: 100%;
     }
+  }
+
+  .results-panel {
+    padding: 24px 16px;
   }
 
   .books-grid {

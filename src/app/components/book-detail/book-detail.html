@@ -14,7 +14,15 @@
       </div>
 
       <div class="detail-info">
-        <span class="detail-tag">{{ book.tag || 'Romanzo' }}</span>
+        <div class="detail-tags-row" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center;">
+          <span class="detail-tag">{{ book.tag || 'Romanzo' }}</span>
+          <span class="detail-tag status-tag" [ngClass]="book.completion_status" *ngIf="book.completion_status">
+            {{ getFriendlyStatusLabel(book.completion_status) }}
+          </span>
+          <span class="detail-tag adult-tag" *ngIf="book.is_18_plus">
+            18+
+          </span>
+        </div>
         <h1>{{ book.title }}</h1>
         <p class="detail-author" (click)="goToAuthor(book?.author_id, $event)" style="cursor: pointer;">{{ book.author }}</p>
         <p class="detail-desc">{{ book.desc }}</p>

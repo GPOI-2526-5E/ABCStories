@@ -22,8 +22,9 @@ export class Notifications implements OnInit {
 
   notifications: any[] = [];
   followedAuthorIds = new Set<string>();
-  filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'authors' = 'all';
+  filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions' = 'all';
   loading = true;
+  userProfile: any = null;
 
   ngOnInit(): void {
     const user = this.auth.currentUser();
@@ -34,6 +35,13 @@ export class Notifications implements OnInit {
     this.loadNotifications();
     this.loadFollowedAuthors();
     this.interactions.loadUserInteractions().subscribe();
+    this.api.getUserProfile(user.id).subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.warn('Errore caricamento profilo in notifiche:', err)
+    });
   }
 
   loadNotifications(): void {
@@ -78,8 +86,17 @@ export class Notifications implements OnInit {
     if (this.filter === 'bookmarks') {
       return this.notifications.filter(n => n.story_id && this.interactions.isBookmarked(n.story_id));
     }
-    if (this.filter === 'authors') {
-      return this.notifications.filter(n => n.sender_id && this.followedAuthorIds.has(n.sender_id));
+    if (this.filter === 'comments') {
+      return this.notifications.filter(n => n.type === 'comment_reply' || n.type === 'comment_like');
+    }
+    if (this.filter === 'follows') {
+      return this.notifications.filter(n => n.type === 'new_follower');
+    }
+    if (this.filter === 'stories') {
+      return this.notifications.filter(n => ['new_story', 'update_story', 'new_chapter', 'update_chapter'].includes(n.type));
+    }
+    if (this.filter === 'interactions') {
+      return this.notifications.filter(n => n.type === 'story_like' || n.type === 'story_bookmark');
     }
     return this.notifications;
   }
@@ -96,11 +113,23 @@ export class Notifications implements OnInit {
     return this.notifications.filter(n => n.story_id && this.interactions.isBookmarked(n.story_id)).length;
   }
 
-  get authorsCount(): number {
-    return this.notifications.filter(n => n.sender_id && this.followedAuthorIds.has(n.sender_id)).length;
+  get commentsCount(): number {
+    return this.notifications.filter(n => n.type === 'comment_reply' || n.type === 'comment_like').length;
   }
 
-  setFilter(filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'authors'): void {
+  get followsCount(): number {
+    return this.notifications.filter(n => n.type === 'new_follower').length;
+  }
+
+  get storiesCount(): number {
+    return this.notifications.filter(n => ['new_story', 'update_story', 'new_chapter', 'update_chapter'].includes(n.type)).length;
+  }
+
+  get interactionsCount(): number {
+    return this.notifications.filter(n => n.type === 'story_like' || n.type === 'story_bookmark').length;
+  }
+
+  setFilter(filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions'): void {
     this.filter = filter;
   }
 
@@ -135,12 +164,17 @@ export class Notifications implements OnInit {
   onNotificationClick(notification: any): void {
     this.markAsRead(notification);
 
+    if (notification.type === 'new_follower') {
+      this.router.navigate(['/author'], { state: { authorId: notification.sender_id } });
+      return;
+    }
+
     if (!notification.story_id) {
       // La storia è stata eliminata, segna solo come letto senza reindirizzare
       return;
     }
 
-    if (notification.type === 'new_story' || notification.type === 'update_story') {
+    if (notification.type === 'new_story' || notification.type === 'update_story' || notification.type === 'comment_reply' || notification.type === 'comment_like' || notification.type === 'story_like' || notification.type === 'story_bookmark') {
       this.router.navigate(['/book', notification.story_id]);
     } else if (notification.type === 'new_chapter' || notification.type === 'update_chapter') {
       if (notification.chapter_id) {
@@ -177,7 +211,34 @@ export class Notifications implements OnInit {
       case 'update_story': return '📝';
       case 'new_chapter': return '🔖';
       case 'update_chapter': return '⚙️';
+      case 'comment_reply': return '💬';
+      case 'comment_like': return '❤️';
+      case 'new_follower': return '👤';
+      case 'story_like': return '💖';
+      case 'story_bookmark': return '⭐';
       default: return '🔔';
     }
+  }
+
+  isFilterDisabled(filterName: string): boolean {
+    if (!this.userProfile) return false;
+    if (filterName === 'comments') {
+      return this.userProfile.notifiche_risposte_commenti === false && 
+             this.userProfile.notifiche_like_commenti === false;
+    }
+    if (filterName === 'follows') {
+      return this.userProfile.notifiche_nuovo_follower === false;
+    }
+    if (filterName === 'stories') {
+      return this.userProfile.notifiche_aggiornamenti_nuova_storia === false &&
+             this.userProfile.notifiche_aggiornamenti_nuovo_capitolo === false &&
+             this.userProfile.notifiche_aggiornamenti_modifica_storia === false &&
+             this.userProfile.notifiche_aggiornamenti_modifica_capitolo === false;
+    }
+    if (filterName === 'interactions') {
+      return this.userProfile.notifiche_storie_like === false &&
+             this.userProfile.notifiche_storie_preferiti === false;
+    }
+    return false;
   }
 }

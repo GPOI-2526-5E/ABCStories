@@ -27,6 +27,7 @@ export interface AuthUser {
   reading_mode?: string;
   reading_width?: string;
   sensitive_filter?: boolean;
+  visualizza_18plus?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1,9 +1,11 @@
 <app-navbar></app-navbar>
 
-<div class="editor-layout">
+<div class="editor-layout" [class.mobile-sidebar-open]="mobileSidebarOpen">
+
+  <div class="mobile-sidebar-overlay" *ngIf="mobileSidebarOpen" (click)="toggleMobileSidebar()"></div>
 
   <!-- SIDEBAR DOCK -->
-  <aside class="editor-sidebar glass-core">
+  <aside class="editor-sidebar glass-core" [class.open]="mobileSidebarOpen">
 
     <!-- Back Button -->
     <div class="sidebar-header">
@@ -83,6 +85,35 @@
           </div>
         </div>
 
+        <!-- Stato dell'opera -->
+        <div class="form-group">
+          <label>Stato dell'Opera</label>
+          <div class="custom-dropdown" [class.open]="isStatusDropdownOpen">
+            <div class="custom-dropdown-trigger" (click)="toggleStatusDropdown($event)">
+              <span>{{ getFriendlyStatusLabel(story.completion_status) }}</span>
+              <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            <div class="custom-dropdown-menu" *ngIf="isStatusDropdownOpen">
+              <div class="custom-dropdown-item" *ngFor="let option of statusOptions" [class.selected]="story.completion_status === option.value"
+                (click)="selectStatus(option.value, $event)">
+                {{ option.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenuto 18+ -->
+        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; margin-bottom: 12px;">
+          <label style="margin-bottom: 0;">Contenuto 18+</label>
+          <label class="toggle">
+            <input type="checkbox" [(ngModel)]="story.is_18_plus" />
+            <span class="toggle__slider"></span>
+          </label>
+        </div>
+
         <!-- Trama -->
         <div class="form-group">
           <label>Sinossi / Trama</label>
@@ -131,6 +162,32 @@
 
   <!-- MAIN CANVAS -->
   <main class="editor-main">
+
+    <!-- Mobile Editor Header -->
+    <div class="editor-mobile-header">
+      <button class="mobile-btn-back" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Indietro</span>
+      </button>
+      
+      <span class="mobile-editor-title">
+        {{ selectedChapter ? 'Capitolo ' + selectedChapter.order_index : 'Nuova Opera' }}
+      </span>
+      
+      <button class="mobile-btn-toggle-sidebar" (click)="toggleMobileSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+        <span>Menu</span>
+      </button>
+    </div>
+
     <div class="editor-container glass-core" *ngIf="selectedChapter">
       
       <!-- Scrollable workspace mimicking reader.html layout -->

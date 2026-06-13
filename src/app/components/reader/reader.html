@@ -34,6 +34,7 @@
   <!-- ── SIDEBAR CAPITOLI ─────────────────────────────────────── -->
   <div class="reader-sidebar-overlay" [class.open]="sidebarOpen" (click)="toggleSidebar()"></div>
   <aside class="reader-sidebar" [class.open]="sidebarOpen">
+    <div class="sidebar-drag-handle"></div>
     <div class="sidebar-header">
       <h3>Capitoli</h3>
       <button (click)="toggleSidebar()" class="sidebar-close">✕</button>
@@ -71,39 +72,38 @@
     @if (!isLoading && !error && chapter) {
     <!-- ── SFONDO AMBIENTALE (Esteso dietro testo e titolo) ───────────────────────────────── -->
     <div class="reader-hero-bg-container">
-      <div class="ambient-bg" [style.backgroundImage]="chapter.image_url ? 'url(' + chapter.image_url + ')' : 'none'"></div>
+      <div class="ambient-bg" [style.backgroundImage]="chapter.image_url ? 'url(' + chapter.image_url + ')' : 'none'">
+      </div>
       <div class="ambient-overlay"></div>
     </div>
-    
+
     <div class="reader-hero-content">
       <h1 class="reader-chapter-title">Capitolo {{ chapter.order_index }}: {{ chapter.title }}</h1>
       <p class="reader-chapter-author">{{ chapter.story_title }} · {{ chapter.author_name }}</p>
     </div>
 
     <article class="reader-article" [ngClass]="readingWidthClass()">
-      <div class="reader-page-card glass" [class.page-mode-card]="isPageMode()">
-        
-        <div class="reader-text" 
-             #readerText
-             [ngClass]="[readingFontClass(), readingFontSizeClass(), readingModeClass()]"
-             (scroll)="onReaderTextScroll($event)">
-          @for (para of paragraphs; track $index) {
-          <p>{{ para }}</p>
-          }
-        </div>
 
-        <!-- Controlli di pagina per la modalità orizzontale a pagine -->
-        <div class="page-controls" *ngIf="isPageMode()">
-          <button class="page-arrow page-arrow--left" [disabled]="currentPage() === 1" (click)="scrollPage(-1)" aria-label="Pagina precedente">
-            ‹
-          </button>
-          <span class="page-indicator">Pagina {{ currentPage() }} di {{ totalPages() }}</span>
-          <button class="page-arrow page-arrow--right" [disabled]="currentPage() === totalPages()" (click)="scrollPage(1)" aria-label="Pagina successiva">
-            ›
-          </button>
-        </div>
-
+      <div class="reader-text" #readerText [ngClass]="[readingFontClass(), readingFontSizeClass(), readingModeClass()]"
+        (scroll)="onReaderTextScroll($event)">
+        @for (para of paragraphs; track $index) {
+        <p>{{ para }}</p>
+        }
       </div>
+
+      <!-- Controlli di pagina per la modalità orizzontale a pagine -->
+      <div class="page-controls" *ngIf="isPageMode()">
+        <button class="page-arrow page-arrow--left" [disabled]="currentPage() === 1" (click)="scrollPage(-1)"
+          aria-label="Pagina precedente">
+          ‹
+        </button>
+        <span class="page-indicator">Pagina {{ currentPage() }} di {{ totalPages() }}</span>
+        <button class="page-arrow page-arrow--right" [disabled]="currentPage() === totalPages()" (click)="scrollPage(1)"
+          aria-label="Pagina successiva">
+          ›
+        </button>
+      </div>
+
     </article>
 
     <!-- ── NAVIGAZIONE CAPITOLI ────────────────────────────── -->

@@ -13,7 +13,7 @@ import { DialogService } from '../../services/dialog.service';
 
 import { RouterModule, Router } from '@angular/router';
 
-export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni';
+export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni' | 'collezioni';
 
 export interface UserBook {
   id: string;
@@ -77,12 +77,29 @@ export class User implements OnInit {
     { id: 'mipiace', label: 'Mi piace', icon: '/assets/Icone/mipiace.png' },
     { id: 'preferiti', label: 'Preferiti', icon: '/assets/Icone/preferiti.png' },
     { id: 'autori', label: 'Autori seguiti', icon: '/assets/Icone/autore.png' },
+    { id: 'collezioni', label: 'Collezioni', icon: '/assets/Icone/romanzo.png' },
     { id: 'impostazioni', label: 'Impostazioni', icon: '/assets/Icone/impostazioni.png' },
   ];
 
   likedBooks: UserBook[] = [];
 
   favoriteBooks: UserBook[] = [];
+
+  // Collezioni
+  collections: any[] = [];
+  selectedCollection: any = null;
+  isEditingCollection = false;
+  collectionForm = {
+    id: '',
+    name: '',
+    description: '',
+    storyIds: [] as string[]
+  };
+
+  // Filtri e ricerca per la creazione della collezione
+  filterLikes = true;
+  filterFavorites = true;
+  pickerSearchText = '';
 
   followedAuthors: any[] = [];
 
@@ -103,8 +120,20 @@ export class User implements OnInit {
     social_tiktok: '',
     social_linkedin: '',
     tema: 'tropical' as Theme,
-    notifiche: { commenti: true, seguaci: true, aggiornamenti: false, newsletter: true },
+    notifiche: {
+      risposte_commenti: true,
+      like_commenti: true,
+      nuovo_follower: true,
+      storie_like: true,
+      storie_preferiti: true,
+      aggiornamenti_nuova_storia: true,
+      aggiornamenti_nuovo_capitolo: true,
+      aggiornamenti_modifica_storia: true,
+      aggiornamenti_modifica_capitolo: true,
+      newsletter: true
+    },
     privacy: { profiloPubblico: true, mostraLibreria: false, indicizza: true },
+    visualizza_18plus: false,
     reading_font: 'sans-serif',
     reading_font_size: 'medium',
     reading_mode: 'scroll',
@@ -117,7 +146,7 @@ export class User implements OnInit {
   recommendedStoryIds: string[] = [];
   searchStoryText: string = '';
   showStoryDropdown = false;
-  
+
   get filteredStoriesForSearch() {
     if (!this.searchStoryText) return [];
     return this.allStories.filter(s => s.title.toLowerCase().includes(this.searchStoryText.toLowerCase()) && !this.recommendedStoryIds.includes(s.id));
@@ -129,11 +158,23 @@ export class User implements OnInit {
 
   MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
   savedFeedback = false;
+  showToast = false;
+  private toastTimeout: any = null;
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined' && window.history && window.history.state) {
+      const stateSection = window.history.state.section;
+      if (stateSection && ['profilo', 'mipiace', 'preferiti', 'autori', 'impostazioni', 'collezioni'].includes(stateSection)) {
+        this.activeSection.set(stateSection as Section);
+      }
+    }
+
     const u = this.currentUser();
     if (u) {
-      this.settings.nome  = u.username;
+      this.loadCollections();
+    }
+    if (u) {
+      this.settings.nome = u.username;
       this.settings.email = u.email;
 
       this.settings.tema = this.themeService.currentTheme();
@@ -159,15 +200,22 @@ export class User implements OnInit {
           if (profile.social_website) this.settings.social_website = profile.social_website;
           if (profile.social_tiktok) this.settings.social_tiktok = profile.social_tiktok;
           if (profile.social_linkedin) this.settings.social_linkedin = profile.social_linkedin;
-          
+
           if (profile.theme) this.settings.tema = profile.theme;
-          if (profile.notifiche_commenti !== undefined && profile.notifiche_commenti !== null) this.settings.notifiche.commenti = profile.notifiche_commenti;
-          if (profile.notifiche_seguaci !== undefined && profile.notifiche_seguaci !== null) this.settings.notifiche.seguaci = profile.notifiche_seguaci;
-          if (profile.notifiche_aggiornamenti !== undefined && profile.notifiche_aggiornamenti !== null) this.settings.notifiche.aggiornamenti = profile.notifiche_aggiornamenti;
+          if (profile.notifiche_risposte_commenti !== undefined && profile.notifiche_risposte_commenti !== null) this.settings.notifiche.risposte_commenti = profile.notifiche_risposte_commenti;
+          if (profile.notifiche_like_commenti !== undefined && profile.notifiche_like_commenti !== null) this.settings.notifiche.like_commenti = profile.notifiche_like_commenti;
+          if (profile.notifiche_nuovo_follower !== undefined && profile.notifiche_nuovo_follower !== null) this.settings.notifiche.nuovo_follower = profile.notifiche_nuovo_follower;
+          if (profile.notifiche_storie_like !== undefined && profile.notifiche_storie_like !== null) this.settings.notifiche.storie_like = profile.notifiche_storie_like;
+          if (profile.notifiche_storie_preferiti !== undefined && profile.notifiche_storie_preferiti !== null) this.settings.notifiche.storie_preferiti = profile.notifiche_storie_preferiti;
+          if (profile.notifiche_aggiornamenti_nuova_storia !== undefined && profile.notifiche_aggiornamenti_nuova_storia !== null) this.settings.notifiche.aggiornamenti_nuova_storia = profile.notifiche_aggiornamenti_nuova_storia;
+          if (profile.notifiche_aggiornamenti_nuovo_capitolo !== undefined && profile.notifiche_aggiornamenti_nuovo_capitolo !== null) this.settings.notifiche.aggiornamenti_nuovo_capitolo = profile.notifiche_aggiornamenti_nuovo_capitolo;
+          if (profile.notifiche_aggiornamenti_modifica_storia !== undefined && profile.notifiche_aggiornamenti_modifica_storia !== null) this.settings.notifiche.aggiornamenti_modifica_storia = profile.notifiche_aggiornamenti_modifica_storia;
+          if (profile.notifiche_aggiornamenti_modifica_capitolo !== undefined && profile.notifiche_aggiornamenti_modifica_capitolo !== null) this.settings.notifiche.aggiornamenti_modifica_capitolo = profile.notifiche_aggiornamenti_modifica_capitolo;
           if (profile.notifiche_newsletter !== undefined && profile.notifiche_newsletter !== null) this.settings.notifiche.newsletter = profile.notifiche_newsletter;
           if (profile.privacy_profilo_pubblico !== undefined && profile.privacy_profilo_pubblico !== null) this.settings.privacy.profiloPubblico = profile.privacy_profilo_pubblico;
           if (profile.privacy_mostra_libreria !== undefined && profile.privacy_mostra_libreria !== null) this.settings.privacy.mostraLibreria = profile.privacy_mostra_libreria;
           if (profile.privacy_indicizza !== undefined && profile.privacy_indicizza !== null) this.settings.privacy.indicizza = profile.privacy_indicizza;
+          if (profile.visualizza_18plus !== undefined && profile.visualizza_18plus !== null) this.settings.visualizza_18plus = profile.visualizza_18plus;
 
           if (profile.reading_font) this.settings.reading_font = profile.reading_font;
           if (profile.reading_font_size) this.settings.reading_font_size = profile.reading_font_size;
@@ -238,7 +286,7 @@ export class User implements OnInit {
   toggleFollow(author: any): void {
     const u = this.currentUser();
     if (!u) return;
-    
+
     // Unfollow real-time
     this.api.unfollowUser(u.id, author.id).subscribe({
       next: () => {
@@ -265,14 +313,17 @@ export class User implements OnInit {
     });
   }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/']);
+  async logout(): Promise<void> {
+    const confirmed = await this.dialogService.confirm('Esci', 'Sei sicuro di voler uscire?');
+    if (confirmed) {
+      this.authService.logout();
+      this.router.navigate(['/']);
+    }
   }
 
   saveSettings(): void {
     this.themeService.setTheme(this.settings.tema);
-    
+
     // Salva le storie raccomandate e il profilo
     const user = this.currentUser();
     if (user) {
@@ -280,7 +331,7 @@ export class User implements OnInit {
         next: () => console.log('Letture consigliate aggiornate'),
         error: (err) => console.error('Errore aggiornamento letture consigliate', err)
       });
-      
+
       this.api.updateUserProfile(user.id, {
         username: this.settings.nome,
         bio: this.settings.bio,
@@ -293,13 +344,20 @@ export class User implements OnInit {
         social_tiktok: this.settings.social_tiktok || null,
         social_linkedin: this.settings.social_linkedin || null,
         theme: this.settings.tema,
-        notifiche_commenti: this.settings.notifiche.commenti,
-        notifiche_seguaci: this.settings.notifiche.seguaci,
-        notifiche_aggiornamenti: this.settings.notifiche.aggiornamenti,
+        notifiche_risposte_commenti: this.settings.notifiche.risposte_commenti,
+        notifiche_like_commenti: this.settings.notifiche.like_commenti,
+        notifiche_nuovo_follower: this.settings.notifiche.nuovo_follower,
+        notifiche_storie_like: this.settings.notifiche.storie_like,
+        notifiche_storie_preferiti: this.settings.notifiche.storie_preferiti,
+        notifiche_aggiornamenti_nuova_storia: this.settings.notifiche.aggiornamenti_nuova_storia,
+        notifiche_aggiornamenti_nuovo_capitolo: this.settings.notifiche.aggiornamenti_nuovo_capitolo,
+        notifiche_aggiornamenti_modifica_storia: this.settings.notifiche.aggiornamenti_modifica_storia,
+        notifiche_aggiornamenti_modifica_capitolo: this.settings.notifiche.aggiornamenti_modifica_capitolo,
         notifiche_newsletter: this.settings.notifiche.newsletter,
         privacy_profilo_pubblico: this.settings.privacy.profiloPubblico,
         privacy_mostra_libreria: this.settings.privacy.mostraLibreria,
         privacy_indicizza: this.settings.privacy.indicizza,
+        visualizza_18plus: this.settings.visualizza_18plus,
         reading_font: this.settings.reading_font,
         reading_font_size: this.settings.reading_font_size,
         reading_mode: this.settings.reading_mode,
@@ -316,8 +374,15 @@ export class User implements OnInit {
       });
     }
 
-    this.savedFeedback = true;
-    setTimeout(() => (this.savedFeedback = false), 2000);
+    this.showToast = true;
+    this.cdr.detectChanges();
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.showToast = false;
+      this.cdr.detectChanges();
+    }, 3000);
   }
 
   restoreDefaults(): void {
@@ -327,13 +392,20 @@ export class User implements OnInit {
     this.settings.reading_mode = 'scroll';
     this.settings.reading_width = 'medium';
     this.settings.sensitive_filter = false;
-    this.settings.notifiche.commenti = true;
-    this.settings.notifiche.seguaci = true;
-    this.settings.notifiche.aggiornamenti = false;
+    this.settings.notifiche.risposte_commenti = true;
+    this.settings.notifiche.like_commenti = true;
+    this.settings.notifiche.nuovo_follower = true;
+    this.settings.notifiche.storie_like = true;
+    this.settings.notifiche.storie_preferiti = true;
+    this.settings.notifiche.aggiornamenti_nuova_storia = true;
+    this.settings.notifiche.aggiornamenti_nuovo_capitolo = true;
+    this.settings.notifiche.aggiornamenti_modifica_storia = true;
+    this.settings.notifiche.aggiornamenti_modifica_capitolo = true;
     this.settings.notifiche.newsletter = true;
     this.settings.privacy.profiloPubblico = true;
     this.settings.privacy.mostraLibreria = false;
     this.settings.privacy.indicizza = true;
+    this.settings.visualizza_18plus = false;
 
     this.saveSettings();
   }
@@ -352,6 +424,7 @@ export class User implements OnInit {
       const base64 = reader.result as string;
       this.settings.avatar_url = base64;
       this.cdr.detectChanges();
+      this.saveSettings();
     };
     reader.readAsDataURL(file);
   }
@@ -371,14 +444,16 @@ export class User implements OnInit {
       this.recommendedStoryIds.push(story.id);
       this.searchStoryText = '';
       this.showStoryDropdown = false;
+      this.saveSettings();
     }
   }
 
   removeRecommendedStory(storyId: string) {
     this.recommendedStoryIds = this.recommendedStoryIds.filter(id => id !== storyId);
+    this.saveSettings();
   }
 
-  private mapDbBook(s: any): any {
+  public mapDbBook(s: any): any {
     return {
       id: s.id,
       title: s.title ?? '',
@@ -425,6 +500,182 @@ export class User implements OnInit {
     if (book.id) {
       this.interactions.toggleBookmark(book.id);
       this.favoriteBooks = this.favoriteBooks.filter(b => b.id !== book.id);
+    }
+  }
+
+  loadCollections() {
+    const u = this.currentUser();
+    if (!u) return;
+    this.api.getCollections(u.id).subscribe({
+      next: (cols) => {
+        this.collections = cols;
+        if (this.selectedCollection) {
+          const updated = cols.find(c => c.id === this.selectedCollection.id);
+          this.selectedCollection = updated || null;
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.warn('Errore caricamento collezioni:', err)
+    });
+  }
+
+  getMergedBooks(): any[] {
+    return [...this.likedBooks, ...this.favoriteBooks].reduce((acc, book) => {
+      const existing = acc.find(b => b.id === book.id);
+      const inLikes = this.likedBooks.some(b => b.id === book.id);
+      const inFavs = this.favoriteBooks.some(b => b.id === book.id);
+      if (existing) {
+        existing.isLiked = inLikes;
+        existing.isFavorite = inFavs;
+      } else {
+        acc.push({
+          ...book,
+          isLiked: inLikes,
+          isFavorite: inFavs
+        });
+      }
+      return acc;
+    }, [] as any[]);
+  }
+
+  getFilteredPickerBooks(): any[] {
+    const merged = this.getMergedBooks();
+    return merged.filter(book => {
+      const matchesType = (this.filterLikes && book.isLiked) || (this.filterFavorites && book.isFavorite);
+      if (!matchesType) return false;
+
+      if (this.pickerSearchText.trim()) {
+        const query = this.pickerSearchText.toLowerCase().trim();
+        const matchesTitle = book.title?.toLowerCase().includes(query);
+        const matchesAuthor = book.author?.toLowerCase().includes(query);
+        return matchesTitle || matchesAuthor;
+      }
+
+      return true;
+    });
+  }
+
+  toggleFilterLikes() {
+    this.filterLikes = !this.filterLikes;
+  }
+
+  toggleFilterFavorites() {
+    this.filterFavorites = !this.filterFavorites;
+  }
+
+  openCreateCollection() {
+    this.collectionForm = {
+      id: '',
+      name: '',
+      description: '',
+      storyIds: []
+    };
+    this.filterLikes = true;
+    this.filterFavorites = true;
+    this.pickerSearchText = '';
+    this.isEditingCollection = true;
+    this.cdr.detectChanges();
+  }
+
+  openEditCollection(col: any) {
+    this.collectionForm = {
+      id: col.id,
+      name: col.name,
+      description: col.description || '',
+      storyIds: col.stories ? col.stories.map((s: any) => s.id) : []
+    };
+    this.filterLikes = true;
+    this.filterFavorites = true;
+    this.pickerSearchText = '';
+    this.isEditingCollection = true;
+    this.cdr.detectChanges();
+  }
+
+  toggleStoryInCollectionForm(storyId: string) {
+    const index = this.collectionForm.storyIds.indexOf(storyId);
+    if (index === -1) {
+      this.collectionForm.storyIds.push(storyId);
+    } else {
+      this.collectionForm.storyIds.splice(index, 1);
+    }
+    if (this.collectionForm.id) {
+      this.autoSaveCollection();
+    }
+  }
+
+  autoSaveCollection() {
+    const u = this.currentUser();
+    if (!u || !this.collectionForm.id || !this.collectionForm.name.trim()) return;
+
+    const payload = {
+      name: this.collectionForm.name.trim(),
+      description: this.collectionForm.description.trim(),
+      storyIds: this.collectionForm.storyIds
+    };
+
+    this.api.updateCollection(this.collectionForm.id, payload).subscribe({
+      next: () => {
+        this.loadCollections();
+        this.showToast = true;
+        this.cdr.detectChanges();
+        if (this.toastTimeout) {
+          clearTimeout(this.toastTimeout);
+        }
+        this.toastTimeout = setTimeout(() => {
+          this.showToast = false;
+          this.cdr.detectChanges();
+        }, 3000);
+      },
+      error: (err) => console.error('Errore auto-salvataggio collezione:', err)
+    });
+  }
+
+  isStorySelectedInCollectionForm(storyId: string): boolean {
+    return this.collectionForm.storyIds.includes(storyId);
+  }
+
+  saveCollection() {
+    const u = this.currentUser();
+    if (!u || !this.collectionForm.name.trim()) return;
+
+    const payload = {
+      name: this.collectionForm.name.trim(),
+      description: this.collectionForm.description.trim(),
+      storyIds: this.collectionForm.storyIds
+    };
+
+    if (this.collectionForm.id) {
+      this.api.updateCollection(this.collectionForm.id, payload).subscribe({
+        next: () => {
+          this.isEditingCollection = false;
+          this.loadCollections();
+        },
+        error: (err) => console.error('Errore aggiornamento collezione:', err)
+      });
+    } else {
+      this.api.createCollection(u.id, payload).subscribe({
+        next: () => {
+          this.isEditingCollection = false;
+          this.loadCollections();
+        },
+        error: (err) => console.error('Errore creazione collezione:', err)
+      });
+    }
+  }
+
+  async deleteCollection(collectionId: string) {
+    const confirmed = await this.dialogService.confirm(
+      'Elimina Collezione',
+      'Sei sicuro di voler eliminare questa collezione? Questa azione non può essere annullata.'
+    );
+    if (confirmed) {
+      this.api.deleteCollection(collectionId).subscribe({
+        next: () => {
+          this.selectedCollection = null;
+          this.loadCollections();
+        },
+        error: (err) => console.error('Errore eliminazione collezione:', err)
+      });
     }
   }
 

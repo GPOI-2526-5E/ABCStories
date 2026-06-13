@@ -213,6 +213,8 @@ export class BookDetail implements OnInit {
       liked: s.liked ?? false,
       bookmarked: s.bookmarked ?? false,
       viewsCount: s.views_count ? parseInt(s.views_count, 10) : 0,
+      is_18_plus: !!s.is_18_plus,
+      completion_status: s.completion_status ?? 'in_corso',
     };
   }
 
@@ -270,6 +272,12 @@ export class BookDetail implements OnInit {
     this.api.getStory(storyId).subscribe({
       next: (story) => {
         if (story) {
+          const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+          const show18Plus = user?.visualizza_18plus === true;
+          if (story.is_18_plus && !show18Plus) {
+            this.router.navigate(['/home']);
+            return;
+          }
           this.book = this.mapDbBook(story);
           this.preloadImage(this.book.img);
         } else if (!this.book) {
@@ -472,5 +480,16 @@ export class BookDetail implements OnInit {
       if (diff <= 0) return 0;
       return Math.round(diff * 100);
     });
+  }
+
+  getFriendlyStatusLabel(status: string): string {
+    switch (status) {
+      case 'completato': return 'Completato';
+      case 'incompleto': return 'Incompleto';
+      case 'sospeso': return 'Sospeso';
+      case 'in_corso':
+      default:
+        return 'In corso';
+    }
   }
 }

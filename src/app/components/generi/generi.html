@@ -1,44 +1,51 @@
 <app-navbar></app-navbar>
+
 <section class="generi-page">
 
-  <!-- ── Hero ── -->
-  <div class="generi-hero">
-    <p class="generi-hero__eyebrow">Esplora</p>
-    <h1 class="generi-hero__title">Tutti i Generi</h1>
-    <p class="generi-hero__sub">
-      Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
-    </p>
+  <div class="ambient-workspace">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="ambient-curtain"></div>
   </div>
 
-  <!-- ── Griglia 2 colonne ── -->
-  <div class="generi-grid">
-    <div
-      *ngFor="let g of generi"
-      class="generi-card"
-      (click)="goToGenere(g.slug)"
-      (keydown.enter)="goToGenere(g.slug)"
-      tabindex="0"
-      role="button"
-      [attr.aria-label]="'Vai al genere ' + g.nome"
-    >
-      <!-- Immagine con mask-image fade verso destra -->
-      <div
-        class="generi-card__img"
-        [style.background-image]="'url(' + g.imageUrl + ')'"
-      ></div>
+  <div class="generi-container">
 
-      <!-- Contenuto + freccia -->
-      <div class="generi-card__body">
-        <div class="generi-card__content">
-          <span class="generi-card__count">{{ g.count }} storie</span>
-          <h2 class="generi-card__nome">{{ g.nome }}</h2>
-          <p class="generi-card__desc">{{ g.descrizione }}</p>
+    <div class="generi-hero">
+      <p class="generi-hero__eyebrow">Esplora</p>
+      <h1 class="generi-hero__title">Tutti i Generi</h1>
+      <p class="generi-hero__sub">
+        Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
+      </p>
+    </div>
+
+    <div class="generi-grid-canvas">
+      <div *ngFor="let g of generi" class="premium-genre-card glass-core" (click)="goToGenere(g.slug)"
+        (keydown.enter)="goToGenere(g.slug)" tabindex="0" role="button" [attr.aria-label]="'Vai al genere ' + g.nome">
+        <div class="genre-card-art-box">
+          <div class="genre-card-img-bg" [style.backgroundImage]="'url(' + g.imageUrl + ')'"></div>
+          <div class="genre-card-art-overlay"></div>
         </div>
-        <div class="generi-card__cta" aria-hidden="true">→</div>
+
+        <div class="genre-card-body-panel">
+          <div class="genre-card-content-stack">
+            <span class="genre-card-count-tag">{{ g.count }} storie</span>
+            <h2 class="genre-card-headline-title">{{ g.nome }}</h2>
+            <p class="genre-card-description-text">{{ g.descrizione }}</p>
+          </div>
+
+          <div class="genre-card-cta-orb" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </div>
+
       </div>
     </div>
-  </div>
 
+  </div>
 </section>
 
 <app-footer></app-footer>

@@ -18,21 +18,21 @@
   min-height: 100vh;
   background: var(--tropicalTheme);
   color: var(--text-primary);
-  padding: 120px 40px 15px 40px; // Ridotta la spaziatura in basso a 15px per allineare il pannello al fondo
+  padding: 120px 40px 40px; // Margini laterali contenuti per un po' di respiro dai bordi
   box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: flex-start;
 
   @media (max-width: 768px) {
-    padding: 110px 20px 20px 20px;
+    padding: 110px 12px 20px 12px;
   }
 }
 
 // ── Main Content Container ──
 .notifications-main {
   width: 100%;
-  max-width: 1400px; // Allargato ulteriormente per occupare meglio la larghezza dello schermo
+  // Nessun max-width: il pannello si adatta a tutto lo schermo
   position: relative;
   z-index: 2;
 }
@@ -40,20 +40,22 @@
 .notifications-card {
   @include glass-panel(0.12, 30px, 0.25);
   border-radius: 24px;
-  height: calc(100vh - 135px); // Ottimizzato per allinearsi perfettamente a 15px dal fondo (120px top + 15px bottom)
-  min-height: 550px;
-  max-height: 980px; // Aumentato il limite massimo per schermi alti per ridurre la spaziatura
-  padding: 40px;
+  height: calc(100vh - 160px);
+  height: calc(100dvh - 160px);
+  min-height: 500px;
+  max-height: 980px;
+  padding: 40px 48px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 30px;
 
   @media (max-width: 768px) {
-    padding: 24px;
+    padding: 24px 20px;
     border-radius: 20px;
     gap: 20px;
-    height: calc(100vh - 130px); // Adattato per il padding mobile (110px top + 20px bottom)
+    height: calc(100vh - 130px);
+    height: calc(100dvh - 130px);
   }
 }
 
@@ -300,12 +302,15 @@
     &[data-type="new_story"] {
       background: #e3f2fd;
     }
+
     &[data-type="update_story"] {
       background: #fff3e0;
     }
+
     &[data-type="new_chapter"] {
       background: #e8f5e9;
     }
+
     &[data-type="update_chapter"] {
       background: #ede7f6;
     }
@@ -327,7 +332,7 @@
     line-height: 1.45;
     font-weight: 500;
     text-align: left;
-    
+
     ::ng-deep strong {
       font-weight: 700;
       color: var(--text-primary);
@@ -406,6 +411,7 @@
   padding: 80px 40px;
   color: var(--text-muted-dark);
   width: 100%;
+  flex: 1;
 
   .empty-icon {
     margin-bottom: 20px;
@@ -436,5 +442,106 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// REDESIGN DA ZERO PER DISPOSITIVI MOBILE (<= 768px)
+// ═══════════════════════════════════════════════════════
+@media (max-width: 768px) {
+  .notifications-layout {
+    padding: 110px 14px 20px 14px !important; // Distacco superiore ridotto per mobile
+  }
+
+  .notifications-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    gap: 16px !important;
+    height: calc(100vh - 130px) !important;
+    height: calc(100dvh - 130px) !important;
+    min-height: 400px !important;
+  }
+
+  .card-header-section {
+    padding-bottom: 16px !important;
+    gap: 12px !important;
+
+    .page-title {
+      font-size: 22px !important;
+    }
+
+    .page-sub {
+      font-size: 13px !important;
+    }
+
+    .btn-read-all {
+      padding: 10px 24px !important;
+      font-size: 13px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+  }
+
+  .filters-row {
+    display: flex !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    gap: 8px !important;
+    padding: 4px 4px 12px 4px !important;
+    margin-bottom: 0 !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+
+    &::-webkit-scrollbar {
+      display: none !important;
+    }
+  }
+
+  .tab-btn {
+    flex-shrink: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+  }
+
+  .notification-item {
+    padding: 14px 16px !important;
+    gap: 12px !important;
+    transform: none !important;
+
+    &:hover {
+      transform: none !important;
+    }
+
+    .notification-body {
+      .notification-message {
+        font-size: 13.5px !important;
+      }
+
+      .notification-time {
+        font-size: 11px !important;
+      }
+    }
+
+    .notification-avatar-container {
+      width: 40px !important;
+      height: 40px !important;
+    }
+  }
+
+  .empty-state {
+    padding: 40px 16px !important;
+
+    h3 {
+      font-size: 18px !important;
+    }
+
+    p {
+      font-size: 13px !important;
+    }
+  }
 }

@@ -12,6 +12,9 @@
         <span class="brand-name">{{ currentUser()?.username }}</span>
         <span class="brand-handle">{{ currentUser()?.email }}</span>
       </div>
+      <button class="brand-logout-btn" (click)="logout()" title="Esci">
+        <img src="assets/Icone/logout.png" alt="Esci" class="logout-icon-img" />
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -21,6 +24,13 @@
           <img [src]="item.icon" [alt]="item.label" class="sidebar-icon-img" />
         </span>
         <span class="nav-btn__label">{{ item.label }}</span>
+      </button>
+
+      <button class="nav-btn sidebar-logout-btn" (click)="logout()" style="margin-top: auto;">
+        <span class="nav-btn__icon">
+          <img src="assets/Icone/logout.png" alt="Esci" class="sidebar-icon-img" />
+        </span>
+        <span class="nav-btn__label">Esci</span>
       </button>
     </nav>
 
@@ -76,14 +86,15 @@
                 (change)="onAvatarImageSelected($event)">
 
               <div class="identity-meta">
-                <input type="text" class="inline-edit-username" [(ngModel)]="settings.nome" placeholder="Username..." />
+                <input type="text" class="inline-edit-username" [(ngModel)]="settings.nome" (change)="saveSettings()"
+                  placeholder="Username..." />
                 <p class="author-handle" style="opacity: 0.6; font-size: 0.9rem; margin-top: 6px;">{{ settings.email }}
                   (non modificabile)</p>
               </div>
             </div>
 
             <div class="bio-box">
-              <textarea class="inline-edit-bio" [(ngModel)]="settings.bio"
+              <textarea class="inline-edit-bio" [(ngModel)]="settings.bio" (change)="saveSettings()"
                 placeholder="Scrivi una breve biografia..."></textarea>
             </div>
           </div>
@@ -113,7 +124,7 @@
                 <div class="matrix-cell position-edit-cell">
                   <span class="matrix-val location-pin">📍</span>
                   <input type="text" class="inline-edit-location" [(ngModel)]="settings.posizione"
-                    placeholder="La tua città..." />
+                    (change)="saveSettings()" placeholder="La tua città..." />
                 </div>
               </div>
             </div>
@@ -130,42 +141,42 @@
                     <img src="/assets/Icone/instagram.png" alt="Instagram" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_instagram"
-                    placeholder="https://instagram.com/tuo_profilo" />
+                    (change)="saveSettings()" placeholder="https://instagram.com/tuo_profilo" />
                 </div>
                 <div class="social-edit-row">
                   <span class="social-edit-icon">
                     <img src="/assets/Icone/x.png" alt="X" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_twitter"
-                    placeholder="https://x.com/tuo_profilo" />
+                    (change)="saveSettings()" placeholder="https://x.com/tuo_profilo" />
                 </div>
                 <div class="social-edit-row">
                   <span class="social-edit-icon">
                     <img src="/assets/Icone/tiktok.png" alt="TikTok" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_tiktok"
-                    placeholder="https://tiktok.com/@tuo_profilo" />
+                    (change)="saveSettings()" placeholder="https://tiktok.com/@tuo_profilo" />
                 </div>
                 <div class="social-edit-row">
                   <span class="social-edit-icon">
                     <img src="/assets/Icone/linkedin.png" alt="LinkedIn" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_linkedin"
-                    placeholder="https://linkedin.com/in/tuo_profilo" />
+                    (change)="saveSettings()" placeholder="https://linkedin.com/in/tuo_profilo" />
                 </div>
                 <div class="social-edit-row">
                   <span class="social-edit-icon">
                     <img src="/assets/Icone/facebook.png" alt="Facebook" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_facebook"
-                    placeholder="https://facebook.com/tuo_profilo" />
+                    (change)="saveSettings()" placeholder="https://facebook.com/tuo_profilo" />
                 </div>
                 <div class="social-edit-row">
                   <span class="social-edit-icon">
                     <img src="/assets/Icone/sitoweb.png" alt="Facebook" class="social-icon-img" />
                   </span>
                   <input type="text" class="social-edit-input" [(ngModel)]="settings.social_website"
-                    placeholder="https://tuosito.com" />
+                    (change)="saveSettings()" placeholder="https://tuosito.com" />
                 </div>
               </div>
             </div>
@@ -238,12 +249,7 @@
           </div>
         </div>
 
-        <!-- Azione di salvataggio del profilo -->
-        <div class="profile-save-container">
-          <button class="btn-save" (click)="saveSettings()">
-            {{ savedFeedback ? '✅ Profilo Salvato!' : '💾 Salva modifiche' }}
-          </button>
-        </div>
+        <!-- L'azione di salvataggio del profilo viene eseguita in automatico -->
 
       </div>
     </section>
@@ -325,7 +331,8 @@
       <h2 class="section-title">Autori seguiti</h2>
       <p class="section-sub">Gli scrittori di cui non vuoi perdere gli aggiornamenti ✍️</p>
       <div class="authors-list">
-        <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author']" [state]="{ authorId: author.id }">
+        <div class="author-card glass" *ngFor="let author of followedAuthors" [routerLink]="['/author']"
+          [state]="{ authorId: author.id }">
           <div class="author-card__avatar" [style.background]="author.avatarGradient">
             <img *ngIf="author.avatar_url" [src]="author.avatar_url"
               style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
@@ -336,11 +343,12 @@
             <span class="author-card__desc">{{ author.description || 'Nessuna biografia disponibile.' }}</span>
           </div>
           <button class="notifications-toggle-btn"
-                  [class.notifications-disabled]="author.enable_notifications === false"
-                  [title]="author.enable_notifications !== false ? 'Disattiva notifiche' : 'Attiva notifiche'"
-                  (click)="$event.stopPropagation(); toggleNotifications(author)"
-                  style="border: none !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 !important; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: 0 20px;">
-            <img src="assets/Icone/notifica.png" alt="Notifiche" style="width: 26px; height: 26px; object-fit: contain; transition: all 0.3s;" />
+            [class.notifications-disabled]="author.enable_notifications === false"
+            [title]="author.enable_notifications !== false ? 'Disattiva notifiche' : 'Attiva notifiche'"
+            (click)="$event.stopPropagation(); toggleNotifications(author)"
+            style="border: none !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 !important; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: 0 20px;">
+            <img src="assets/Icone/notifica.png" alt="Notifiche"
+              style="width: 26px; height: 26px; object-fit: contain; transition: all 0.3s;" />
           </button>
           <button class="follow-btn follow-btn--active" (click)="$event.stopPropagation(); toggleFollow(author)">
             Unfollow
@@ -353,59 +361,77 @@
     <section class="section section--padded" *ngIf="activeSection() === 'impostazioni'">
       <h2 class="section-title">Impostazioni</h2>
       <p class="section-sub">
-        Le modifiche vengono salvate automaticamente ⚡
-        <span *ngIf="savedFeedback" class="save-toast-indicator">✅ Salvato!</span>
+        Le modifiche vengono salvate automaticamente
+        <span *ngIf="savedFeedback" class="save-toast-indicator">Salvato!</span>
       </p>
 
-      <div class="settings-stack">
+      <div class="settings-stack glass-core">
 
         <!-- Dati Account -->
-        <div class="settings-card glass">
+        <div class="settings-group">
           <h3 class="settings-card__title">Dati Account</h3>
           <div class="setting-row setting-row--last">
             <div class="setting-row__label">
               <span>Email</span>
               <small>L'indirizzo email associato al tuo account (non modificabile)</small>
             </div>
-            <input class="setting-input" type="text" [value]="settings.email" readonly style="opacity: 0.7; cursor: not-allowed;" />
+            <input class="setting-input" type="text" [value]="settings.email" readonly
+              style="opacity: 0.7; cursor: not-allowed;" />
           </div>
         </div>
 
         <!-- Aspetto -->
-        <div class="settings-card glass">
+        <div class="settings-group">
           <h3 class="settings-card__title">Aspetto</h3>
           <div class="setting-row setting-row--last">
             <div class="setting-row__label">
               <span>Tema dell'applicazione</span>
               <small>Scegli il tuo stile preferito</small>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.tema" (change)="themeService.setTheme(settings.tema)" (ngModelChange)="saveSettings()">
-              <option value="tropical">Tropicale (Predefinito)</option>
-              <option value="dark">Scuro (Nero)</option>
-              <option value="light">Chiaro</option>
-              <option value="sunset">Sunset (Tramonto)</option>
-            </select>
+            <div class="glass-select-wrapper">
+              <select class="setting-input glass-select" [(ngModel)]="settings.tema"
+                (change)="themeService.setTheme(settings.tema)" (ngModelChange)="saveSettings()">
+                <option value="tropical">Tropicale (Predefinito)</option>
+                <option value="dark">Scuro (Nero)</option>
+                <option value="light">Chiaro</option>
+                <option value="sunset">Sunset (Tramonto)</option>
+              </select>
+              <span class="glass-select-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Preferenze di Lettura -->
-        <div class="settings-card glass">
+        <div class="settings-group">
           <h3 class="settings-card__title">Preferenze di Lettura</h3>
-          <p style="font-size: 0.85rem; opacity: 0.7; margin-top: -12px; margin-bottom: 16px; color: var(--text-muted);">
+          <p
+            style="font-size: 0.85rem; opacity: 0.7; margin-top: -12px; margin-bottom: 16px; color: var(--text-muted);">
             Queste preferenze verranno applicate durante la lettura dei capitoli nel lettore (reader.html).
           </p>
-          
+
           <div class="setting-row">
             <div class="setting-row__label">
               <span>Font di lettura</span>
               <small>Scegli il tipo di carattere per le storie</small>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.reading_font" (ngModelChange)="saveSettings()">
-              <option value="sans-serif">Sans-serif (Lineare)</option>
-              <option value="serif">Serif (Grazie)</option>
-              <option value="monospace">Monospace (Spazio Fisso)</option>
-              <option value="opendyslexic">OpenDyslexic (Alta Leggibilità)</option>
-            </select>
+            <div class="glass-select-wrapper">
+              <select class="setting-input glass-select" [(ngModel)]="settings.reading_font"
+                (ngModelChange)="saveSettings()">
+                <option value="sans-serif">Sans-serif (Lineare)</option>
+                <option value="serif">Serif (Grazie)</option>
+                <option value="monospace">Monospace (Spazio Fisso)</option>
+                <option value="opendyslexic">OpenDyslexic (Alta Leggibilità)</option>
+              </select>
+              <span class="glass-select-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </div>
           </div>
 
           <div class="setting-row">
@@ -413,23 +439,20 @@
               <span>Dimensione carattere</span>
               <small>Regola la grandezza del testo</small>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.reading_font_size" (ngModelChange)="saveSettings()">
-              <option value="small">Piccolo</option>
-              <option value="medium">Medio</option>
-              <option value="large">Grande</option>
-              <option value="x-large">Molto Grande</option>
-            </select>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Modalità di lettura</span>
-              <small>Scegli come scorrere tra i capitoli (Continuo verticale vs Pagine ebook)</small>
+            <div class="glass-select-wrapper">
+              <select class="setting-input glass-select" [(ngModel)]="settings.reading_font_size"
+                (ngModelChange)="saveSettings()">
+                <option value="small">Piccolo</option>
+                <option value="medium">Medio</option>
+                <option value="large">Grande</option>
+                <option value="x-large">Molto Grande</option>
+              </select>
+              <span class="glass-select-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.reading_mode" (ngModelChange)="saveSettings()">
-              <option value="scroll">Continuo (Scroll)</option>
-              <option value="page">Pagine (Page-by-page)</option>
-            </select>
           </div>
 
           <div class="setting-row">
@@ -437,11 +460,19 @@
               <span>Larghezza layout</span>
               <small>Larghezza massima dell'area del testo</small>
             </div>
-            <select class="setting-input" [(ngModel)]="settings.reading_width" (ngModelChange)="saveSettings()">
-              <option value="narrow">Stretto</option>
-              <option value="medium">Medio</option>
-              <option value="wide">Largo</option>
-            </select>
+            <div class="glass-select-wrapper">
+              <select class="setting-input glass-select" [(ngModel)]="settings.reading_width"
+                (ngModelChange)="saveSettings()">
+                <option value="narrow">Stretto</option>
+                <option value="medium">Medio</option>
+                <option value="wide">Largo</option>
+              </select>
+              <span class="glass-select-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </div>
           </div>
 
           <div class="setting-row setting-row--last">
@@ -457,38 +488,114 @@
         </div>
 
         <!-- Notifiche -->
-        <div class="settings-card glass">
+        <div class="settings-group">
           <h3 class="settings-card__title">Notifiche</h3>
+
+          <h4 class="settings-card__subtitle">Interazioni sui commenti</h4>
           <div class="setting-row">
             <div class="setting-row__label">
-              <span>Nuovi commenti</span>
-              <small>Ricevi notifiche per i commenti alle tue storie</small>
+              <span>Risposte ai commenti</span>
+              <small>Ricevi una notifica quando qualcuno risponde a un tuo commento</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.commenti" (ngModelChange)="saveSettings()" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.risposte_commenti"
+                (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Mi piace ai commenti</span>
+              <small>Ricevi una notifica quando qualcuno mette like a un tuo commento</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.like_commenti" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <h4 class="settings-card__subtitle">Social & Follower</h4>
           <div class="setting-row">
             <div class="setting-row__label">
               <span>Nuovi seguaci</span>
-              <small>Avviso quando qualcuno inizia a seguirti</small>
+              <small>Ricevi una notifica quando un utente inizia a seguirti</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.seguaci" (ngModelChange)="saveSettings()" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.nuovo_follower" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <h4 class="settings-card__subtitle">Interazioni sulle mie storie</h4>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Mi piace ricevuti</span>
+              <small>Ricevi una notifica quando un lettore mette like a una tua storia</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.storie_like" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
           <div class="setting-row">
             <div class="setting-row__label">
-              <span>Aggiornamenti storie</span>
-              <small>Notifica quando gli autori seguiti pubblicano</small>
+              <span>Preferiti ricevuti</span>
+              <small>Ricevi una notifica quando un lettore salva la tua storia nei preferiti</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti" (ngModelChange)="saveSettings()" />
+              <input type="checkbox" [(ngModel)]="settings.notifiche.storie_preferiti"
+                (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
+
+          <h4 class="settings-card__subtitle">Storie da autori seguiti</h4>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Nuova storia</span>
+              <small>Ricevi una notifica quando un autore che segui pubblica una nuova storia</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti_nuova_storia"
+                (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Nuovo capitolo</span>
+              <small>Ricevi una notifica quando viene aggiunto un nuovo capitolo a una storia che segui</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti_nuovo_capitolo"
+                (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Modifica della storia</span>
+              <small>Ricevi una notifica quando viene modificata la descrizione/dettagli di una storia che segui</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti_modifica_storia"
+                (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Modifica del capitolo</span>
+              <small>Ricevi una notifica quando viene modificato un capitolo in una storia che segui</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.aggiornamenti_modifica_capitolo"
+                (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <h4 class="settings-card__subtitle">Newsletter</h4>
           <div class="setting-row setting-row--last">
             <div class="setting-row__label">
               <span>Newsletter ABCStories</span>
@@ -501,36 +608,16 @@
           </div>
         </div>
 
-        <!-- Privacy -->
-        <div class="settings-card glass">
-          <h3 class="settings-card__title">Privacy</h3>
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Profilo pubblico</span>
-              <small>Il tuo profilo è visibile a tutti gli utenti</small>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.profiloPubblico" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-          <div class="setting-row">
-            <div class="setting-row__label">
-              <span>Mostra libreria</span>
-              <small>Rendi visibili i tuoi libri preferiti</small>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.mostraLibreria" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
+        <!-- Preferenza Contenuti -->
+        <div class="settings-group">
+          <h3 class="settings-card__title">Contenuti</h3>
           <div class="setting-row setting-row--last">
             <div class="setting-row__label">
-              <span>Indicizza su motori di ricerca</span>
-              <small>Consenti a Google di indicizzare il tuo profilo</small>
+              <span>Visualizza storie 18+</span>
+              <small>Consenti la visualizzazione di storie contenenti tematiche per adulti (vietate ai minori)</small>
             </div>
             <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.privacy.indicizza" (ngModelChange)="saveSettings()" />
+              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>
@@ -538,13 +625,367 @@
 
         <!-- Actions -->
         <div class="settings-actions">
-          <button class="btn-logout" (click)="restoreDefaults()">🔄 Ripristina predefiniti</button>
-          <button class="btn-logout" (click)="logout()">🚪 Esci</button>
-          <button class="btn-danger">🗑️ Elimina account</button>
+          <button class="btn-logout" (click)="restoreDefaults()">Ripristina predefiniti</button>
+          <button class="btn-danger">Elimina account</button>
         </div>
 
       </div>
     </section>
 
+    <!-- ── COLLEZIONI (3 STATI: LISTA, DETTAGLIO, CREA/MODIFICA) ── -->
+    <section class="section section--padded" *ngIf="activeSection() === 'collezioni'">
+
+      <!-- STATO 1: CREA / MODIFICA COLLEZIONE -->
+      <div *ngIf="isEditingCollection" class="collection-editor-view">
+        <div class="collection-header-actions mb-4"
+          style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="section-title" style="margin: 0; color: var(--text-primary);">{{ collectionForm.id ? 'Modifica
+            Collezione' : 'Nuova Collezione' }}</h2>
+          <button class="btn-back-link glass" (click)="isEditingCollection = false"
+            style="display: flex; align-items: center; gap: 8px; border: none; background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 999px; color: var(--text-primary); cursor: pointer;">
+            ✕ {{ collectionForm.id ? 'Chiudi' : 'Annulla' }}
+          </button>
+        </div>
+
+        <!-- Riga Superiore: Dettagli e Filtri in Bento Grid -->
+        <div class="editor-bento-grid">
+          <!-- Pannello Dettagli (Nome e Descrizione) -->
+          <div class="bento-tile details-tile glass-core">
+            <div class="tile-header">
+              <span class="tile-tag">Dettagli</span>
+              <h3>Informazioni Raccolta</h3>
+            </div>
+
+            <div class="collection-form-fields" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+              <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label
+                  style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                  <span>Nome Collezione *</span>
+                </label>
+                <input type="text" [(ngModel)]="collectionForm.name" (change)="autoSaveCollection()" class="glass-input"
+                  placeholder="Es. Preferiti del Mese, Sci-Fi Imperdibili..." />
+              </div>
+
+              <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label
+                  style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                  <span>Descrizione</span>
+                </label>
+                <textarea [(ngModel)]="collectionForm.description" (change)="autoSaveCollection()" class="glass-input"
+                  placeholder="Una breve descrizione per questa raccolta di storie..." rows="3"
+                  style="resize: none;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pannello Filtri e Ricerca -->
+          <div class="bento-tile filter-search-tile glass-core">
+            <div class="tile-header">
+              <span class="tile-tag">Filtri e Ricerca</span>
+              <h3>Seleziona la Sorgente</h3>
+            </div>
+
+            <div class="picker-filter-controls" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+              <!-- Bottoni Filtro (Mi piace / Preferiti) -->
+              <div class="filter-pills-row" style="display: flex; gap: 10px; width: 100%;">
+                <button type="button" class="filter-pill-btn like-pill" [class.active]="filterLikes"
+                  (click)="toggleFilterLikes()"
+                  style="flex: 1; display: inline-flex; align-items: center; justify-content: center;">
+                  <img src="/assets/Icone/mipiace.png" alt="Mi piace" class="filter-pill-icon"
+                    style="width: 18px; height: 18px; object-fit: contain; margin-right: 6px; flex-shrink: 0;" />
+                  <span class="pill-label">Mi piace</span>
+                  <span class="pill-count">{{ likedBooks.length }}</span>
+                </button>
+
+                <button type="button" class="filter-pill-btn fav-pill" [class.active]="filterFavorites"
+                  (click)="toggleFilterFavorites()"
+                  style="flex: 1; display: inline-flex; align-items: center; justify-content: center;">
+                  <img src="/assets/Icone/preferiti.png" alt="Preferiti" class="filter-pill-icon"
+                    style="width: 18px; height: 18px; object-fit: contain; margin-right: 6px; flex-shrink: 0;" />
+                  <span class="pill-label">Preferiti</span>
+                  <span class="pill-count">{{ favoriteBooks.length }}</span>
+                </button>
+              </div>
+
+              <!-- Input di Ricerca Testuale -->
+              <div class="search-input-wrapper" style="position: relative; width: 100%;">
+                <span class="search-icon"
+                  style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; font-size: 0.9rem;">🔍</span>
+                <input type="text" [(ngModel)]="pickerSearchText" class="picker-search-input"
+                  placeholder="Cerca tra i tuoi libri..."
+                  style="width: 100%; box-sizing: border-box; padding: 11px 40px 11px 36px; font-size: 13.5px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; color: var(--text-primary); outline: none; transition: all 0.25s ease;" />
+                <button *ngIf="pickerSearchText" class="clear-search-btn" (click)="pickerSearchText = ''"
+                  style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-primary); opacity: 0.6; cursor: pointer; padding: 4px; font-size: 0.8rem;">✕</button>
+              </div>
+
+              <!-- Statistiche di Selezione -->
+              <div class="selection-counter-row"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <span class="counter-label" style="font-size: 0.85rem; opacity: 0.8;">Libri selezionati:</span>
+                <strong class="counter-value" style="font-size: 1rem; color: #5bbf8a;">{{ collectionForm.storyIds.length
+                  }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selezione Libri Interattiva -->
+        <div class="collection-stories-picker" style="margin-top: 32px;">
+          <div class="picker-section-header"
+            style="margin-bottom: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+            <h3
+              style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; text-align: center;">
+              Seleziona i libri per la collezione</h3>
+            <p style="opacity: 0.7; font-size: 0.85rem; margin: 0; color: var(--text-muted); text-align: center;">Clicca
+              direttamente sulle copertine per aggiungere o rimuovere i libri dalla raccolta.</p>
+          </div>
+
+          <div class="books-grid" *ngIf="getFilteredPickerBooks().length > 0; else noBooksToPick">
+            <div class="book-card picker-card" *ngFor="let book of getFilteredPickerBooks()"
+              (click)="toggleStoryInCollectionForm(book.id)"
+              [class.picker-card--selected]="isStorySelectedInCollectionForm(book.id)" style="cursor: pointer;">
+              <div class="book-cover picker-cover">
+                <img *ngIf="book.img" [src]="book.img" [alt]="book.title" loading="lazy" />
+
+                <!-- Badge in basso a sinistra: Preferiti (segnalibro 🔖) -->
+                <div *ngIf="book.isFavorite" class="picker-indicator bookmark-indicator active"
+                  title="Dai tuoi Preferiti">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                  </svg>
+                </div>
+
+                <!-- Badge in basso a destra: Mi piace (cuore ❤️) -->
+                <div *ngIf="book.isLiked" class="picker-indicator heart-indicator active" title="Dai tuoi Mi piace">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                </div>
+
+                <!-- Spunta Overlay di Selezione Centrale -->
+                <div class="picker-selection-overlay">
+                  <div class="selection-check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="20" height="20">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="book-info">
+                <p class="book-title">{{ book.title }}</p>
+                <p class="book-author">{{ book.author }}</p>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noBooksToPick>
+            <div class="empty-state glass-core"
+              style="width: 100%; box-sizing: border-box; padding: 50px 30px; text-align: center; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15); display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px;">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.5"
+                style="opacity: 0.6; margin-bottom: 4px;">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted); max-width: 450px; line-height: 1.5;">
+                {{ (getMergedBooks().length === 0) ? 'Non hai ancora messo mi piace o salvato tra i preferiti nessun
+                libro. Aggiungine alcuni in Home per poter creare una collezione!' : 'Nessun libro corrisponde ai filtri
+                o al testo di ricerca impostato.' }}
+              </p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div *ngIf="!collectionForm.id" class="collection-editor-actions" style="margin-top: 40px; display: flex; justify-content: center;">
+          <button class="btn-save-story-meta" [disabled]="!collectionForm.name.trim()"
+            (click)="saveCollection()"
+            style="padding: 14px 40px; font-size: 15px; font-weight: 600; border-radius: 50px; cursor: pointer; background: #fff; color: #111; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.05); transition: all 0.2s;">
+            Crea Collezione
+          </button>
+        </div>
+      </div>
+
+      <!-- STATO 2: DETTAGLIO COLLEZIONE SINGOLA -->
+      <div *ngIf="selectedCollection && !isEditingCollection" class="collection-detail-view">
+        <div class="collection-detail-header mb-4"
+          style="display: flex; flex-direction: column; width: 100%; gap: 12px;">
+          <!-- Riga 1: Torna indietro (Nero) -->
+          <div class="collection-detail-back-row" style="width: 100%;">
+            <button class="btn-back-link" (click)="selectedCollection = null"
+              style="display: inline-flex; align-items: center; gap: 8px; border: none; background: transparent; color: var(--text-primary) !important; font-weight: 600; cursor: pointer; opacity: 0.85; padding: 0;">
+              ← Torna alle collezioni
+            </button>
+          </div>
+
+          <!-- Riga 2: Titolo della Collezione + Pulsanti sullo stesso livello -->
+          <div class="collection-detail-title-row"
+            style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 16px;">
+            <h2 class="section-title"
+              style="margin: 0; display: flex; align-items: center; gap: 12px; justify-content: flex-start !important; text-align: left !important;">
+              {{ selectedCollection.name }}
+              <span class="badge"
+                style="font-size: 0.8rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: var(--text-primary); padding: 4px 10px; border-radius: 12px;">
+                {{ selectedCollection.stories?.length || 0 }} {{ (selectedCollection.stories?.length === 1) ? 'libro' :
+                'libri' }}
+              </span>
+            </h2>
+            <div class="collection-actions" style="display: flex; gap: 12px;">
+              <button class="btn-logout" (click)="openEditCollection(selectedCollection)"
+                style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 50px; background: rgba(255,255,255,0.12); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
+                Modifica
+              </button>
+              <button class="btn-danger" (click)="deleteCollection(selectedCollection.id)"
+                style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 50px; cursor: pointer;">
+                Elimina
+              </button>
+            </div>
+          </div>
+
+          <!-- Riga 3: Descrizione (sotto) -->
+          <p *ngIf="selectedCollection.description" class="section-sub collection-detail-desc"
+            style="margin: 4px 0 0 0; max-width: 600px; line-height: 1.5; opacity: 0.85; text-align: left !important; justify-content: flex-start !important; width: 100%;">
+            {{ selectedCollection.description }}
+          </p>
+        </div>
+
+        <div class="books-grid"
+          *ngIf="selectedCollection.stories && selectedCollection.stories.length > 0; else emptyCollectionDetail">
+          <div class="book-card" *ngFor="let story of selectedCollection.stories"
+            (click)="onBookClick(mapDbBook(story), 0)">
+            <div class="book-cover">
+              <img *ngIf="story.image_url" [src]="story.image_url" [alt]="story.title" loading="lazy" />
+              <div class="cover-placeholder" *ngIf="!story.image_url">
+                <span>📚</span>
+              </div>
+              <div class="action-icon bookmark-icon" [class.active]="interactions.isBookmarked(story.id)"
+                (click)="toggleBookmark(mapDbBook(story)); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24">
+                  <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                </svg>
+              </div>
+              <div class="action-icon heart-icon" [class.active]="interactions.isLiked(story.id)"
+                (click)="toggleLike(mapDbBook(story)); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+            </div>
+            <div class="book-info">
+              <p class="book-title">{{ story.title }}</p>
+              <p class="book-author" (click)="goToAuthor(story.author_id, $event)"
+                style="cursor: pointer; position: relative; z-index: 2;">{{ story.author_name || 'Autore sconosciuto' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #emptyCollectionDetail>
+          <p class="empty-state">Questa collezione non contiene ancora nessun libro. Clicca su Modifica per aggiungerne.
+          </p>
+        </ng-template>
+      </div>
+
+      <!-- STATO 3: ELENCO COLLEZIONI PRINCIPALE -->
+      <div *ngIf="!selectedCollection && !isEditingCollection">
+        <div class="collections-header mb-4">
+          <div>
+            <h2 class="section-title" style="margin: 0; color: var(--text-primary);">Collezioni</h2>
+            <p class="section-sub"
+              style="margin-top: 4px; margin-bottom: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              Organizza le tue letture preferite in raccolte tematiche</p>
+          </div>
+          <button class="btn-new-story" (click)="openCreateCollection()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Crea Collezione
+          </button>
+        </div>
+
+        <div class="collections-grid" *ngIf="collections.length > 0; else noCollections">
+          <div class="collection-card glass-core" *ngFor="let col of collections" (click)="selectedCollection = col"
+            style="cursor: pointer; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 18px; position: relative; overflow: hidden; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.15);">
+
+            <!-- Stack Copertine (collage) -->
+            <div class="collection-covers-stack"
+              style="height: 160px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 10px;">
+              <ng-container *ngIf="col.stories && col.stories.length > 0; else emptyCovers">
+                <!-- Stack overlapping covers -->
+                <div class="stack-cover" *ngFor="let story of col.stories.slice(0, 3); let idx = index"
+                  [style.transform]="'translateX(' + (idx - (col.stories.slice(0, 3).length - 1)/2) * 28 + 'px) rotate(' + (idx - (col.stories.slice(0, 3).length - 1)/2) * 8 + 'deg)'"
+                  [style.z-index]="10 + idx"
+                  style="width: 100px; height: 145px; position: absolute; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: none; background: #fff; transition: all 0.3s ease;">
+                  <img *ngIf="story.image_url" [src]="story.image_url"
+                    style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+              </ng-container>
+              <ng-template #emptyCovers>
+                <div class="stack-placeholder"
+                  style="width: 100px; height: 145px; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 2rem; background: rgba(255,255,255,0.05);">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"
+                    style="opacity: 0.5;">
+                    <path
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </ng-template>
+            </div>
+
+            <!-- Dettagli Collezione -->
+            <div class="collection-card-body" style="z-index: 5;">
+              <h3
+                style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ col.name }}</h3>
+              <p
+                style="opacity: 0.65; font-size: 0.85rem; margin: 6px 0 0 0; display: flex; align-items: center; gap: 6px; color: var(--text-muted);">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="opacity: 0.7;">
+                  <path
+                    d="M10 2H4c-1.1 0-1.99.9-1.99 2L2 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H10zm7 18H5V4h4v5h7v11z" />
+                </svg>
+                {{ col.stories?.length || 0 }} {{ (col.stories?.length === 1) ? 'storia' : 'storie' }}
+              </p>
+              <p *ngIf="col.description"
+                style="opacity: 0.55; font-size: 0.8rem; margin: 8px 0 0 0; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; color: var(--text-muted);">
+                {{ col.description }}
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <ng-template #noCollections>
+          <div class="empty-state glass-core"
+            style="width: 100%; box-sizing: border-box; padding: 60px 30px; text-align: center; border-radius: 24px; border: 1px dashed rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" style="opacity: 0.6; margin-bottom: 8px;">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 700; margin: 0;">Nessuna collezione
+              creata</h3>
+            <p
+              style="opacity: 0.7; font-size: 0.9rem; max-width: 400px; margin: 0; line-height: 1.5; color: var(--text-muted);">
+              Non hai ancora creato nessuna collezione di libri. Inizia subito a raccogliere le tue storie preferite!
+            </p>
+            <button class="btn-new-story" (click)="openCreateCollection()" style="margin-top: 10px;">Crea la tua prima
+              collezione</button>
+          </div>
+        </ng-template>
+      </div>
+
+    </section>
+
   </main>
+
+  <!-- Popup/Toast Custom per l'Autosave -->
+  <div class="autosave-toast" [class.show]="showToast">
+    <div class="autosave-toast-content">
+      <img src="assets/Icone/ok.png" alt="Successo" class="toast-icon-img"
+        style="width: 20px; height: 20px; object-fit: contain;" />
+      <span class="toast-message">Salvataggio andato a buon fine</span>
+    </div>
+  </div>
+
 </div>

@@ -20,12 +20,12 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const normalizedOrigin = origin.replace(/\/$/, '');
-    
+
     const isAllowed = allowedOrigins.includes(normalizedOrigin) ||
-                      normalizedOrigin.startsWith('http://localhost:') ||
-                      normalizedOrigin.startsWith('http://127.0.0.1:') ||
-                      normalizedOrigin.endsWith('.vercel.app');
-                      
+      normalizedOrigin.startsWith('http://localhost:') ||
+      normalizedOrigin.startsWith('http://127.0.0.1:') ||
+      normalizedOrigin.endsWith('.vercel.app');
+
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -41,16 +41,16 @@ app.use(express.urlencoded({ limit: '20mb', extended: true }));
 // Connessione DB: usa DATABASE_URL se disponibile (Railway), altrimenti credenziali locali
 const pool = process.env.DATABASE_URL
   ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-    })
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  })
   : new Pool({
-      user: process.env.DB_USER || 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      database: process.env.DB_NAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      port: parseInt(process.env.DB_PORT || '5432'),
-    });
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    port: parseInt(process.env.DB_PORT || '5432'),
+  });
 
 // Inizializzazione tabella email_verifications e notifications
 (async () => {
@@ -99,9 +99,54 @@ const pool = process.env.DATABASE_URL
         ADD COLUMN IF NOT EXISTS reading_font_size VARCHAR(50) DEFAULT 'medium',
         ADD COLUMN IF NOT EXISTS reading_mode VARCHAR(50) DEFAULT 'scroll',
         ADD COLUMN IF NOT EXISTS reading_width VARCHAR(50) DEFAULT 'medium',
-        ADD COLUMN IF NOT EXISTS sensitive_filter BOOLEAN DEFAULT FALSE;
+        ADD COLUMN IF NOT EXISTS sensitive_filter BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS notifiche_risposte_commenti BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_like_commenti BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_nuovo_follower BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_storie_like BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_storie_preferiti BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_aggiornamenti_nuova_storia BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_aggiornamenti_nuovo_capitolo BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_aggiornamenti_modifica_storia BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS notifiche_aggiornamenti_modifica_capitolo BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS visualizza_18plus BOOLEAN DEFAULT FALSE;
     `);
     console.log('[DATABASE] Colonne impostazioni verificate/create in tabella users.');
+
+    await pool.query(`
+      ALTER TABLE stories 
+        ADD COLUMN IF NOT EXISTS is_18_plus BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS completion_status VARCHAR(50) DEFAULT 'in_corso';
+    `);
+    console.log('[DATABASE] Colonne is_18_plus e completion_status verificate/create in tabella stories.');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS collections (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('[DATABASE] Tabella collections creata o già esistente.');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS collection_stories (
+        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+        story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+        PRIMARY KEY (collection_id, story_id)
+      );
+    `);
+    console.log('[DATABASE] Tabella collection_stories creata o già esistente.');
+
+    await pool.query(`
+      ALTER TABLE collection_stories ADD COLUMN IF NOT EXISTS order_index INTEGER;
+    `);
+    await pool.query(`
+      ALTER TABLE collection_stories ALTER COLUMN order_index DROP NOT NULL;
+    `);
+    console.log('[DATABASE] Colonna order_index verificata in tabella collection_stories.');
   } catch (err) {
     console.error('[DATABASE ERROR] Errore durante la creazione delle tabelle iniziali:', err);
   }
@@ -139,7 +184,15 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
 
     if (type === 'new_story') {
       message = `${senderUsername} ha pubblicato una nuova storia: "${storyTitle}"`;
-      recipientQuery = 'SELECT DISTINCT follower_id AS user_id FROM follows WHERE followed_id = $1 AND enable_notifications = TRUE AND follower_id != $1';
+      recipientQuery = `
+        SELECT DISTINCT f.follower_id AS user_id 
+        FROM follows f
+        JOIN users u ON u.id = f.follower_id
+        WHERE f.followed_id = $1 
+          AND f.enable_notifications = TRUE 
+          AND f.follower_id != $1
+          AND u.notifiche_aggiornamenti_nuova_storia = TRUE
+      `;
       queryParams = [senderId];
     } else if (type === 'update_story') {
       message = `${senderUsername} ha modificato la storia: "${storyTitle}"`;
@@ -150,7 +203,9 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
           SELECT user_id FROM story_bookmarks WHERE story_id = $2
-        ) as recipients WHERE user_id != $1
+        ) as recipients
+        JOIN users u ON u.id = recipients.user_id
+        WHERE user_id != $1 AND u.notifiche_aggiornamenti_modifica_storia = TRUE
       `;
       queryParams = [senderId, storyId];
     } else if (type === 'new_chapter') {
@@ -162,7 +217,9 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
           SELECT user_id FROM story_bookmarks WHERE story_id = $2
-        ) as recipients WHERE user_id != $1
+        ) as recipients
+        JOIN users u ON u.id = recipients.user_id
+        WHERE user_id != $1 AND u.notifiche_aggiornamenti_nuovo_capitolo = TRUE
       `;
       queryParams = [senderId, storyId];
     } else if (type === 'update_chapter') {
@@ -174,7 +231,9 @@ async function triggerNotifications({ senderId, storyId, chapterId, type }) {
           SELECT user_id FROM story_likes WHERE story_id = $2
           UNION
           SELECT user_id FROM story_bookmarks WHERE story_id = $2
-        ) as recipients WHERE user_id != $1
+        ) as recipients
+        JOIN users u ON u.id = recipients.user_id
+        WHERE user_id != $1 AND u.notifiche_aggiornamenti_modifica_capitolo = TRUE
       `;
       queryParams = [senderId, storyId];
     }
@@ -254,7 +313,10 @@ app.get('/api/user/:id', async (req, res) => {
         social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
         theme, notifiche_commenti, notifiche_seguaci, notifiche_aggiornamenti, notifiche_newsletter,
         privacy_profilo_pubblico, privacy_mostra_libreria, privacy_indicizza,
-        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter,
+        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter, visualizza_18plus,
+        notifiche_risposte_commenti, notifiche_like_commenti, notifiche_nuovo_follower,
+        notifiche_storie_like, notifiche_storie_preferiti, notifiche_aggiornamenti_nuova_storia,
+        notifiche_aggiornamenti_nuovo_capitolo, notifiche_aggiornamenti_modifica_storia, notifiche_aggiornamenti_modifica_capitolo,
         (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
       FROM users WHERE id = $1`, [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -275,7 +337,10 @@ app.post('/api/user/profile', async (req, res) => {
         social_instagram, social_twitter, social_facebook, social_website, social_tiktok, social_linkedin,
         theme, notifiche_commenti, notifiche_seguaci, notifiche_aggiornamenti, notifiche_newsletter,
         privacy_profilo_pubblico, privacy_mostra_libreria, privacy_indicizza,
-        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter,
+        reading_font, reading_font_size, reading_mode, reading_width, sensitive_filter, visualizza_18plus,
+        notifiche_risposte_commenti, notifiche_like_commenti, notifiche_nuovo_follower,
+        notifiche_storie_like, notifiche_storie_preferiti, notifiche_aggiornamenti_nuova_storia,
+        notifiche_aggiornamenti_nuovo_capitolo, notifiche_aggiornamenti_modifica_storia, notifiche_aggiornamenti_modifica_capitolo,
         (SELECT count(*) FROM stories WHERE author_id = users.id) as stories_count
       FROM users WHERE id = $1`, [id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -287,16 +352,16 @@ app.post('/api/user/profile', async (req, res) => {
 });
 
 app.put('/api/user/:id', async (req, res) => {
-  const { 
-    username, 
-    bio, 
-    location, 
+  const {
+    username,
+    bio,
+    location,
     avatar_url,
-    social_instagram, 
-    social_twitter, 
-    social_facebook, 
-    social_website, 
-    social_tiktok, 
+    social_instagram,
+    social_twitter,
+    social_facebook,
+    social_website,
+    social_tiktok,
     social_linkedin,
     theme,
     notifiche_commenti,
@@ -310,7 +375,17 @@ app.put('/api/user/:id', async (req, res) => {
     reading_font_size,
     reading_mode,
     reading_width,
-    sensitive_filter
+    sensitive_filter,
+    notifiche_risposte_commenti,
+    notifiche_like_commenti,
+    notifiche_nuovo_follower,
+    notifiche_storie_like,
+    notifiche_storie_preferiti,
+    notifiche_aggiornamenti_nuova_storia,
+    notifiche_aggiornamenti_nuovo_capitolo,
+    notifiche_aggiornamenti_modifica_storia,
+    notifiche_aggiornamenti_modifica_capitolo,
+    visualizza_18plus
   } = req.body;
   try {
     const result = await pool.query(`
@@ -338,17 +413,27 @@ app.put('/api/user/:id', async (req, res) => {
         reading_font_size = COALESCE($20, reading_font_size),
         reading_mode = COALESCE($21, reading_mode),
         reading_width = COALESCE($22, reading_width),
-        sensitive_filter = COALESCE($23, sensitive_filter)
-      WHERE id = $24
+        sensitive_filter = COALESCE($23, sensitive_filter),
+        notifiche_risposte_commenti = COALESCE($24, notifiche_risposte_commenti),
+        notifiche_like_commenti = COALESCE($25, notifiche_like_commenti),
+        notifiche_nuovo_follower = COALESCE($26, notifiche_nuovo_follower),
+        notifiche_storie_like = COALESCE($27, notifiche_storie_like),
+        notifiche_storie_preferiti = COALESCE($28, notifiche_storie_preferiti),
+        notifiche_aggiornamenti_nuova_storia = COALESCE($29, notifiche_aggiornamenti_nuova_storia),
+        notifiche_aggiornamenti_nuovo_capitolo = COALESCE($30, notifiche_aggiornamenti_nuovo_capitolo),
+        notifiche_aggiornamenti_modifica_storia = COALESCE($31, notifiche_aggiornamenti_modifica_storia),
+        notifiche_aggiornamenti_modifica_capitolo = COALESCE($32, notifiche_aggiornamenti_modifica_capitolo),
+        visualizza_18plus = COALESCE($33, visualizza_18plus)
+      WHERE id = $34
       RETURNING *
     `, [
       username || null,
       bio || null,
       location || null,
       avatar_url || null,
-      social_instagram || null, 
-      social_twitter || null, 
-      social_facebook || null, 
+      social_instagram || null,
+      social_twitter || null,
+      social_facebook || null,
       social_website || null,
       social_tiktok || null,
       social_linkedin || null,
@@ -365,13 +450,124 @@ app.put('/api/user/:id', async (req, res) => {
       reading_mode || null,
       reading_width || null,
       sensitive_filter !== undefined ? sensitive_filter : null,
+      notifiche_risposte_commenti !== undefined ? notifiche_risposte_commenti : null,
+      notifiche_like_commenti !== undefined ? notifiche_like_commenti : null,
+      notifiche_nuovo_follower !== undefined ? notifiche_nuovo_follower : null,
+      notifiche_storie_like !== undefined ? notifiche_storie_like : null,
+      notifiche_storie_preferiti !== undefined ? notifiche_storie_preferiti : null,
+      notifiche_aggiornamenti_nuova_storia !== undefined ? notifiche_aggiornamenti_nuova_storia : null,
+      notifiche_aggiornamenti_nuovo_capitolo !== undefined ? notifiche_aggiornamenti_nuovo_capitolo : null,
+      notifiche_aggiornamenti_modifica_storia !== undefined ? notifiche_aggiornamenti_modifica_storia : null,
+      notifiche_aggiornamenti_modifica_capitolo !== undefined ? notifiche_aggiornamenti_modifica_capitolo : null,
+      visualizza_18plus !== undefined ? visualizza_18plus : null,
       req.params.id
     ]);
-    
+
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// ═══════════════ COLLECTIONS ═══════════════
+
+app.get('/api/users/:userId/collections', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const collectionsRes = await pool.query(
+      'SELECT * FROM collections WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    const collections = [];
+    for (const col of collectionsRes.rows) {
+      const storiesRes = await pool.query(
+        `SELECT s.*, u.username as author_name 
+         FROM collection_stories cs 
+         JOIN stories s ON s.id = cs.story_id 
+         JOIN users u ON u.id = s.author_id
+         WHERE cs.collection_id = $1`,
+        [col.id]
+      );
+      collections.push({
+        ...col,
+        stories: storiesRes.rows
+      });
+    }
+    res.json(collections);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/users/:userId/collections', async (req, res) => {
+  const { userId } = req.params;
+  const { name, description, storyIds } = req.body;
+  try {
+    const colRes = await pool.query(
+      'INSERT INTO collections (user_id, name, description) VALUES ($1, $2, $3) RETURNING *',
+      [userId, name, description]
+    );
+    const newCollection = colRes.rows[0];
+    
+    if (storyIds && storyIds.length > 0) {
+      for (const storyId of storyIds) {
+        await pool.query(
+          'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [newCollection.id, storyId]
+        );
+      }
+    }
+    
+    res.status(201).json(newCollection);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/collections/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, storyIds } = req.body;
+  try {
+    const colRes = await pool.query(
+      'UPDATE collections SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description, id]
+    );
+    if (colRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Collection not found' });
+    }
+    
+    await pool.query('DELETE FROM collection_stories WHERE collection_id = $1', [id]);
+    if (storyIds && storyIds.length > 0) {
+      for (const storyId of storyIds) {
+        await pool.query(
+          'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [id, storyId]
+        );
+      }
+    }
+    
+    res.json(colRes.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/collections/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM collections WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Collection not found' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -543,7 +739,7 @@ app.post('/api/email/verify-code', async (req, res) => {
     console.log(`[VERIFY-CODE] Avvio query SELECT per verificare codice di ${email}`);
     const result = await pool.query('SELECT code FROM email_verifications WHERE email = $1', [email]);
     console.log(`[VERIFY-CODE] Query SELECT completata per ${email}`);
-    
+
     if (result.rows.length === 0 || result.rows[0].code !== code) {
       console.log(`[VERIFY-CODE] Codice errato o mancante per ${email}`);
       console.timeEnd(timerLabel);
@@ -553,7 +749,7 @@ app.post('/api/email/verify-code', async (req, res) => {
     console.log(`[VERIFY-CODE] Avvio query UPDATE per impostare verified = true per ${email}`);
     await pool.query('UPDATE email_verifications SET verified = TRUE WHERE email = $1', [email]);
     console.log(`[VERIFY-CODE] Query UPDATE completata per ${email}`);
-    
+
     console.timeEnd(timerLabel);
     res.json({ success: true });
   } catch (error) {
@@ -626,13 +822,13 @@ app.get('/api/user/:userId/recommended', async (req, res) => {
   try {
     const userRes = await pool.query('SELECT recommended_story_ids FROM users WHERE id = $1', [req.params.userId]);
     if (userRes.rows.length === 0) return res.status(404).json({ error: 'Utente non trovato' });
-    
+
     const storyIds = userRes.rows[0].recommended_story_ids || [];
     if (storyIds.length === 0) return res.json([]);
 
     // Recupera i dettagli delle storie raccomandate
     const storiesRes = await pool.query(`
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -641,7 +837,7 @@ app.get('/api/user/:userId/recommended', async (req, res) => {
       LEFT JOIN users u ON u.id = s.author_id
       WHERE s.id = ANY($1) AND s.status = 'published'
     `, [storyIds]);
-    
+
     res.json(storiesRes.rows);
   } catch (error) {
     console.log(error);
@@ -653,7 +849,7 @@ app.get('/api/user/:userId/recommended', async (req, res) => {
 app.put('/api/user/:userId/recommended', async (req, res) => {
   const { storyIds } = req.body;
   if (!Array.isArray(storyIds)) return res.status(400).json({ error: 'storyIds deve essere un array' });
-  
+
   try {
     await pool.query('UPDATE users SET recommended_story_ids = $1 WHERE id = $2', [storyIds, req.params.userId]);
     res.json({ success: true });
@@ -679,6 +875,25 @@ app.post('/api/likes/toggle', async (req, res) => {
       res.json({ liked: false });
     } else {
       await pool.query('INSERT INTO story_likes (user_id, story_id) VALUES ($1, $2)', [user_id, story_id]);
+      
+      // Trigger story like notification to the author of the story
+      const storyRes = await pool.query('SELECT author_id, title FROM stories WHERE id = $1', [story_id]);
+      if (storyRes.rows.length > 0) {
+        const story = storyRes.rows[0];
+        if (story.author_id !== user_id) {
+          const checkPref = await pool.query('SELECT notifiche_storie_like FROM users WHERE id = $1', [story.author_id]);
+          if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_storie_like !== false) {
+            const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [user_id]);
+            const senderUsername = senderRes.rows.length > 0 ? senderRes.rows[0].username : 'Qualcuno';
+            const message = `${senderUsername} ha messo mi piace alla tua storia "${story.title}"`;
+            await pool.query(`
+              INSERT INTO notifications (user_id, sender_id, story_id, type, message)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [story.author_id, user_id, story_id, 'story_like', message]);
+          }
+        }
+      }
+
       res.json({ liked: true });
     }
   } catch (error) {
@@ -748,10 +963,10 @@ app.get('/api/search', async (req, res) => {
   if (!q) return res.json({ stories: [], authors: [], genres: [] });
   try {
     const queryStr = `%${q}%`;
-    
+
     // 1. Search stories
     const storiesRes = await pool.query(`
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.created_at,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status, s.created_at,
              u.username AS author_name,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating
@@ -803,6 +1018,25 @@ app.post('/api/bookmarks/toggle', async (req, res) => {
       res.json({ bookmarked: false });
     } else {
       await pool.query('INSERT INTO story_bookmarks (user_id, story_id) VALUES ($1, $2)', [user_id, story_id]);
+      
+      // Trigger story bookmark notification to the author of the story
+      const storyRes = await pool.query('SELECT author_id, title FROM stories WHERE id = $1', [story_id]);
+      if (storyRes.rows.length > 0) {
+        const story = storyRes.rows[0];
+        if (story.author_id !== user_id) {
+          const checkPref = await pool.query('SELECT notifiche_storie_preferiti FROM users WHERE id = $1', [story.author_id]);
+          if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_storie_preferiti !== false) {
+            const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [user_id]);
+            const senderUsername = senderRes.rows.length > 0 ? senderRes.rows[0].username : 'Qualcuno';
+            const message = `${senderUsername} ha aggiunto la tua storia "${story.title}" ai preferiti`;
+            await pool.query(`
+              INSERT INTO notifications (user_id, sender_id, story_id, type, message)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [story.author_id, user_id, story_id, 'story_bookmark', message]);
+          }
+        }
+      }
+
       res.json({ bookmarked: true });
     }
   } catch (error) {
@@ -865,7 +1099,7 @@ app.get('/api/stories/:storyId/comments', async (req, res) => {
       WHERE c.story_id = $1
       ORDER BY c.created_at DESC
     `, userId ? [req.params.storyId, userId] : [req.params.storyId]);
-    
+
     const comments = commentsRes.rows;
 
     // 2. Prendi tutte le risposte per questi commenti
@@ -881,9 +1115,9 @@ app.get('/api/stories/:storyId/comments', async (req, res) => {
         WHERE r.comment_id = ANY($1)
         ORDER BY r.created_at ASC
       `, userId ? [commentIds, userId] : [commentIds]);
-      
+
       const replies = repliesRes.rows;
-      
+
       // Associa le risposte ai commenti
       comments.forEach(c => {
         c.replies = replies.filter(r => r.comment_id === c.id);
@@ -905,7 +1139,7 @@ app.post('/api/stories/:storyId/comments', async (req, res) => {
       INSERT INTO comments (story_id, author_id, content) 
       VALUES ($1, $2, $3) RETURNING id, content, created_at
     `, [req.params.storyId, author_id, content]);
-    
+
     // Ritorna il commento appena creato
     const userRes = await pool.query('SELECT username as author_name, email as author_handle, avatar_url FROM users WHERE id = $1', [author_id]);
     res.json({ ...result.rows[0], ...userRes.rows[0], likes_count: 0, user_liked: false, replies: [] });
@@ -923,8 +1157,28 @@ app.post('/api/comments/:commentId/replies', async (req, res) => {
       INSERT INTO comment_replies (comment_id, author_id, content) 
       VALUES ($1, $2, $3) RETURNING id, comment_id, content, created_at
     `, [req.params.commentId, author_id, content]);
-    
+
     const userRes = await pool.query('SELECT username as author_name, email as author_handle, avatar_url FROM users WHERE id = $1', [author_id]);
+    
+    // Trigger reply notification!
+    const commentRes = await pool.query('SELECT author_id, story_id FROM comments WHERE id = $1', [req.params.commentId]);
+    if (commentRes.rows.length > 0) {
+      const parentComment = commentRes.rows[0];
+      if (parentComment.author_id !== author_id) {
+        const checkPref = await pool.query('SELECT notifiche_risposte_commenti FROM users WHERE id = $1', [parentComment.author_id]);
+        if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_risposte_commenti !== false) {
+          const senderUsername = userRes.rows[0].author_name;
+          const storyRes = await pool.query('SELECT title FROM stories WHERE id = $1', [parentComment.story_id]);
+          const storyTitle = storyRes.rows.length > 0 ? storyRes.rows[0].title : '';
+          const message = `${senderUsername} ha risposto al tuo commento nella storia "${storyTitle}"`;
+          await pool.query(`
+            INSERT INTO notifications (user_id, sender_id, story_id, type, message)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [parentComment.author_id, author_id, parentComment.story_id, 'comment_reply', message]);
+        }
+      }
+    }
+
     res.json({ ...result.rows[0], ...userRes.rows[0], likes_count: 0, user_liked: false });
   } catch (error) {
     console.log(error);
@@ -942,6 +1196,27 @@ app.post('/api/comments/:commentId/like', async (req, res) => {
       res.json({ liked: false });
     } else {
       await pool.query('INSERT INTO comment_likes (user_id, comment_id) VALUES ($1, $2)', [user_id, req.params.commentId]);
+      
+      // Trigger comment like notification
+      const commentRes = await pool.query('SELECT author_id, story_id FROM comments WHERE id = $1', [req.params.commentId]);
+      if (commentRes.rows.length > 0) {
+        const comment = commentRes.rows[0];
+        if (comment.author_id !== user_id) {
+          const checkPref = await pool.query('SELECT notifiche_like_commenti FROM users WHERE id = $1', [comment.author_id]);
+          if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_like_commenti !== false) {
+            const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [user_id]);
+            const senderUsername = senderRes.rows.length > 0 ? senderRes.rows[0].username : 'Qualcuno';
+            const storyRes = await pool.query('SELECT title FROM stories WHERE id = $1', [comment.story_id]);
+            const storyTitle = storyRes.rows.length > 0 ? storyRes.rows[0].title : '';
+            const message = `${senderUsername} ha messo mi piace al tuo commento nella storia "${storyTitle}"`;
+            await pool.query(`
+              INSERT INTO notifications (user_id, sender_id, story_id, type, message)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [comment.author_id, user_id, comment.story_id, 'comment_like', message]);
+          }
+        }
+      }
+
       res.json({ liked: true });
     }
   } catch (error) {
@@ -960,6 +1235,32 @@ app.post('/api/comments/replies/:replyId/like', async (req, res) => {
       res.json({ liked: false });
     } else {
       await pool.query('INSERT INTO reply_likes (user_id, reply_id) VALUES ($1, $2)', [user_id, req.params.replyId]);
+      
+      // Trigger reply like notification
+      const replyRes = await pool.query(`
+        SELECT r.author_id, c.story_id 
+        FROM comment_replies r 
+        JOIN comments c ON c.id = r.comment_id 
+        WHERE r.id = $1
+      `, [req.params.replyId]);
+      if (replyRes.rows.length > 0) {
+        const reply = replyRes.rows[0];
+        if (reply.author_id !== user_id) {
+          const checkPref = await pool.query('SELECT notifiche_like_commenti FROM users WHERE id = $1', [reply.author_id]);
+          if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_like_commenti !== false) {
+            const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [user_id]);
+            const senderUsername = senderRes.rows.length > 0 ? senderRes.rows[0].username : 'Qualcuno';
+            const storyRes = await pool.query('SELECT title FROM stories WHERE id = $1', [reply.story_id]);
+            const storyTitle = storyRes.rows.length > 0 ? storyRes.rows[0].title : '';
+            const message = `${senderUsername} ha messo mi piace alla tua risposta nella storia "${storyTitle}"`;
+            await pool.query(`
+              INSERT INTO notifications (user_id, sender_id, story_id, type, message)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [reply.author_id, user_id, reply.story_id, 'comment_like', message]);
+          }
+        }
+      }
+
       res.json({ liked: true });
     }
   } catch (error) {
@@ -975,7 +1276,7 @@ app.post('/api/comments/replies/:replyId/like', async (req, res) => {
 app.get('/api/stories', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
               s.created_at,
@@ -998,7 +1299,7 @@ app.get('/api/stories', async (req, res) => {
 app.get('/api/stories/popular', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1023,7 +1324,7 @@ app.get('/api/stories/popular', async (req, res) => {
 app.get('/api/stories/trending', async (req, res) => {
   try {
     let dateFilter = "NOW() - INTERVAL '7 days'";
-    
+
     // Se viene passato userId, consideriamo le visualizzazioni dalla sua registrazione (se più recente di 7 giorni)
     if (req.query.userId) {
       const userRes = await pool.query('SELECT created_at FROM users WHERE id = $1', [req.query.userId]);
@@ -1034,7 +1335,7 @@ app.get('/api/stories/trending', async (req, res) => {
     }
 
     const query = `
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1050,10 +1351,10 @@ app.get('/api/stories/trending', async (req, res) => {
       ORDER BY week_views DESC, rating DESC
       LIMIT 15
     `;
-    
+
     const params = req.query.userId ? [req.query.userId] : [];
     const result = await pool.query(query, params);
-    
+
     res.json(result.rows);
   } catch (error) {
     console.log(error);
@@ -1067,13 +1368,13 @@ app.get('/api/stories/similar/:storyId', async (req, res) => {
     // Prima otteniamo il genere della storia corrente
     const storyRes = await pool.query('SELECT genre FROM stories WHERE id = $1', [req.params.storyId]);
     if (storyRes.rows.length === 0) return res.json([]);
-    
+
     const genre = storyRes.rows[0].genre;
     if (!genre) return res.json([]);
 
     // Troviamo storie simili per genere, escludendo quella corrente, ordinate per popolarità
     const result = await pool.query(`
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1089,7 +1390,7 @@ app.get('/api/stories/similar/:storyId', async (req, res) => {
       ORDER BY view_count DESC, rating DESC
       LIMIT 50
     `, [req.params.storyId, `%${genre}%`]);
-    
+
     res.json(result.rows);
   } catch (error) {
     console.log(error);
@@ -1102,7 +1403,7 @@ app.get('/api/stories/genre/:genre', async (req, res) => {
   try {
     const genre = `%${req.params.genre}%`;
     const result = await pool.query(`
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1136,7 +1437,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
         WHERE rp.user_id = $1
         ORDER BY c.story_id, rp.updated_at DESC
       )
-      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1166,7 +1467,7 @@ app.get('/api/stories/continue/:userId', async (req, res) => {
 app.get('/api/stories/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url,
+      `SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
               s.created_at,
@@ -1309,6 +1610,20 @@ app.post('/api/follows', async (req, res) => {
         'INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2)',
         [follower_id, followed_id]
       );
+      
+      // Trigger new follower notification
+      if (follower_id !== followed_id) {
+        const checkPref = await pool.query('SELECT notifiche_nuovo_follower FROM users WHERE id = $1', [followed_id]);
+        if (checkPref.rows.length > 0 && checkPref.rows[0].notifiche_nuovo_follower !== false) {
+          const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [follower_id]);
+          const senderUsername = senderRes.rows.length > 0 ? senderRes.rows[0].username : 'Qualcuno';
+          const message = `${senderUsername} ha iniziato a seguirti`;
+          await pool.query(`
+            INSERT INTO notifications (user_id, sender_id, type, message)
+            VALUES ($1, $2, $3, $4)
+          `, [followed_id, follower_id, 'new_follower', message]);
+        }
+      }
     }
     res.json({ success: true });
   } catch (error) {
@@ -1417,7 +1732,7 @@ app.put('/api/follows/notifications', async (req, res) => {
       WHERE follower_id = $2 AND followed_id = $3
       RETURNING *
     `, [enable_notifications, follower_id, followed_id]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Follow relationship not found' });
     }
@@ -1432,7 +1747,7 @@ app.put('/api/follows/notifications', async (req, res) => {
 app.get('/api/stories/author/:authorId', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT s.id, s.title, s.description, s.genre, s.image_url,
+      SELECT s.id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1455,7 +1770,7 @@ app.get('/api/stories/author/:authorId', async (req, res) => {
 app.get('/api/author/my-stories/:userId', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT s.id, s.title, s.description, s.genre, s.image_url, s.status,
+      SELECT s.id, s.title, s.description, s.genre, s.image_url, s.status, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
@@ -1490,7 +1805,7 @@ app.post('/api/stories', async (req, res) => {
 
 // Aggiorna una storia
 app.put('/api/stories/:id', async (req, res) => {
-  let { title, description, genre, image_url, status } = req.body;
+  let { title, description, genre, image_url, status, is_18_plus, completion_status } = req.body;
   // Se image_url è vuota o non fornita, mantieni quella esistente (COALESCE gestisce null)
   const imageToSave = (image_url && image_url.trim() !== '') ? image_url : null;
   try {
@@ -1503,10 +1818,21 @@ app.put('/api/stories/:id', async (req, res) => {
           description = COALESCE($2, description),
           genre = COALESCE($3, genre),
           image_url = COALESCE($4, image_url),
-          status = COALESCE($5, status)
-      WHERE id = $6
+          status = COALESCE($5, status),
+          is_18_plus = COALESCE($6, is_18_plus),
+          completion_status = COALESCE($7, completion_status)
+      WHERE id = $8
       RETURNING *
-    `, [title, description, genre, imageToSave, status, req.params.id]);
+    `, [
+      title, 
+      description, 
+      genre, 
+      imageToSave, 
+      status, 
+      is_18_plus !== undefined ? is_18_plus : null,
+      completion_status || null,
+      req.params.id
+    ]);
     const updatedStory = result.rows[0];
 
     if (oldStory && updatedStory) {

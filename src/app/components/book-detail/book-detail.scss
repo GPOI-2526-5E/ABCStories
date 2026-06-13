@@ -1189,3 +1189,44 @@ h2 {
   backdrop-filter: blur(10px);
   margin-top: 15px;
 }
+
+// Stili dei Tag di Stato e 18+ nel Dettaglio Libro
+.detail-tag.status-tag {
+  color: #ffffff !important; // Testo bianco per massimo contrasto su vetro colorato
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+
+  &.in_corso {
+    background: rgba(84, 160, 255, 0.3) !important; // Glassmorphism azzurro
+    border: 1px solid rgba(84, 160, 255, 0.5) !important;
+  }
+
+  &.completato {
+    background: rgba(29, 209, 161, 0.3) !important; // Glassmorphism verde
+    border: 1px solid rgba(29, 209, 161, 0.5) !important;
+  }
+
+  &.incompleto {
+    background: rgba(255, 159, 67, 0.3) !important; // Glassmorphism arancione
+    border: 1px solid rgba(255, 159, 67, 0.5) !important;
+  }
+
+  &.sospeso {
+    background: rgba(131, 149, 167, 0.3) !important; // Glassmorphism grigio-azzurro
+    border: 1px solid rgba(131, 149, 167, 0.5) !important;
+  }
+}
+
+.detail-tag.adult-tag {
+  background: rgba(255, 71, 87, 0.35) !important; // Glassmorphism rosso
+  border: 1px solid rgba(255, 71, 87, 0.5) !important;
+  color: #ffffff !important; // Testo bianco per massimo contrasto
+  font-weight: 800 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.15);
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+}
