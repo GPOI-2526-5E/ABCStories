@@ -798,15 +798,15 @@ $muted: var(--text-muted);
 // ═══════════════════════════════════════════════════════
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 2rem 1.4rem;
 
   @media (max-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.4rem 1rem;
   }
 }
@@ -2205,7 +2205,7 @@ select.setting-input {
 
   // 7. Grid dei Libri (Mi Piace / Preferiti)
   .books-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 1.2rem 0.8rem !important;
     padding: 0 4px !important;
   }
