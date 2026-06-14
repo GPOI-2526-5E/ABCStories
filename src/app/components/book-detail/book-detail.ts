@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
@@ -53,10 +53,6 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
   overallProgress = 0;
   isSticky = false;
   isOverLightSection = false;
-
-  @ViewChild('actionsRow') actionsRowRef!: ElementRef<HTMLElement>;
-  private actionsObserver: IntersectionObserver | null = null;
-  private lightSectionObserver: IntersectionObserver | null = null;
 
   booksD: any[] = [];
 
@@ -192,37 +188,28 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
   public interactions = inject(InteractionsService);
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Observer 1: mostra/nasconde il dock quando la riga inline esce dal viewport
-    this.actionsObserver = new IntersectionObserver(
-      (entries) => {
-        this.isSticky = !entries[0].isIntersecting;
-        this.cdr.detectChanges();
-      },
-      { threshold: 0, rootMargin: '0px' }
-    );
-    if (this.actionsRowRef?.nativeElement) {
-      this.actionsObserver.observe(this.actionsRowRef.nativeElement);
-    }
-
-    // Observer 2: cambia colore testo del dock quando si entra nella sezione chiara
-    const detailsEl = document.querySelector('.divDetails');
-    if (detailsEl) {
-      this.lightSectionObserver = new IntersectionObserver(
-        (entries) => {
-          this.isOverLightSection = entries[0].isIntersecting;
-          this.cdr.detectChanges();
-        },
-        { threshold: 0, rootMargin: '0px' }
-      );
-      this.lightSectionObserver.observe(detailsEl);
+    if (isPlatformBrowser(this.platformId)) {
+      // Sincronizza lo stato dello scroll iniziale (utile in caso di scroll restoration)
+      setTimeout(() => this.onWindowScroll(), 100);
     }
   }
 
   ngOnDestroy(): void {
-    this.actionsObserver?.disconnect();
-    this.lightSectionObserver?.disconnect();
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+    this.isSticky = scrollPos > 350;
+
+    const detailsEl = document.querySelector('.divDetails') as HTMLElement;
+    if (detailsEl) {
+      const rect = detailsEl.getBoundingClientRect();
+      const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+      this.isOverLightSection = rect.top < viewHeight && rect.bottom > 0;
+    }
+    this.cdr.detectChanges();
   }
 
   private mapDbBook(s: any): any {
