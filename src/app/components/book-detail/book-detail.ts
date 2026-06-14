@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Inject, PLATFORM_ID, ChangeDetectorRef, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, AfterViewChecked, Inject, PLATFORM_ID, ChangeDetectorRef, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Navbar } from "../navbar/navbar";
@@ -45,7 +45,7 @@ const VISIBLE_STEP = 4;
   styleUrl: './book-detail.scss',
 })
 
-export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
+export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
   book: any = null;
   chapters: any[] = [];
   readingProgress: any[] = [];
@@ -189,8 +189,13 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      // Sincronizza lo stato dello scroll iniziale (utile in caso di scroll restoration)
-      setTimeout(() => this.onWindowScroll(), 100);
+      this.checkStickyStatus();
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.checkStickyStatus();
     }
   }
 
@@ -199,33 +204,50 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('window:scroll')
   onWindowScroll(): void {
+    this.checkStickyStatus();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.checkStickyStatus();
+  }
+
+  checkStickyStatus(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    
-    // Controlliamo se l'elemento actionsRow esiste e dove si trova
+
     const actionsRowEl = document.querySelector('.detail-actions-row') as HTMLElement;
+    let newSticky = false;
+
     if (actionsRowEl) {
       const rect = actionsRowEl.getBoundingClientRect();
       const viewHeight = window.innerHeight || document.documentElement.clientHeight;
       
-      // L'elemento è visibile sullo schermo se il suo top è minore di viewHeight
-      // e il suo bottom è maggiore di 0.
-      const isVisible = rect.top < viewHeight && rect.bottom > 0;
+      // L'elemento è completamente visibile sullo schermo se è interamente nel viewport
+      const isFullyVisible = rect.top >= 0 && rect.bottom <= viewHeight && rect.height > 0;
       
-      // Se NON è visibile, allora la barra fluttuante deve essere sticky!
-      this.isSticky = !isVisible;
+      // Se NON è completamente visibile (es. è tagliato sotto o sopra), allora mostriamo il dock
+      newSticky = !isFullyVisible;
     } else {
       // Se non esiste ancora nel DOM (sta caricando), possiamo basarci sullo scroll
       const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
-      this.isSticky = scrollPos > 350;
+      newSticky = scrollPos > 350;
     }
 
+    let newOverLight = false;
     const detailsEl = document.querySelector('.divDetails') as HTMLElement;
     if (detailsEl) {
       const rect = detailsEl.getBoundingClientRect();
       const viewHeight = window.innerHeight || document.documentElement.clientHeight;
-      this.isOverLightSection = rect.top < viewHeight && rect.bottom > 0;
+      newOverLight = rect.top < viewHeight && rect.bottom > 0;
     }
-    this.cdr.detectChanges();
+
+    if (this.isSticky !== newSticky || this.isOverLightSection !== newOverLight) {
+      setTimeout(() => {
+        this.isSticky = newSticky;
+        this.isOverLightSection = newOverLight;
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   private mapDbBook(s: any): any {
@@ -288,7 +310,7 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (isPlatformBrowser(this.platformId)) {
-        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        window.scrollTo(0, 0);
       }
     });
   }

@@ -2,8 +2,8 @@
 
 <section class="hero-slider">
   <!-- Div per sfondo dinamico con sfocatura background -->
-  <div class="ambient-bg" [style.backgroundImage]="'url(' + currentBgImage + ')'" [class.fade-in]="currentBgImage">
-  </div>
+  <div class="ambient-bg" [style.backgroundImage]="bgImageA ? 'url(' + bgImageA + ')' : 'none'" [class.active]="activeBg === 'A'"></div>
+  <div class="ambient-bg" [style.backgroundImage]="bgImageB ? 'url(' + bgImageB + ')' : 'none'" [class.active]="activeBg === 'B'"></div>
   <div class="ambient-overlay"></div>
   <div class="hero-bottom-fade"></div>
 

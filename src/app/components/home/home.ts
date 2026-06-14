@@ -64,7 +64,9 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
   public readonly totalRankingItems = 12;
   public readonly visibleCards = 5;
 
-  public currentBgImage: string = '';
+  public bgImageA: string = '';
+  public bgImageB: string = '';
+  public activeBg: 'A' | 'B' = 'A';
   private intervalId: any = null;
 
   /** Storie di tendenza (classifica settimanale) */
@@ -535,13 +537,24 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private updateAmbientBackground(): void {
-    // Invece di manipolare il DOM, aggiorniamo una variabile legata al template
     const newBg = this.books[this.current]?.img;
     if (newBg) {
-      this.currentBgImage = newBg;
+      if (!this.bgImageA && !this.bgImageB) {
+        this.bgImageA = newBg;
+        this.activeBg = 'A';
+      } else if (this.activeBg === 'A') {
+        if (this.bgImageB !== newBg) {
+          this.bgImageB = newBg;
+        }
+        this.activeBg = 'B';
+      } else {
+        if (this.bgImageA !== newBg) {
+          this.bgImageA = newBg;
+        }
+        this.activeBg = 'A';
+      }
     }
     this.cdr.markForCheck();
-    // Oppure, se non basta:
     this.cdr.detectChanges();
   }
 
