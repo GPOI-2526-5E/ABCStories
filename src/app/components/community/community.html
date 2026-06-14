@@ -1,0 +1,1055 @@
+<app-navbar></app-navbar>
+
+<div class="community-container">
+  <div class="community-layout">
+    
+    <!-- 1. LEFT SIDEBAR (FLUTTUANTE/STICKY SU DESKTOP) -->
+    <aside class="sidebar-left glass-core" id="community-sidebar-left">
+      <div class="sidebar-inner">
+        
+        <!-- Filtri Navigazione Stile Reddit -->
+        <nav class="sidebar-nav">
+          <h4 class="nav-section-title">Navigazione</h4>
+          <button class="nav-link-btn" 
+                  [class.active]="activeSection() === 'home' && !selectedCommunityId()" 
+                  (click)="setSection('home')" 
+                  id="btn-side-nav-home">
+            <span>Home</span>
+          </button>
+          <button class="nav-link-btn" 
+                  [class.active]="activeSection() === 'popular'" 
+                  (click)="setSection('popular')" 
+                  id="btn-side-nav-popular">
+            <span>Popolari</span>
+          </button>
+          <button class="nav-link-btn" 
+                  [class.active]="activeSection() === 'new'" 
+                  (click)="setSection('new')" 
+                  id="btn-side-nav-new">
+            <span>Update</span>
+          </button>
+          <button class="nav-link-btn" 
+                  [class.active]="activeSection() === 'following'" 
+                  (click)="setSection('following')" 
+                  id="btn-side-nav-following">
+            <span>Seguendo</span>
+          </button>
+          <button class="nav-link-btn" 
+                  [class.active]="activeSection() === 'top_voted'" 
+                  (click)="setSection('top_voted')" 
+                  id="btn-side-nav-topvoted">
+            <span>Più Votati</span>
+          </button>
+        </nav>
+
+        <hr class="sidebar-divider" />
+
+        <!-- Autori Seguiti List -->
+        <nav class="sidebar-nav pt-0">
+          <h4 class="nav-section-title">Autori Seguiti</h4>
+          <div class="followed-list" *ngIf="followedAuthors().length > 0">
+            <button class="nav-link-btn nav-link-btn--sub nav-link-btn--author" 
+                    *ngFor="let author of (showAllFollowed() ? followedAuthors() : followedAuthors().slice(0, 5))"
+                    [class.active]="selectedAuthorId() === author.id"
+                    (click)="filterByAuthor(author)"
+                    [id]="'btn-followed-author-' + author.id">
+              <div class="sidebar-author-avatar-container">
+                <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="sidebar-author-avatar" />
+                <div *ngIf="!author.avatar_url" class="sidebar-author-avatar-fallback" [style.background]="author.avatarGradient">
+                  {{ author.initials }}
+                </div>
+              </div>
+              <span class="community-title-text">{{ author.name }}</span>
+            </button>
+            
+            <button class="btn-toggle-more" 
+                    *ngIf="followedAuthors().length > 5" 
+                    (click)="toggleShowAllFollowed()"
+                    id="btn-followed-toggle">
+              {{ showAllFollowed() ? 'Mostra meno' : 'Mostra altri (' + (followedAuthors().length - 5) + ')' }}
+            </button>
+          </div>
+          <div class="no-followed-fallback" *ngIf="followedAuthors().length === 0">
+            <span class="fallback-txt">Nessun autore seguito. Inizia a seguire uno scrittore dal suo profilo!</span>
+          </div>
+        </nav>
+
+        <hr class="sidebar-divider" />
+
+        <!-- Regolamento e Privacy in fondo alla Sidebar -->
+        <nav class="sidebar-nav pt-0">
+          <h4 class="nav-section-title">Informazioni</h4>
+          <button class="nav-link-btn" (click)="openModal('rules')" id="btn-side-info-rules">
+            <span>Regolamento</span>
+          </button>
+          <button class="nav-link-btn" (click)="openModal('privacy')" id="btn-side-info-privacy">
+            <span>Privacy Policy</span>
+          </button>
+        </nav>
+
+      </div>
+    </aside>
+
+    <!-- 2. CENTER FEED (COMPOSITORE E LISTA POST) -->
+    <main class="feed-center">
+
+      <!-- COMPOSER INTEGRATO NEL MEZZO (ANTEPRIMA E EDITOR LIVE) -->
+      <div *ngIf="showCenterComposer" class="center-composer-card glass-core animate-fade-in mb-4">
+        
+        <!-- Header dell'editor -->
+        <div class="composer-header-actions mb-4">
+          <h3 class="composer-title-text">
+            {{ rightComposerType === 'general' ? 'Crea un Nuovo Post' : 'Rispondi a Recensione / Commento' }}
+          </h3>
+          <button type="button" class="btn-close-composer" (click)="cancelCenterComposer()" title="Chiudi e salva bozza">✕</button>
+        </div>
+
+        <!-- Editor Fields -->
+        <div class="composer-body-editor">
+          <!-- Input Titolo -->
+          <div class="editor-field-group mb-4">
+            <label class="editor-step-label">Titolo del Post</label>
+            <input type="text" 
+                   class="editor-title-field" 
+                   placeholder="Inserisci un titolo accattivante..." 
+                   [(ngModel)]="postTitle"
+                   autocomplete="off" />
+          </div>
+
+          <!-- SEZIONE COMPOSER RECENSIONE / COMMENTO -->
+          <div *ngIf="rightComposerType === 'review_comment'" class="editor-review-comment-block mb-4">
+            
+            <div class="editor-step mb-4">
+              <label class="editor-step-label">1. Seleziona una storia dai tuoi preferiti/like</label>
+              
+              <div class="compact-story-picker">
+                <div class="general-search-wrapper mb-3" *ngIf="!rightSelectedStoryId">
+                  <input type="text" 
+                         class="glass-input compact-input" 
+                         placeholder="Filtra tra le tue storie..." 
+                         [(ngModel)]="rightSearchStoryText" />
+                </div>
+                
+                <div class="stories-cards-grid" *ngIf="filteredLikedAndBookmarkedStories.length > 0">
+                  <ng-container *ngFor="let s of filteredLikedAndBookmarkedStories">
+                    <div class="story-card-item" 
+                         *ngIf="!rightSelectedStoryId || rightSelectedStoryId === s.id"
+                         [class.selected]="rightSelectedStoryId === s.id"
+                         (click)="selectStoryRight(s)">
+                      <div class="story-card-item-cover-wrapper">
+                        <img [src]="s.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover" class="story-card-item-cover" />
+                        <div class="selected-checkmark" *ngIf="rightSelectedStoryId === s.id">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                      </div>
+                      <div class="story-card-item-info">
+                        <span class="story-card-item-title">{{ s.title }}</span>
+                        <span class="story-card-item-author">{{ s.author_name || s.author_username }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
+                </div>
+                
+                <div class="no-items-warning mt-2" *ngIf="filteredLikedAndBookmarkedStories.length === 0">
+                  Nessuna storia preferita o piaciuta trovata.
+                </div>
+
+                <div class="change-story-btn-container mt-3" *ngIf="rightSelectedStoryId">
+                  <button type="button" class="btn-show-all-books" (click)="removeRightSelectedStory()">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                    Mostra altri libri / Cambia storia
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-step mb-4" *ngIf="rightSelectedStory">
+              <label class="editor-step-label">2. Tipo di elemento da citare</label>
+              <div class="toggle-options-row">
+                <button type="button" 
+                        class="toggle-option-btn" 
+                        [class.active]="reviewCommentType === 'review'" 
+                        (click)="onReviewCommentTypeChange('review')">
+                  Recensioni
+                </button>
+                <button type="button" 
+                        class="toggle-option-btn" 
+                        [class.active]="reviewCommentType === 'comment'" 
+                        (click)="onReviewCommentTypeChange('comment')">
+                  Commenti
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-step mb-4" *ngIf="rightSelectedStory">
+              <label class="editor-step-label">3. Seleziona la recensione/commento specifico</label>
+              
+              <div class="general-search-wrapper mb-2" *ngIf="fetchedReviewsOrComments.length > 0">
+                <input type="text" 
+                       class="glass-input compact-input" 
+                       placeholder="Cerca testo o autore..." 
+                       [(ngModel)]="commentSearchQuery" />
+              </div>
+
+              <div class="item-scroll-list">
+                <div class="no-items-warning" *ngIf="fetchedReviewsOrComments.length === 0">
+                  Nessun elemento presente per questa storia.
+                </div>
+                <div class="no-items-warning" *ngIf="fetchedReviewsOrComments.length > 0 && filteredReviewsOrComments.length === 0">
+                  Nessun elemento corrisponde alla ricerca.
+                </div>
+                <div class="picker-item-card" 
+                     *ngFor="let item of filteredReviewsOrComments"
+                     [class.selected]="selectedReviewOrCommentId === item.id"
+                     (click)="selectReviewOrComment(item)">
+                  <div class="picker-item-meta">
+                    <span class="picker-item-author">u/{{ item.name || item.author_name }}</span>
+                    <span class="picker-item-rating" *ngIf="reviewCommentType === 'review'">★ {{ item.rating }}</span>
+                  </div>
+                  <p class="picker-item-text">"{{ item.content || item.text }}"</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="quoted-feedback-box mb-4 animate-fade-in" 
+                 *ngIf="selectedReviewOrComment"
+                 [class.quoted-feedback-box--review]="reviewCommentType === 'review'">
+              <div class="quoted-feedback-header">
+                <span class="quoted-type-label">
+                  {{ reviewCommentType === 'review' ? 'Recensione di' : 'Commento di' }} u/{{ selectedReviewOrComment.name || selectedReviewOrComment.author_name }}
+                </span>
+                <span class="quoted-rating" *ngIf="reviewCommentType === 'review'">★</span>
+              </div>
+              <p class="quoted-feedback-text">“{{ selectedReviewOrComment.content || selectedReviewOrComment.text }}”</p>
+            </div>
+
+          </div>
+
+          <!-- Uploader Immagine (Solo per Post Generale, Facoltativa) -->
+          <div *ngIf="rightComposerType === 'general'" class="editor-image-uploader mb-4">
+            <label class="editor-step-label">Immagine del Post (Opzionale)</label>
+            <div class="d-flex align-items-center gap-3">
+              <button type="button" class="btn-upload-image" (click)="imageInput.click()">
+                Carica immagine
+              </button>
+              <span class="text-muted" style="font-size: 14.5px;">{{ postImageBase64 ? 'Immagine caricata con successo' : 'Aggiungi un file JPG/PNG' }}</span>
+            </div>
+            <input type="file" 
+                   #imageInput 
+                   accept="image/*" 
+                   style="display: none;" 
+                   (change)="onRightImageSelected($event)" />
+            
+            <div class="image-preview-thumbnail mt-3" *ngIf="postImageBase64">
+              <img [src]="postImageBase64" alt="Caricata" />
+              <button class="btn-remove-preview-img" (click)="removeRightUploadedImage()">✕</button>
+            </div>
+          </div>
+
+          <!-- Input Contenuto / Descrizione del Post -->
+          <div class="editor-field-group mb-4">
+            <label class="editor-step-label">Contenuto del Post</label>
+            <textarea class="editor-content-field" 
+                      placeholder="Scrivi qui il corpo del tuo post..." 
+                      [(ngModel)]="postText"></textarea>
+          </div>
+
+          <!-- Collegamento Storia (Solo per Post Generale, Facoltativo) -->
+          <div *ngIf="rightComposerType === 'general'" class="editor-story-selector mb-4">
+            <label class="editor-step-label">Collega una storia (Opzionale)</label>
+            
+            <div class="compact-story-picker">
+              <div class="general-search-wrapper mb-3" *ngIf="!rightSelectedStoryId">
+                <input type="text" 
+                       class="glass-input compact-input" 
+                       placeholder="Filtra tra le tue storie..." 
+                       [(ngModel)]="rightSearchStoryText" />
+              </div>
+              
+              <div class="stories-cards-grid" *ngIf="filteredLikedAndBookmarkedStories.length > 0">
+                <ng-container *ngFor="let s of filteredLikedAndBookmarkedStories">
+                  <div class="story-card-item" 
+                       *ngIf="!rightSelectedStoryId || rightSelectedStoryId === s.id"
+                       [class.selected]="rightSelectedStoryId === s.id"
+                       (click)="selectStoryRight(s)">
+                    <div class="story-card-item-cover-wrapper">
+                      <img [src]="s.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover" class="story-card-item-cover" />
+                      <div class="selected-checkmark" *ngIf="rightSelectedStoryId === s.id">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      </div>
+                    </div>
+                    <div class="story-card-item-info">
+                      <span class="story-card-item-title">{{ s.title }}</span>
+                      <span class="story-card-item-author">{{ s.author_name || s.author_username }}</span>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+              
+              <div class="no-items-warning mt-2" *ngIf="filteredLikedAndBookmarkedStories.length === 0">
+                Nessuna storia preferita o piaciuta trovata.
+              </div>
+
+              <div class="change-story-btn-container mt-3" *ngIf="rightSelectedStoryId">
+                <button type="button" class="btn-show-all-books" (click)="removeRightSelectedStory()">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                  Mostra altri libri / Cambia storia
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer dell'editor -->
+        <div class="composer-footer-actions">
+          <button class="btn-composer-cancel" (click)="cancelCenterComposer()">
+            Annulla
+          </button>
+          <button class="btn-publish" (click)="publishPost()">
+            Pubblica Post
+          </button>
+        </div>
+
+      </div>
+
+      <div *ngIf="!showCenterComposer" style="display: contents;">
+        <!-- Pinned Search Bar Row (Sticky, Glassmorphism) -->
+        <div class="community-search-sticky-container">
+          <div class="community-search-bar-row">
+            <div class="gd-search">
+              <svg class="gd-search__icon" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                class="gd-search__input"
+                type="text"
+                placeholder="Cerca post, citazione, autore..."
+                [(ngModel)]="searchQuery"
+              />
+              <button *ngIf="searchQuery" class="gd-search__clear" (click)="searchQuery = ''">
+                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            <!-- Dropdown Custom di Filtraggio ed Ordinamento -->
+            <div class="gd-dropdown" [class.gd-dropdown--open]="filterDropdownOpen">
+              <button class="gd-dropdown__trigger" (click)="toggleFilterDropdown()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M6 12h12M9 18h6"/>
+                </svg>
+                <span>{{ getFilterDropdownLabel() }}</span>
+                <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
+
+              <div class="gd-dropdown__menu">
+                <!-- Se c'è un filtro attivo specifico (Community, Autore, Sezione o scope diverso da all), mostra reset -->
+                <button class="gd-dropdown__item" 
+                        *ngIf="selectedCommunityId() || selectedAuthorId() || activeSection() !== 'home' || searchScope() !== 'all' || searchQuery"
+                        (click)="resetAllFilters()"
+                        style="color: var(--accent-red); font-weight: 700;">
+                  <svg class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent-red);">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                  <span>Azzera Filtri</span>
+                </button>
+
+                <button class="gd-dropdown__item" 
+                        [class.gd-dropdown__item--active]="searchScope() === 'all'"
+                        (click)="selectFilterOption('all')">
+                  <svg *ngIf="searchScope() === 'all'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Cerca in: Tutto</span>
+                </button>
+
+                <button class="gd-dropdown__item" 
+                        [class.gd-dropdown__item--active]="searchScope() === 'author'"
+                        (click)="selectFilterOption('author')">
+                  <svg *ngIf="searchScope() === 'author'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Cerca in: Autori</span>
+                </button>
+
+                <button class="gd-dropdown__item" 
+                        [class.gd-dropdown__item--active]="searchScope() === 'story'"
+                        (click)="selectFilterOption('story')">
+                  <svg *ngIf="searchScope() === 'story'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Cerca in: Storie</span>
+                </button>
+
+                <button class="gd-dropdown__item" 
+                        [class.gd-dropdown__item--active]="searchScope() === 'post'"
+                        (click)="selectFilterOption('post')">
+                  <svg *ngIf="searchScope() === 'post'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Cerca in: Post</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      <!-- Il compositore è stato spostato nella barra laterale destra -->
+
+      <!-- Feed Filter Tabs (Mobile Only, orizzontale) -->
+      <div class="feed-filters glass-core mb-4 d-flex d-lg-none">
+        <button class="filter-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">Tutti</button>
+        <button class="filter-btn" [class.active]="activeTab() === 'quote'" (click)="setTab('quote')">Citazioni</button>
+        <button class="filter-btn" [class.active]="activeTab() === 'comment'" (click)="setTab('comment')">Opinioni</button>
+      </div>
+
+      <!-- Posts List -->
+      <div class="posts-feed">
+        <!-- Scheda Profilo Autore Selezionato (Filtro Attivo) -->
+        <div class="selected-author-profile-card glass-core animate-fade-in mb-4" *ngIf="selectedAuthor()" style="position: relative;">
+          <button class="btn-close-author-card" (click)="resetAllFilters()" title="Mostra tutti i post">✕</button>
+          <div class="selected-author-profile-card-inner">
+            <div class="author-avatar-large-container">
+              <img *ngIf="selectedAuthor().avatar_url" [src]="selectedAuthor().avatar_url" alt="Avatar" class="author-avatar-large" />
+              <div *ngIf="!selectedAuthor().avatar_url" class="author-avatar-large-fallback" [style.background]="selectedAuthor().avatarGradient">
+                {{ selectedAuthor().initials }}
+              </div>
+            </div>
+            <div class="author-meta-large">
+              <h3 class="author-name-large">u/{{ selectedAuthor().name }}</h3>
+              <p class="author-bio-large text-muted mb-0" *ngIf="selectedAuthor().description">{{ selectedAuthor().description }}</p>
+              <p class="author-bio-large text-muted mb-0" *ngIf="!selectedAuthor().description">Nessuna biografia disponibile per questo autore.</p>
+            </div>
+            <button class="action-follow-btn" 
+                    [class.action-follow-btn--active]="isFollowingSelectedAuthor()" 
+                    (click)="toggleFollowSelectedAuthor()">
+              {{ isFollowingSelectedAuthor() ? '✓ Seguendo' : '+ Segui' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="loading-state glass-core p-5 text-center" *ngIf="loading">
+          <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Caricamento...</span>
+          </div>
+          <p class="mt-3 text-muted">Caricamento del feed della community...</p>
+        </div>
+
+        <div class="empty-state glass-core p-5 text-center animate-fade-in" *ngIf="!loading && getFilteredPosts().length === 0">
+          <h3>Ancora nessun post in questa categoria</h3>
+          <p class="text-muted">Dai inizio alla conversazione pubblicando il primo post!</p>
+        </div>
+
+        <!-- Post Cards Redesign Stile Reddit -->
+        <div class="post-card glass-core mb-4 animate-fade-in" 
+             *ngFor="let post of getFilteredPosts()"
+             [id]="'post-' + post.id"
+             [class.shared-highlight]="post.id === sharedPostId">
+          
+          <!-- Desktop Vote Bar (Colonna Sinistra) -->
+          <div class="post-vote-sidebar d-none d-lg-flex">
+            <button class="vote-sidebar-btn upvote" 
+                    [class.active]="post.user_vote === 'like'" 
+                    (click)="votePost(post, 'like')"
+                    title="Mi piace">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" [attr.fill]="post.user_vote === 'like' ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+              </svg>
+            </button>
+            <span class="vote-sidebar-count count-like" [class.active]="post.user_vote === 'like'">{{ post.likes_count }}</span>
+            
+            <div class="vote-sidebar-divider"></div>
+            
+            <span class="vote-sidebar-count count-dislike" [class.active]="post.user_vote === 'dislike'">{{ post.dislikes_count }}</span>
+            <button class="vote-sidebar-btn downvote" 
+                    [class.active]="post.user_vote === 'dislike'" 
+                    (click)="votePost(post, 'dislike')"
+                    title="Non mi piace">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" [attr.fill]="post.user_vote === 'dislike' ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Post Content Area (Colonna Destra) -->
+          <div class="post-main-content">
+            
+            <!-- Header Meta -->
+            <div class="post-header-reddit">
+              <div class="post-author-row">
+                <div class="post-author-avatar-container">
+                  <img *ngIf="post.author_avatar" [src]="post.author_avatar" alt="Avatar" class="post-author-avatar" />
+                  <div *ngIf="!post.author_avatar" class="post-author-avatar-fallback">{{ post.author_username?.slice(0, 2)?.toUpperCase() }}</div>
+                </div>
+                <span class="post-community-name-normal" [routerLink]="post.story_id ? ['/book', post.story_id] : null" [class.linkable]="post.story_id">
+                  {{ post.story_id ? post.story_title : (post.type === 'general' ? 'Generale' : (post.type === 'quote' ? 'Citazioni' : 'Opinioni')) }}
+                </span>
+                <span class="meta-separator">•</span>
+                <span class="post-author-name-highlight" (click)="filterByAuthorId(post.author_id, post.author_username)">
+                  Scritto da u/{{ post.author_username }}
+                </span>
+                <span class="meta-separator">•</span>
+                <span class="post-time">{{ formatTimeAgo(post.created_at) }}</span>
+              </div>
+
+              <!-- Post Type Badge -->
+              <div class="post-badge" [class]="'post-badge--' + post.type">
+                <span *ngIf="post.type === 'general'">Discussione</span>
+                <span *ngIf="post.type === 'quote'">Citazione</span>
+                <span *ngIf="post.type === 'comment'">Opinione</span>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="post-body">
+              <h2 class="post-card-title">{{ post.title }}</h2>
+
+              <!-- Immagine Post se presente (Base64) -->
+              <div class="post-image-container mb-3" *ngIf="post.post_image">
+                <img [src]="post.post_image" alt="Immagine post" class="post-image" />
+              </div>
+
+              <!-- CASO 1: Citazione Memorabile -->
+              <div class="quote-content-box" *ngIf="post.type === 'quote'">
+                <span class="quote-mark quote-mark--start">“</span>
+                <p class="quote-text-display">{{ post.quote }}</p>
+                <span class="quote-mark quote-mark--end">”</span>
+              </div>
+
+              <!-- CASO 2: Opinione su Commento (Liked/Disliked) -->
+              <div class="comment-content-box" 
+                   *ngIf="post.type === 'comment'" 
+                   [class.comment-content-box--like]="post.feeling === 'like'"
+                   [class.comment-content-box--dislike]="post.feeling === 'dislike'">
+                <div class="comment-opinion-header">
+                  <span class="feeling-icon" *ngIf="post.feeling === 'like'">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                  </span>
+                  <span class="feeling-icon" *ngIf="post.feeling === 'dislike'">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                  </span>
+                  <span class="feeling-title">
+                    {{ post.feeling === 'like' ? 'Commento che mi è piaciuto:' : 'Commento che non mi è piaciuto:' }}
+                  </span>
+                </div>
+                <p class="comment-shared-text">“{{ post.comment_text }}”</p>
+              </div>
+
+              <!-- CASO 3: Quoted Review or Comment (Recensione/Commento) -->
+              <div class="quoted-feedback-box mb-3" 
+                   *ngIf="post.type === 'review_comment' && post.commented_text"
+                   [class.quoted-feedback-box--review]="post.commented_type === 'review'">
+                <div class="quoted-feedback-header">
+                  <span class="quoted-type-label">
+                    {{ post.commented_type === 'review' ? 'Recensione di' : 'Commento di' }} u/{{ post.commented_author }}
+                  </span>
+                  <span class="quoted-rating" *ngIf="post.commented_type === 'review'">★</span>
+                </div>
+                <p class="quoted-feedback-text">“{{ post.commented_text }}”</p>
+              </div>
+
+              <!-- Contenuto descrittivo / contesto generale -->
+              <p class="post-main-text" *ngIf="post.content">{{ post.content }}</p>
+
+              <!-- Storia Collegata Card -->
+              <div class="linked-story-card glass-core" 
+                   *ngIf="post.story_id"
+                   [routerLink]="['/book', post.story_id]">
+                <img [src]="post.story_image || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover" class="story-card-cover" />
+                <div class="story-card-info">
+                  <h5 class="story-card-title">{{ post.story_title }}</h5>
+                  <span class="story-card-tag" *ngIf="post.story_is_18_plus">18+</span>
+                  <span class="story-card-explore">Esplora storia →</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Post Footer / Actions -->
+            <div class="post-footer">
+              
+              <!-- Vote Buttons (Solo su Mobile - in fondo alla card) -->
+              <div class="vote-group d-flex d-lg-none">
+                <button class="post-action-btn vote-btn vote-btn--like" 
+                        [class.active]="post.user_vote === 'like'" 
+                        (click)="votePost(post, 'like')"
+                        title="Mi piace">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="post.user_vote === 'like' ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                  </svg>
+                  <span>{{ post.likes_count }}</span>
+                </button>
+
+                <button class="post-action-btn vote-btn vote-btn--dislike" 
+                        [class.active]="post.user_vote === 'dislike'" 
+                        (click)="votePost(post, 'dislike')"
+                        title="Non mi piace">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="post.user_vote === 'dislike' ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                  </svg>
+                  <span>{{ post.dislikes_count }}</span>
+                </button>
+              </div>
+
+              <!-- Comments Toggle -->
+              <button class="post-action-btn footer-action-btn" 
+                      [class.active]="activeCommentsPostId === post.id" 
+                      (click)="openComments(post)"
+                      [id]="'btn-comments-' + post.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                <span>{{ post.comments_count }} Commenti</span>
+              </button>
+
+              <!-- Salva nei preferiti -->
+              <button class="post-action-btn footer-action-btn" 
+                      [class.active]="post.user_bookmarked" 
+                      (click)="togglePostBookmark(post)"
+                      [id]="'btn-bookmark-' + post.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" [attr.fill]="post.user_bookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>{{ post.user_bookmarked ? 'Salvato' : 'Salva' }}</span>
+              </button>
+
+              <!-- Share -->
+              <button class="post-action-btn footer-action-btn share-btn" 
+                      (click)="sharePost(post)"
+                      [id]="'btn-share-' + post.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                <span>Condividi</span>
+              </button>
+
+            </div>
+
+            <!-- Comments Drawer Area (Sub-feed) -->
+            <div class="comments-drawer-panel glass-core" *ngIf="activeCommentsPostId === post.id">
+              
+              <div class="comments-loading" *ngIf="loadingComments">
+                <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                <span class="ms-2">Caricamento commenti...</span>
+              </div>
+
+              <div class="comments-list" *ngIf="!loadingComments">
+                
+                <div class="no-comments-fallback text-center py-3" *ngIf="comments.length === 0">
+                  <p class="text-muted mb-0">Nessun commento su questo post. Scrivi il primo!</p>
+                </div>
+
+                <!-- Comment Items -->
+                <div class="comment-item animate-fade-in" *ngFor="let comment of comments">
+                  <img [src]="comment.author_avatar" *ngIf="comment.author_avatar" alt="Avatar" class="comment-avatar" />
+                  <div class="comment-avatar-fallback" *ngIf="!comment.author_avatar">
+                    {{ comment.author_username?.slice(0, 2)?.toUpperCase() }}
+                  </div>
+                  <div class="comment-bubble">
+                    <div class="comment-bubble-header">
+                      <span class="comment-username">u/{{ comment.author_username }}</span>
+                      <span class="comment-time">{{ formatTimeAgo(comment.created_at) }}</span>
+                    </div>
+                    <p class="comment-content-text">{{ comment.content }}</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Comment Composer Input -->
+              <div class="comment-box-composer">
+                <input type="text" 
+                       class="glass-input comment-input-field" 
+                       placeholder="Scrivi una risposta..." 
+                       [(ngModel)]="newCommentText"
+                       (keyup.enter)="addComment(post)"
+                       [id]="'input-new-comment-' + post.id" />
+                <button class="btn-send-comment" 
+                        (click)="addComment(post)"
+                        [disabled]="!newCommentText.trim()"
+                        [id]="'btn-send-comment-' + post.id">
+                  Rispondi
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+      </div> <!-- Fine showCenterComposer condition -->
+
+    </main>
+
+    <!-- 3. RIGHT SIDEBAR (DYNAMIC PROFILE, COMPOSER CHOICE, ALWAYS EXPANDED SETTINGS) -->
+    <aside class="sidebar-right d-none d-xl-block" id="community-sidebar-right">
+      
+      <!-- Profilo Personale & Impatto Community -->
+      <div class="sidebar-widget profile-stats-widget glass-core mb-3">
+        <div class="profile-header-meta">
+          <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar" class="profile-avatar" />
+          <div *ngIf="!currentUser()?.avatar_url" class="profile-avatar-fallback">{{ currentUser()?.username?.slice(0, 2)?.toUpperCase() }}</div>
+          <div class="profile-meta-details">
+            <span class="profile-username">u/{{ currentUser()?.username }}</span>
+            <span class="profile-role">Membro Community</span>
+          </div>
+        </div>
+        <div class="profile-stats-grid mt-3">
+          <div class="stat-cell">
+            <span class="stat-value">{{ userWrittenPostsCount }}</span>
+            <span class="stat-label">Post scritti</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-value">{{ userLikesReceivedCount }}</span>
+            <span class="stat-label">Likes ricevuti</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bozze (Drafts) Widget -->
+      <div class="sidebar-widget drafts-widget glass-core mb-3" id="drafts-sidebar-widget">
+        <h3 class="widget-title mb-2">Bozze</h3>
+        
+        <div class="drafts-stack" *ngIf="drafts.length > 0">
+          <p class="widget-desc mb-3" style="font-size: 13px; line-height: 1.4; color: var(--text-muted);">Hai delle pubblicazioni non completate. Clicca per riprendere o elimina:</p>
+          <div class="draft-item" *ngFor="let draft of drafts" (click)="loadDraft(draft)">
+            <div class="draft-info">
+              <span class="draft-title">{{ draft.title }}</span>
+              <span class="draft-meta">{{ draft.type === 'general' ? 'Post' : 'Recensione' }} &bull; {{ formatTimeAgo(draft.updatedAt) }}</span>
+            </div>
+            <button class="btn-delete-draft" (click)="deleteDraft(draft.id, $event)" title="Elimina bozza">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div class="no-drafts-placeholder py-2 text-center" *ngIf="drafts.length === 0">
+          <p class="placeholder-txt" style="font-size: 12.5px; line-height: 1.4; color: var(--text-muted); margin: 0; font-style: italic;">
+            Nessuna bozza salvata. Se inizi a scrivere un post e cambi scheda, verrà salvata qui.
+          </p>
+        </div>
+      </div>
+
+      <!-- Post Salvati & Piaciuti Widget -->
+      <div class="sidebar-widget saved-liked-widget glass-core mb-3" id="saved-liked-posts-widget">
+        <div class="widget-tabs-header">
+          <button class="widget-tab-btn" 
+                  [class.active]="activeRightTab === 'saved'" 
+                  (click)="activeRightTab = 'saved'">
+            Preferiti ({{ bookmarkedCommunityPosts.length }})
+          </button>
+          <button class="widget-tab-btn" 
+                  [class.active]="activeRightTab === 'liked'" 
+                  (click)="activeRightTab = 'liked'">
+            Piaciuti ({{ likedCommunityPosts.length }})
+          </button>
+        </div>
+
+        <div class="widget-tab-content">
+          <!-- Preferiti list -->
+          <div class="posts-sidebar-list" *ngIf="activeRightTab === 'saved'">
+            <div class="sidebar-post-item animate-fade-in" 
+                 *ngFor="let p of bookmarkedCommunityPosts" 
+                 (click)="scrollToOrFilterPost(p)">
+              <div class="sidebar-post-meta">
+                <span class="sidebar-post-author">u/{{ p.author_username }}</span>
+                <span class="sidebar-post-time">{{ formatTimeAgo(p.created_at) }}</span>
+              </div>
+              <span class="sidebar-post-title">{{ p.title }}</span>
+            </div>
+            <div class="no-items-placeholder text-center py-3" *ngIf="bookmarkedCommunityPosts.length === 0">
+              <p class="placeholder-txt" style="font-size: 12.5px; line-height: 1.4; color: var(--text-muted); margin: 0; font-style: italic;">
+                Nessun post salvato nei preferiti. Clicca su "Salva" sotto un post per aggiungerlo.
+              </p>
+            </div>
+          </div>
+
+          <!-- Piaciuti list -->
+          <div class="posts-sidebar-list" *ngIf="activeRightTab === 'liked'">
+            <div class="sidebar-post-item animate-fade-in" 
+                 *ngFor="let p of likedCommunityPosts" 
+                 (click)="scrollToOrFilterPost(p)">
+              <div class="sidebar-post-meta">
+                <span class="sidebar-post-author">u/{{ p.author_username }}</span>
+                <span class="sidebar-post-time">{{ formatTimeAgo(p.created_at) }}</span>
+              </div>
+              <span class="sidebar-post-title">{{ p.title }}</span>
+            </div>
+            <div class="no-items-placeholder text-center py-3" *ngIf="likedCommunityPosts.length === 0">
+              <p class="placeholder-txt" style="font-size: 12.5px; line-height: 1.4; color: var(--text-muted); margin: 0; font-style: italic;">
+                Non hai ancora messo mi piace a nessun post. Clicca sul pollice in su di un post.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selezione tipo post per avviare il compositore in mezzo -->
+      <div class="sidebar-widget composer-widget glass-core mb-3">
+        <h3 class="widget-title mb-2">Crea Post</h3>
+        <p class="widget-desc mb-3" style="font-size: 13px; line-height: 1.4; color: var(--text-muted);">Seleziona una delle seguenti voci per iniziare a scrivere nel pannello centrale:</p>
+        
+        <div class="composer-selection-stack">
+          <button type="button" 
+                  class="btn-select-composer-type" 
+                  [class.active]="showCenterComposer && rightComposerType === 'general'"
+                  (click)="activateCenterComposer('general')">
+            <div class="btn-select-info">
+              <span class="btn-select-title">Nuovo Post</span>
+              <span class="btn-select-desc">Scrivi un post con testo ed eventuale immagine</span>
+            </div>
+          </button>
+
+          <button type="button" class="btn-select-composer-type disabled-select" title="Citazione (Stand-by)">
+            <div class="btn-select-info">
+              <span class="btn-select-title">Citazione Libro <span class="standby-tag">Stand-by</span></span>
+              <span class="btn-select-desc">Condividi una frase o estratto memorabile</span>
+            </div>
+          </button>
+
+          <button type="button" class="btn-select-composer-type disabled-select" title="Opinione (Stand-by)">
+            <div class="btn-select-info">
+              <span class="btn-select-title">Esprimi Opinione <span class="standby-tag">Stand-by</span></span>
+              <span class="btn-select-desc">Condividi un commento piaciuto/non piaciuto</span>
+            </div>
+          </button>
+
+          <button type="button" 
+                  class="btn-select-composer-type" 
+                  [class.active]="showCenterComposer && rightComposerType === 'review_comment'"
+                  (click)="activateCenterComposer('review_comment')">
+            <div class="btn-select-info">
+              <span class="btn-select-title">Recensione/Commento</span>
+              <span class="btn-select-desc">Commenta recensioni e risposte di un libro</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Impostazioni Community (Sempre Aperte) -->
+      <div class="sidebar-widget settings-widget glass-core">
+        <h3 class="widget-title mb-3">Impostazioni Community</h3>
+        
+        <div class="settings-widget-body">
+          <h4 class="settings-sub-title">Notifiche Community</h4>
+          
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Risposte commenti</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.risposte_commenti" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Like commenti</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.like_commenti" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Like post</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.community_like" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Commenti post</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.community_commento" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Nuovi follower</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.nuovo_follower" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <hr class="settings-divider" />
+
+          <h4 class="settings-sub-title">Filtri Contenuto</h4>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Storie 18+</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Community 18+</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus_community" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div class="toggle-label-meta">
+              <span>Filtro Sensibile</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.sensitive_filter" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- Toast Feedback -->
+<div class="glass-toast glass-core animate-fade-in" *ngIf="showToast">
+  <span class="toast-txt">{{ toastMessage }}</span>
+</div>
+
+<!-- Custom Glassmorphic Modal overlay -->
+<div class="custom-modal-overlay animate-fade-in" *ngIf="showModal" (click)="closeCustomModal()">
+  <div class="custom-modal-card glass-core" (click)="$event.stopPropagation()">
+    <div class="modal-card-header">
+      <h3 class="modal-card-title">{{ modalTitle }}</h3>
+      <button class="btn-close-modal" (click)="closeCustomModal()" title="Chiudi">✕</button>
+    </div>
+    <div class="modal-card-body" [innerHTML]="modalContent">
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal Overlay -->
+<div class="preview-modal-overlay animate-fade-in" *ngIf="showPreviewModal" (click)="closePreviewModal()">
+  <div class="preview-modal-card glass-core" (click)="$event.stopPropagation()">
+    
+    <div class="preview-modal-header">
+      <h3 class="preview-modal-title">Anteprima del Post</h3>
+      <button class="btn-close-preview" (click)="closePreviewModal()">✕</button>
+    </div>
+
+    <div class="preview-modal-body">
+      <div class="simulated-feed">
+        <div class="post-card glass-core preview-card" style="margin-bottom: 0;">
+          <div class="post-vote-sidebar">
+            <button class="vote-sidebar-btn upvote" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+              </svg>
+            </button>
+            <span class="vote-sidebar-count">1</span>
+          </div>
+
+          <div class="post-main-content">
+            <div class="post-header-reddit">
+              <div class="post-author-row">
+                <div class="post-author-avatar-container">
+                  <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar" class="post-author-avatar" />
+                  <div *ngIf="!currentUser()?.avatar_url" class="post-author-avatar-fallback">{{ currentUser()?.username?.slice(0, 2)?.toUpperCase() }}</div>
+                </div>
+                <span class="post-community-name">
+                  {{ rightSelectedStory ? rightSelectedStory.title : 'Generale' }}
+                </span>
+                <span class="meta-separator">•</span>
+                <span class="post-author-name">Scritto da u/{{ currentUser()?.username }}</span>
+                <span class="meta-separator">•</span>
+                <span class="post-time">Adesso</span>
+              </div>
+              <div class="post-badge" [class.post-badge--general]="rightComposerType === 'general'" [class.post-badge--comment]="rightComposerType === 'review_comment'">
+                <span>{{ rightComposerType === 'general' ? 'Discussione' : (reviewCommentType === 'review' ? 'Recensione' : 'Commento') }}</span>
+              </div>
+            </div>
+
+            <div class="post-body">
+              <h2 class="post-card-title">{{ postTitle }}</h2>
+
+              <div class="post-image-container mb-3" *ngIf="rightComposerType === 'general' && postImageBase64">
+                <img [src]="postImageBase64" alt="Anteprima Immagine" class="post-image" />
+              </div>
+
+              <div class="quoted-feedback-box mb-3" 
+                   *ngIf="rightComposerType === 'review_comment' && selectedReviewOrComment"
+                   [class.quoted-feedback-box--review]="reviewCommentType === 'review'">
+                <div class="quoted-feedback-header">
+                  <span class="quoted-type-label">
+                    {{ reviewCommentType === 'review' ? 'Recensione di' : 'Commento di' }} u/{{ selectedReviewOrComment.name || selectedReviewOrComment.author_name }}
+                  </span>
+                  <span class="quoted-rating" *ngIf="reviewCommentType === 'review'">★</span>
+                </div>
+                <p class="quoted-feedback-text">“{{ selectedReviewOrComment.content || selectedReviewOrComment.text }}”</p>
+              </div>
+
+              <p class="post-main-text">{{ postText }}</p>
+
+              <div class="linked-story-card glass-core" *ngIf="rightSelectedStory">
+                <img [src]="rightSelectedStory.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover" class="story-card-cover" />
+                <div class="story-card-info">
+                  <h5 class="story-card-title">{{ rightSelectedStory.title }}</h5>
+                  <span class="story-card-tag" *ngIf="rightSelectedStory.is_18_plus">18+</span>
+                  <span class="story-card-explore">Esplora storia →</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="post-footer">
+              <button class="post-action-btn footer-action-btn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                <span>0 Commenti</span>
+              </button>
+              <button class="post-action-btn footer-action-btn share-btn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                <span>Condividi</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-modal-footer">
+      <button class="btn-cancel-preview" (click)="closePreviewModal()">Modifica ancora</button>
+      <button class="btn-submit-from-preview" (click)="publishPost()">Conferma e Pubblica</button>
+    </div>
+
+  </div>
+</div>

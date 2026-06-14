@@ -351,5 +351,31 @@ export class Api {
   deleteCollection(collectionId: string) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/collections/${collectionId}`);
   }
+
+  // ═══════════════ COMMUNITY ═══════════════
+
+  getCommunityPosts(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/community/posts?userId=${userId}`);
+  }
+
+  createCommunityPost(postData: any) {
+    return this.http.post<any>(`${this.apiUrl}/api/community/posts`, postData);
+  }
+
+  voteCommunityPost(postId: string, userId: string, vote: 'like' | 'dislike') {
+    return this.http.post<{ success: boolean, user_vote: 'like' | 'dislike' | null, likes_count: number, dislikes_count: number }>(`${this.apiUrl}/api/community/posts/${postId}/vote`, { userId, vote });
+  }
+
+  toggleCommunityPostBookmark(postId: string, userId: string) {
+    return this.http.post<{ success: boolean, bookmarked: boolean }>(`${this.apiUrl}/api/community/posts/${postId}/bookmark`, { userId });
+  }
+
+  getCommunityPostComments(postId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/community/posts/${postId}/comments`);
+  }
+
+  addCommunityPostComment(postId: string, userId: string, content: string) {
+    return this.http.post<any>(`${this.apiUrl}/api/community/posts/${postId}/comments`, { userId, content });
+  }
 }
 

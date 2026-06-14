@@ -129,3 +129,67 @@ ALTER TABLE collection_stories ALTER COLUMN order_index DROP NOT NULL;
 
 -- 13. Index on story_views
 CREATE INDEX IF NOT EXISTS idx_story_views_story_id ON story_views(story_id);
+
+-- 14. Community Features
+CREATE TABLE IF NOT EXISTS community_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255), -- Reddit-style post title
+  type VARCHAR(50) NOT NULL, -- 'general', 'quote', 'comment'
+  content TEXT, -- General body text / context
+  story_id UUID REFERENCES stories(id) ON DELETE SET NULL,
+  quote TEXT, -- The memorable quote text
+  comment_text TEXT, -- The shared comment text
+  feeling VARCHAR(10), -- 'like' or 'dislike' for shared comments
+  views_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS title VARCHAR(255);
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0;
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS post_image TEXT;
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_author VARCHAR(255);
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_text TEXT;
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_type VARCHAR(50);
+
+-- Drop old likes table if we are running fresh or updating
+DROP TABLE IF EXISTS community_post_likes;
+
+CREATE TABLE IF NOT EXISTS community_post_votes (
+  post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  vote VARCHAR(10) NOT NULL CHECK (vote = 'like' OR vote = 'dislike'),
+  PRIMARY KEY (post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS community_post_comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
+  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indices for community tables
+CREATE INDEX IF NOT EXISTS idx_community_posts_author_id ON community_posts(author_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_story_id ON community_posts(story_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON community_posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_community_post_comments_post_id ON community_post_comments(post_id);
+
+-- Alter users table with community setting and preferences
+ALTER TABLE users 
+  ADD COLUMN IF NOT EXISTS visualizza_18plus_community BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS notifiche_community_like BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS notifiche_community_commento BOOLEAN DEFAULT TRUE;
+
+-- Alter notifications table to link to community posts
+ALTER TABLE notifications 
+  ADD COLUMN IF NOT EXISTS community_post_id UUID REFERENCES community_posts(id) ON DELETE CASCADE;
+
+-- 15. Table: community_post_bookmarks
+CREATE TABLE IF NOT EXISTS community_post_bookmarks (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, post_id)
+);
+

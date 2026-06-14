@@ -169,6 +169,11 @@ export class Notifications implements OnInit {
       return;
     }
 
+    if (notification.type === 'community_like' || notification.type === 'community_comment') {
+      this.router.navigate(['/community']);
+      return;
+    }
+
     if (!notification.story_id) {
       // La storia è stata eliminata, segna solo come letto senza reindirizzare
       return;
@@ -216,6 +221,8 @@ export class Notifications implements OnInit {
       case 'new_follower': return '👤';
       case 'story_like': return '💖';
       case 'story_bookmark': return '⭐';
+      case 'community_like': return '❤️';
+      case 'community_comment': return '💬';
       default: return '🔔';
     }
   }

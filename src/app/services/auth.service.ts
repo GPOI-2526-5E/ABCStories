@@ -28,6 +28,9 @@ export interface AuthUser {
   reading_width?: string;
   sensitive_filter?: boolean;
   visualizza_18plus?: boolean;
+  visualizza_18plus_community?: boolean;
+  notifiche_community_like?: boolean;
+  notifiche_community_commento?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

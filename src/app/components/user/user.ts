@@ -130,10 +130,13 @@ export class User implements OnInit {
       aggiornamenti_nuovo_capitolo: true,
       aggiornamenti_modifica_storia: true,
       aggiornamenti_modifica_capitolo: true,
-      newsletter: true
+      newsletter: true,
+      community_like: true,
+      community_commento: true
     },
     privacy: { profiloPubblico: true, mostraLibreria: false, indicizza: true },
     visualizza_18plus: false,
+    visualizza_18plus_community: false,
     reading_font: 'sans-serif',
     reading_font_size: 'medium',
     reading_mode: 'scroll',
@@ -276,10 +279,13 @@ export class User implements OnInit {
           if (profile.notifiche_aggiornamenti_modifica_storia !== undefined && profile.notifiche_aggiornamenti_modifica_storia !== null) this.settings.notifiche.aggiornamenti_modifica_storia = profile.notifiche_aggiornamenti_modifica_storia;
           if (profile.notifiche_aggiornamenti_modifica_capitolo !== undefined && profile.notifiche_aggiornamenti_modifica_capitolo !== null) this.settings.notifiche.aggiornamenti_modifica_capitolo = profile.notifiche_aggiornamenti_modifica_capitolo;
           if (profile.notifiche_newsletter !== undefined && profile.notifiche_newsletter !== null) this.settings.notifiche.newsletter = profile.notifiche_newsletter;
+          if (profile.notifiche_community_like !== undefined && profile.notifiche_community_like !== null) this.settings.notifiche.community_like = profile.notifiche_community_like;
+          if (profile.notifiche_community_commento !== undefined && profile.notifiche_community_commento !== null) this.settings.notifiche.community_commento = profile.notifiche_community_commento;
           if (profile.privacy_profilo_pubblico !== undefined && profile.privacy_profilo_pubblico !== null) this.settings.privacy.profiloPubblico = profile.privacy_profilo_pubblico;
           if (profile.privacy_mostra_libreria !== undefined && profile.privacy_mostra_libreria !== null) this.settings.privacy.mostraLibreria = profile.privacy_mostra_libreria;
           if (profile.privacy_indicizza !== undefined && profile.privacy_indicizza !== null) this.settings.privacy.indicizza = profile.privacy_indicizza;
           if (profile.visualizza_18plus !== undefined && profile.visualizza_18plus !== null) this.settings.visualizza_18plus = profile.visualizza_18plus;
+          if (profile.visualizza_18plus_community !== undefined && profile.visualizza_18plus_community !== null) this.settings.visualizza_18plus_community = profile.visualizza_18plus_community;
 
           if (profile.reading_font) this.settings.reading_font = profile.reading_font;
           if (profile.reading_font_size) this.settings.reading_font_size = profile.reading_font_size;
@@ -418,10 +424,13 @@ export class User implements OnInit {
         notifiche_aggiornamenti_modifica_storia: this.settings.notifiche.aggiornamenti_modifica_storia,
         notifiche_aggiornamenti_modifica_capitolo: this.settings.notifiche.aggiornamenti_modifica_capitolo,
         notifiche_newsletter: this.settings.notifiche.newsletter,
+        notifiche_community_like: this.settings.notifiche.community_like,
+        notifiche_community_commento: this.settings.notifiche.community_commento,
         privacy_profilo_pubblico: this.settings.privacy.profiloPubblico,
         privacy_mostra_libreria: this.settings.privacy.mostraLibreria,
         privacy_indicizza: this.settings.privacy.indicizza,
         visualizza_18plus: this.settings.visualizza_18plus,
+        visualizza_18plus_community: this.settings.visualizza_18plus_community,
         reading_font: this.settings.reading_font,
         reading_font_size: this.settings.reading_font_size,
         reading_mode: this.settings.reading_mode,
@@ -470,6 +479,9 @@ export class User implements OnInit {
     this.settings.privacy.mostraLibreria = false;
     this.settings.privacy.indicizza = true;
     this.settings.visualizza_18plus = false;
+    this.settings.visualizza_18plus_community = false;
+    this.settings.notifiche.community_like = true;
+    this.settings.notifiche.community_commento = true;
 
     this.saveSettings();
   }

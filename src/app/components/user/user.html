@@ -619,6 +619,28 @@
             </label>
           </div>
 
+          <h4 class="settings-card__subtitle">Interazioni Community</h4>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Mi piace ai post</span>
+              <small>Ricevi una notifica quando qualcuno mette "Mi piace" a un tuo post nella community</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.community_like" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">
+              <span>Commenti ai post</span>
+              <small>Ricevi una notifica quando qualcuno commenta un tuo post nella community</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.notifiche.community_commento" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
           <h4 class="settings-card__subtitle">Social & Follower</h4>
           <div class="setting-row">
             <div class="setting-row__label">
@@ -716,13 +738,23 @@
         <!-- Preferenza Contenuti -->
         <div class="settings-group">
           <h3 class="settings-card__title">Contenuti</h3>
-          <div class="setting-row setting-row--last">
+          <div class="setting-row">
             <div class="setting-row__label">
-              <span>Visualizza storie 18+</span>
+              <span>Visualizza storie 18+ nelle Storie</span>
               <small>Consenti la visualizzazione di storie contenenti tematiche per adulti (vietate ai minori)</small>
             </div>
             <label class="toggle">
               <input type="checkbox" [(ngModel)]="settings.visualizza_18plus" (ngModelChange)="saveSettings()" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+          <div class="setting-row setting-row--last">
+            <div class="setting-row__label">
+              <span>Visualizza storie 18+ nella Community</span>
+              <small>Mostra i post della community che citano storie 18+</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus_community" (ngModelChange)="saveSettings()" />
               <span class="toggle__slider"></span>
             </label>
           </div>

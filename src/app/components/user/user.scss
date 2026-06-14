@@ -847,9 +847,11 @@ $muted: var(--text-muted);
 
   @media (max-width: 768px) {
     border-radius: 10px !important;
+
     img {
       border-radius: 10px !important;
     }
+
     .action-icon {
       opacity: 1;
     }

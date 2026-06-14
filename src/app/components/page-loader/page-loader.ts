@@ -25,6 +25,7 @@ export class PageLoader implements OnInit, OnDestroy {
   private httpLoading = false;
   private hideTimeout: any;
   private showSpinnerTimeout: any;
+  private updateStateTimeout: any = null;
   private showTime: number = Date.now();
   private isWaitingForResources = false;
   
@@ -69,9 +70,20 @@ export class PageLoader implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.showSpinnerTimeout) clearTimeout(this.showSpinnerTimeout);
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
+    if (this.updateStateTimeout) clearTimeout(this.updateStateTimeout);
   }
 
   private updateState() {
+    if (this.updateStateTimeout) {
+      clearTimeout(this.updateStateTimeout);
+    }
+    this.updateStateTimeout = setTimeout(() => {
+      this.updateStateTimeout = null;
+      this.executeUpdateState();
+    });
+  }
+
+  private executeUpdateState() {
     // Carica solo se siamo in fase di transizione rotta/bootstrap e non siamo esplicitamente bloccati da dialogs
     const shouldLoad = this.isNavigatingOrBootstrapping && (this.routerLoading || this.httpLoading) && !this.loadingService.isBlocked();
 
@@ -125,7 +137,10 @@ export class PageLoader implements OnInit, OnDestroy {
         clearTimeout(this.showSpinnerTimeout);
         this.showSpinnerTimeout = null;
       }
-      this.showSpinner = false;
+      if (this.showSpinner) {
+        this.showSpinner = false;
+        this.cdr.detectChanges();
+      }
     }
   }
 

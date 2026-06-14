@@ -1,6 +1,6 @@
 import {
   AfterViewInit, Component, HostListener,
-  Inject, PLATFORM_ID, inject, computed, effect
+  Inject, PLATFORM_ID, inject, computed, effect, ChangeDetectorRef
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
@@ -37,6 +37,7 @@ export class Navbar implements AfterViewInit, OnInit {
   // ── Auth ─────────────────────────────────────────────────────────
   authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   userInitials = computed(() => {
     const name = this.authService.currentUser()?.username ?? '';
@@ -158,7 +159,13 @@ export class Navbar implements AfterViewInit, OnInit {
   loadUnreadNotificationsCount(userId: string): void {
     this.api.getNotifications(userId).subscribe({
       next: (notifications) => {
-        this.unreadCount = notifications.filter((n: any) => !n.is_read).length;
+        const count = notifications.filter((n: any) => !n.is_read).length;
+        if (this.unreadCount !== count) {
+          setTimeout(() => {
+            this.unreadCount = count;
+            this.cdr.detectChanges();
+          });
+        }
       },
       error: (err) => {
         console.error('Errore nel caricamento del conteggio notifiche:', err);
@@ -201,7 +208,7 @@ export class Navbar implements AfterViewInit, OnInit {
     this.genres.forEach(genre => {
       this.api.getStoriesByGenre(genre).subscribe({
         next: (stories) => {
-          this.genreBooks[genre] = (stories || [])
+          const list = (stories || [])
             .map(story => ({
               id: story.id,
               title: story.title,
@@ -211,8 +218,10 @@ export class Navbar implements AfterViewInit, OnInit {
             .slice(0, 7);
           
           setTimeout(() => {
+            this.genreBooks[genre] = list;
             this.initSliders();
-          }, 200);
+            this.cdr.detectChanges();
+          });
         },
         error: (err) => {
           console.error(`Error loading stories for genre ${genre}:`, err);

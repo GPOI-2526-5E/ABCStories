@@ -147,6 +147,32 @@ const pool = process.env.DATABASE_URL
       ALTER TABLE collection_stories ALTER COLUMN order_index DROP NOT NULL;
     `);
     console.log('[DATABASE] Colonna order_index verificata in tabella collection_stories.');
+
+    await pool.query(`
+      ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0;
+    `);
+    await pool.query(`
+      ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS post_image TEXT;
+    `);
+    await pool.query(`
+      ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_author VARCHAR(255);
+    `);
+    await pool.query(`
+      ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_text TEXT;
+    `);
+    await pool.query(`
+      ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS commented_type VARCHAR(50);
+    `);
+    console.log('[DATABASE] Colonne community_posts verificate in tabella community_posts.');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS community_post_bookmarks (
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        post_id UUID REFERENCES community_posts(id) ON DELETE CASCADE,
+        PRIMARY KEY (user_id, post_id)
+      );
+    `);
+    console.log('[DATABASE] Tabella community_post_bookmarks creata o verificata.');
   } catch (err) {
     console.error('[DATABASE ERROR] Errore durante la creazione delle tabelle iniziali:', err);
   }
@@ -385,7 +411,10 @@ app.put('/api/user/:id', async (req, res) => {
     notifiche_aggiornamenti_nuovo_capitolo,
     notifiche_aggiornamenti_modifica_storia,
     notifiche_aggiornamenti_modifica_capitolo,
-    visualizza_18plus
+    visualizza_18plus,
+    visualizza_18plus_community,
+    notifiche_community_like,
+    notifiche_community_commento
   } = req.body;
   try {
     const result = await pool.query(`
@@ -423,8 +452,11 @@ app.put('/api/user/:id', async (req, res) => {
         notifiche_aggiornamenti_nuovo_capitolo = COALESCE($30, notifiche_aggiornamenti_nuovo_capitolo),
         notifiche_aggiornamenti_modifica_storia = COALESCE($31, notifiche_aggiornamenti_modifica_storia),
         notifiche_aggiornamenti_modifica_capitolo = COALESCE($32, notifiche_aggiornamenti_modifica_capitolo),
-        visualizza_18plus = COALESCE($33, visualizza_18plus)
-      WHERE id = $34
+        visualizza_18plus = COALESCE($33, visualizza_18plus),
+        visualizza_18plus_community = COALESCE($34, visualizza_18plus_community),
+        notifiche_community_like = COALESCE($35, notifiche_community_like),
+        notifiche_community_commento = COALESCE($36, notifiche_community_commento)
+      WHERE id = $37
       RETURNING *
     `, [
       username || null,
@@ -460,6 +492,9 @@ app.put('/api/user/:id', async (req, res) => {
       notifiche_aggiornamenti_modifica_storia !== undefined ? notifiche_aggiornamenti_modifica_storia : null,
       notifiche_aggiornamenti_modifica_capitolo !== undefined ? notifiche_aggiornamenti_modifica_capitolo : null,
       visualizza_18plus !== undefined ? visualizza_18plus : null,
+      visualizza_18plus_community !== undefined ? visualizza_18plus_community : null,
+      notifiche_community_like !== undefined ? notifiche_community_like : null,
+      notifiche_community_commento !== undefined ? notifiche_community_commento : null,
       req.params.id
     ]);
 
@@ -2315,7 +2350,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        n.id, n.user_id, n.sender_id, n.story_id, n.chapter_id, n.type, n.message, n.is_read, n.created_at,
+        n.id, n.user_id, n.sender_id, n.story_id, n.chapter_id, n.community_post_id, n.type, n.message, n.is_read, n.created_at,
         u.username as sender_username, u.avatar_url as sender_avatar,
         s.title as story_title, s.image_url as story_image
       FROM notifications n
@@ -2347,16 +2382,274 @@ app.put('/api/notifications/:id/read', async (req, res) => {
   }
 });
 
-app.put('/api/notifications/user/:userId/read-all', async (req, res) => {
+// ── COMMUNITY ENDPOINTS ──
+
+app.get('/api/community/posts', async (req, res) => {
+  const { userId } = req.query;
   try {
-    await pool.query(`
-      UPDATE notifications
-      SET is_read = TRUE
-      WHERE user_id = $1
-    `, [req.params.userId]);
-    res.json({ success: true });
+    let showNsfw = false;
+    if (userId) {
+      const userRes = await pool.query('SELECT visualizza_18plus_community FROM users WHERE id = $1', [userId]);
+      if (userRes.rows.length > 0) {
+        showNsfw = !!userRes.rows[0].visualizza_18plus_community;
+      }
+    }
+
+    let query = `
+      SELECT 
+        cp.id, cp.author_id, cp.title, cp.type, cp.content, cp.story_id, cp.quote, cp.comment_text, cp.feeling, cp.created_at, cp.views_count, cp.post_image, cp.commented_author, cp.commented_text, cp.commented_type,
+        u.username as author_username, u.avatar_url as author_avatar,
+        s.title as story_title, s.image_url as story_image, s.is_18_plus as story_is_18_plus,
+        COALESCE(vc.likes_count, 0)::integer as likes_count,
+        COALESCE(vc.dislikes_count, 0)::integer as dislikes_count,
+        (SELECT vote FROM community_post_votes cpv WHERE cpv.post_id = cp.id AND cpv.user_id = $1) as user_vote,
+        EXISTS(SELECT 1 FROM community_post_bookmarks cpb WHERE cpb.post_id = cp.id AND cpb.user_id = $1) as user_bookmarked,
+        COALESCE(cc.comments_count, 0)::integer as comments_count
+      FROM community_posts cp
+      JOIN users u ON cp.author_id = u.id
+      LEFT JOIN stories s ON cp.story_id = s.id
+      LEFT JOIN (
+        SELECT 
+          post_id, 
+          COALESCE(SUM(CASE WHEN vote = 'like' THEN 1 ELSE 0 END), 0) as likes_count,
+          COALESCE(SUM(CASE WHEN vote = 'dislike' THEN 1 ELSE 0 END), 0) as dislikes_count
+        FROM community_post_votes 
+        GROUP BY post_id
+      ) vc ON vc.post_id = cp.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) as comments_count 
+        FROM community_post_comments 
+        GROUP BY post_id
+      ) cc ON cc.post_id = cp.id
+    `;
+    
+    const queryParams = [userId || null];
+    if (!showNsfw) {
+      query += ` WHERE (s.is_18_plus IS NULL OR s.is_18_plus = FALSE)`;
+    }
+    query += ` ORDER BY cp.created_at DESC`;
+
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/community/posts', async (req, res) => {
+  const { author_id, title, type, content, story_id, quote, comment_text, feeling, post_image, commented_author, commented_text, commented_type } = req.body;
+  try {
+    const insertRes = await pool.query(`
+      INSERT INTO community_posts (author_id, title, type, content, story_id, quote, comment_text, feeling, post_image, commented_author, commented_text, commented_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *
+    `, [
+      author_id,
+      title || null,
+      type,
+      content || null,
+      story_id || null,
+      quote || null,
+      comment_text || null,
+      feeling || null,
+      post_image || null,
+      commented_author || null,
+      commented_text || null,
+      commented_type || null
+    ]);
+
+    const newPost = insertRes.rows[0];
+    
+    // Join author and story details for direct response rendering
+    const authorRes = await pool.query('SELECT username, avatar_url FROM users WHERE id = $1', [author_id]);
+    newPost.author_username = authorRes.rows[0]?.username;
+    newPost.author_avatar = authorRes.rows[0]?.avatar_url;
+    newPost.likes_count = 0;
+    newPost.dislikes_count = 0;
+    newPost.comments_count = 0;
+    newPost.user_vote = null;
+
+    if (story_id) {
+      const storyRes = await pool.query('SELECT title, image_url, is_18_plus FROM stories WHERE id = $1', [story_id]);
+      if (storyRes.rows.length > 0) {
+        newPost.story_title = storyRes.rows[0].title;
+        newPost.story_image = storyRes.rows[0].image_url;
+        newPost.story_is_18_plus = storyRes.rows[0].is_18_plus;
+      }
+    }
+
+    res.json(newPost);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/community/posts/:id/vote', async (req, res) => {
+  const postId = req.params.id;
+  const { userId, vote } = req.body; // 'like' or 'dislike'
+  try {
+    const voteCheck = await pool.query(
+      'SELECT vote FROM community_post_votes WHERE post_id = $1 AND user_id = $2',
+      [postId, userId]
+    );
+
+    let newUserVote = null;
+
+    if (voteCheck.rows.length > 0) {
+      const currentVote = voteCheck.rows[0].vote;
+      if (currentVote === vote) {
+        // Toggle off
+        await pool.query(
+          'DELETE FROM community_post_votes WHERE post_id = $1 AND user_id = $2',
+          [postId, userId]
+        );
+      } else {
+        // Change vote
+        await pool.query(
+          'UPDATE community_post_votes SET vote = $1 WHERE post_id = $2 AND user_id = $3',
+          [vote, postId, userId]
+        );
+        newUserVote = vote;
+      }
+    } else {
+      // Insert new vote
+      await pool.query(
+        'INSERT INTO community_post_votes (post_id, user_id, vote) VALUES ($1, $2, $3)',
+        [postId, userId, vote]
+      );
+      newUserVote = vote;
+    }
+
+    // Invia notifica se è un upvote ('like') e non un autovoto
+    if (newUserVote === 'like') {
+      const postRes = await pool.query('SELECT author_id FROM community_posts WHERE id = $1', [postId]);
+      if (postRes.rows.length > 0) {
+        const postAuthorId = postRes.rows[0].author_id;
+        if (postAuthorId !== userId) {
+          const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+          const senderUsername = senderRes.rows[0]?.username || 'Un utente';
+
+          const authorRes = await pool.query('SELECT notifiche_community_like FROM users WHERE id = $1', [postAuthorId]);
+          if (authorRes.rows.length > 0 && authorRes.rows[0].notifiche_community_like) {
+            const message = `${senderUsername} ha messo "Mi piace" al tuo post nella community.`;
+            await pool.query(`
+              INSERT INTO notifications (user_id, sender_id, type, message, community_post_id)
+              VALUES ($1, $2, 'community_like', $3, $4)
+            `, [postAuthorId, userId, message, postId]);
+          }
+        }
+      }
+    }
+
+    // Fetch updated counts
+    const countsRes = await pool.query(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN vote = 'like' THEN 1 ELSE 0 END), 0)::integer as likes_count,
+        COALESCE(SUM(CASE WHEN vote = 'dislike' THEN 1 ELSE 0 END), 0)::integer as dislikes_count
+      FROM community_post_votes
+      WHERE post_id = $1
+    `, [postId]);
+
+    res.json({ 
+      success: true, 
+      user_vote: newUserVote,
+      likes_count: countsRes.rows[0]?.likes_count || 0,
+      dislikes_count: countsRes.rows[0]?.dislikes_count || 0
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/community/posts/:id/bookmark', async (req, res) => {
+  const postId = req.params.id;
+  const { userId } = req.body;
+  try {
+    const exists = await pool.query(
+      'SELECT 1 FROM community_post_bookmarks WHERE user_id = $1 AND post_id = $2',
+      [userId, postId]
+    );
+    if (exists.rows.length > 0) {
+      await pool.query(
+        'DELETE FROM community_post_bookmarks WHERE user_id = $1 AND post_id = $2',
+        [userId, postId]
+      );
+      res.json({ success: true, bookmarked: false });
+    } else {
+      await pool.query(
+        'INSERT INTO community_post_bookmarks (user_id, post_id) VALUES ($1, $2)',
+        [userId, postId]
+      );
+      res.json({ success: true, bookmarked: true });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/community/posts/:id/comments', async (req, res) => {
+  const postId = req.params.id;
+  try {
+    // Increment post views count when comments drawer is opened
+    await pool.query('UPDATE community_posts SET views_count = views_count + 1 WHERE id = $1', [postId]);
+
+    const result = await pool.query(`
+      SELECT 
+        cpc.id, cpc.post_id, cpc.author_id, cpc.content, cpc.created_at,
+        u.username as author_username, u.avatar_url as author_avatar
+      FROM community_post_comments cpc
+      JOIN users u ON cpc.author_id = u.id
+      WHERE cpc.post_id = $1
+      ORDER BY cpc.created_at ASC
+    `, [postId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/community/posts/:id/comments', async (req, res) => {
+  const postId = req.params.id;
+  const { userId, content } = req.body;
+  try {
+    const insertRes = await pool.query(`
+      INSERT INTO community_post_comments (post_id, author_id, content)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `, [postId, userId, content]);
+
+    const newComment = insertRes.rows[0];
+    const authorRes = await pool.query('SELECT username, avatar_url FROM users WHERE id = $1', [userId]);
+    newComment.author_username = authorRes.rows[0]?.username;
+    newComment.author_avatar = authorRes.rows[0]?.avatar_url;
+
+    // Invia notifica se non è un self-comment
+    const postRes = await pool.query('SELECT author_id FROM community_posts WHERE id = $1', [postId]);
+    if (postRes.rows.length > 0) {
+      const postAuthorId = postRes.rows[0].author_id;
+      if (postAuthorId !== userId) {
+        const senderRes = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+        const senderUsername = senderRes.rows[0]?.username || 'Un utente';
+
+        const authorRes = await pool.query('SELECT notifiche_community_commento FROM users WHERE id = $1', [postAuthorId]);
+        if (authorRes.rows.length > 0 && authorRes.rows[0].notifiche_community_commento) {
+          const message = `${senderUsername} ha commentato il tuo post nella community.`;
+          await pool.query(`
+            INSERT INTO notifications (user_id, sender_id, type, message, community_post_id)
+            VALUES ($1, $2, 'community_comment', $3, $4)
+          `, [postAuthorId, userId, message, postId]);
+        }
+      }
+    }
+
+    res.json(newComment);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
