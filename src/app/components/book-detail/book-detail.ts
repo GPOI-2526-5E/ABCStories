@@ -200,8 +200,24 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:scroll')
   onWindowScroll(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
-    this.isSticky = scrollPos > 350;
+    
+    // Controlliamo se l'elemento actionsRow esiste e dove si trova
+    const actionsRowEl = document.querySelector('.detail-actions-row') as HTMLElement;
+    if (actionsRowEl) {
+      const rect = actionsRowEl.getBoundingClientRect();
+      const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+      
+      // L'elemento è visibile sullo schermo se il suo top è minore di viewHeight
+      // e il suo bottom è maggiore di 0.
+      const isVisible = rect.top < viewHeight && rect.bottom > 0;
+      
+      // Se NON è visibile, allora la barra fluttuante deve essere sticky!
+      this.isSticky = !isVisible;
+    } else {
+      // Se non esiste ancora nel DOM (sta caricando), possiamo basarci sullo scroll
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+      this.isSticky = scrollPos > 350;
+    }
 
     const detailsEl = document.querySelector('.divDetails') as HTMLElement;
     if (detailsEl) {
@@ -294,6 +310,9 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
           if (this.book?.img) this.preloadImage(this.book.img);
         }
         this.cdr.detectChanges();
+        if (isPlatformBrowser(this.platformId)) {
+          setTimeout(() => this.onWindowScroll(), 50);
+        }
         this.loadChaptersAndProgress(storyId);
       },
       error: (err) => {
@@ -301,6 +320,9 @@ export class BookDetail implements OnInit, AfterViewInit, OnDestroy {
         if (!this.book) {
           this.book = this.bookService.getById(storyId);
           this.cdr.detectChanges();
+          if (isPlatformBrowser(this.platformId)) {
+            setTimeout(() => this.onWindowScroll(), 50);
+          }
         }
         this.loadChaptersAndProgress(storyId);
       }
