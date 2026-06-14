@@ -12,7 +12,7 @@
 
     <div class="slider-viewport" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)"
       (touchend)="onTouchEnd($event)" (touchcancel)="onTouchCancel()">
-      @for (slide of books; track slide.title; let i = $index) {
+      @for (slide of books; track (slide.id || $index); let i = $index) {
       <div class="slide" [class.active]="i === current"
         [class.prev-slide]="i === (current - 1 + slidesCount) % slidesCount"
         [class.next-slide]="i === (current + 1) % slidesCount">
@@ -59,61 +59,61 @@
   <p class="text-center">I libri più letti questa settimana</p>
   <section class="ranking-container">
     <div class="podium-display">
-      <div class="book-card podium-item second" (click)="goToBookDetail(trendingBooks[1] || booksB[1])" style="cursor: pointer;">
+      <div class="book-card podium-item second" (click)="goToBookDetail(trendingBooks[1])" style="cursor: pointer;">
         <div class="rank-badge">2°</div>
         <div class="book-cover">
-          <img [src]="(trendingBooks[1] || booksB[1])?.img" [alt]="(trendingBooks[1] || booksB[1])?.title">
+          <img [src]="trendingBooks[1]?.img" [alt]="trendingBooks[1]?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{(trendingBooks[1] || booksB[1])?.title}}</p>
-          <p class="book-author" (click)="goToAuthor((trendingBooks[1] || booksB[1])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[1] || booksB[1])?.author}}</p>
+          <p class="book-title">{{trendingBooks[1]?.title}}</p>
+          <p class="book-author" (click)="goToAuthor(trendingBooks[1]?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{trendingBooks[1]?.author}}</p>
         </div>
       </div>
 
-      <div class="book-card podium-item first" (click)="goToBookDetail(trendingBooks[0] || booksB[0])" style="cursor: pointer;">
+      <div class="book-card podium-item first" (click)="goToBookDetail(trendingBooks[0])" style="cursor: pointer;">
         <div class="rank-badge">1°</div>
         <div class="book-cover">
-          <img [src]="(trendingBooks[0] || booksB[0])?.img" [alt]="(trendingBooks[0] || booksB[0])?.title">
+          <img [src]="trendingBooks[0]?.img" [alt]="trendingBooks[0]?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{(trendingBooks[0] || booksB[0])?.title}}</p>
-          <p class="book-author" (click)="goToAuthor((trendingBooks[0] || booksB[0])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[0] || booksB[0])?.author}}</p>
+          <p class="book-title">{{trendingBooks[0]?.title}}</p>
+          <p class="book-author" (click)="goToAuthor(trendingBooks[0]?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{trendingBooks[0]?.author}}</p>
         </div>
       </div>
 
-      <div class="book-card podium-item third" (click)="goToBookDetail(trendingBooks[2] || booksB[2])" style="cursor: pointer;">
+      <div class="book-card podium-item third" (click)="goToBookDetail(trendingBooks[2])" style="cursor: pointer;">
         <div class="rank-badge">3°</div>
         <div class="book-cover">
-          <img [src]="(trendingBooks[2] || booksB[2])?.img" [alt]="(trendingBooks[2] || booksB[2])?.title">
+          <img [src]="trendingBooks[2]?.img" [alt]="trendingBooks[2]?.title">
         </div>
         <div class="book-info">
-          <p class="book-title">{{(trendingBooks[2] || booksB[2])?.title}}</p>
-          <p class="book-author" (click)="goToAuthor((trendingBooks[2] || booksB[2])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[2] || booksB[2])?.author}}</p>
+          <p class="book-title">{{trendingBooks[2]?.title}}</p>
+          <p class="book-author" (click)="goToAuthor(trendingBooks[2]?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{trendingBooks[2]?.author}}</p>
         </div>
       </div>
     </div>
 
     <div class="horizontal-ranking-wrapper">
-      <button class="rank-nav-btn prev" (click)="scrollRank(-1)">&#8249;</button>
+      <button class="nav-arrow nav-left" [class.hidden]="!canScrollClassificaLeft" (click)="scrollRank(-1)">&#10094;</button>
 
-      <div class="rank-scroll-outer">
+      <div class="rank-scroll-outer" (scroll)="updateClassificaArrows()">
         <div class="slider-track" #rankTrack>
           @for (index of [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track $index) {
-          <div class="book-card" (click)="goToBookDetail(trendingBooks[index] || booksB[index])" style="cursor: pointer;">
+          <div class="book-card" (click)="goToBookDetail(trendingBooks[index])" style="cursor: pointer;">
             <div class="rank-badge small">{{index + 1}}°</div>
             <div class="book-cover">
-              <img [src]="(trendingBooks[index] || booksB[index])?.img" [alt]="(trendingBooks[index] || booksB[index])?.title">
+              <img [src]="trendingBooks[index]?.img" [alt]="trendingBooks[index]?.title">
             </div>
             <div class="book-info">
-              <p class="book-title">{{(trendingBooks[index] || booksB[index])?.title}}</p>
-              <p class="book-author" (click)="goToAuthor((trendingBooks[index] || booksB[index])?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{(trendingBooks[index] || booksB[index])?.author}}</p>
+              <p class="book-title">{{trendingBooks[index]?.title}}</p>
+              <p class="book-author" (click)="goToAuthor(trendingBooks[index]?.author_id, $event)" style="cursor: pointer; position: relative; z-index: 2;">{{trendingBooks[index]?.author}}</p>
             </div>
           </div>
           }
         </div>
       </div>
 
-      <button class="rank-nav-btn next" (click)="scrollRank(1)">&#8250;</button>
+      <button class="nav-arrow nav-right" [class.hidden]="!canScrollClassificaRight" (click)="scrollRank(1)">&#10095;</button>
     </div>
   </section>
 
@@ -141,54 +141,74 @@
   <h2 class="text-center">Nuovi talenti</h2>
   <p class="text-center">Scopri nuovi artisti</p>
   <section class="talents-section mb-5">
-    <div class="slider-outer" #sliderOuter>
-      <div class="slider-row">
-        @for (book of books; track book.title) {
-        <div class="talent-card" (click)="onBookClick(book)">
-          <img class="card-bg" [src]="book.img" [alt]="book.title" loading="lazy" />
-          <div class="card-fade"></div>
-          <span class="card-title-always">{{ book.title }}</span>
-          <div class="card-hover-content">
-            <span class="tag">{{ book.tag }}</span>
-            <h3>{{ book.title }}</h3>
-            <p>{{ book.desc }}</p>
-            <button class="btnCont5" (click)="onReadClick(book); $event.stopPropagation()" style="width: 175px;">Leggi
-              Ora</button>
+    <div class="slider-outer-wrapper" style="position: relative; width: 100%;">
+      <button class="nav-arrow nav-left" [class.hidden]="!canScrollTalentsLeft" (click)="scrollTalents(-1)">&#10094;</button>
+
+      <div class="slider-outer" #sliderOuter (scroll)="updateTalentsArrows()" (wheel)="onMouseWheel($event)">
+        <div class="slider-row">
+          @for (book of newTalentsBooks; track (book.id || $index)) {
+          <div class="talent-card" (click)="onBookClick(book)">
+            <img class="card-bg" [src]="book.img" [alt]="book.title" loading="lazy" />
+            <div class="card-fade"></div>
+            <span class="card-title-always">{{ book.title }}</span>
+            <div class="card-hover-content">
+              <span class="tag">{{ book.tag }}</span>
+              <h3>{{ book.title }}</h3>
+              <p>{{ book.desc }}</p>
+              <button class="btnCont5" (click)="onReadClick(book); $event.stopPropagation()" style="width: 175px;">Leggi
+                Ora</button>
+            </div>
           </div>
+          }
         </div>
-        }
       </div>
+
+      <button class="nav-arrow nav-right" [class.hidden]="!canScrollTalentsRight" (click)="scrollTalents(1)">&#10095;</button>
     </div>
   </section>
 
-  <app-book-slider [title]="'Scelte da ABC Stories'" subtitle="Leggi libri selezionati da noi" [books]="booksC">
-  </app-book-slider>
+  @if (nsfwStories && nsfwStories.length > 0) {
+    <app-book-slider [title]="'Storie 18+'" subtitle="Leggi storie per adulti" [books]="nsfwStories">
+    </app-book-slider>
+  }
 
-  <app-book-slider [title]="'Letture Lampo'" subtitle="Leggi storie molto brevi" [books]="booksD">
+  <app-book-slider [title]="'Letture Lampo'" subtitle="Leggi storie molto brevi" [books]="quickReadsBooks">
   </app-book-slider>
 
   <h2 class="text-center">Artisti</h2>
   <p class="text-center">Esplora nuovi scrittori</p>
   <section class="artists-section">
-    <div class="slider-outer" #artistsOuter (wheel)="onArtistsWheel($event)">
-      <div class="slider-row">
-        @for (artist of artists; track $index) {
-        <div class="artist-card" (click)="onArtistClick(artist)">
-          <div class="artist-avatar">
-            <img [src]="artist.img" [alt]="artist.name" loading="lazy" />
+    <div class="slider-outer-wrapper" style="position: relative; width: 100%;">
+      <button class="nav-arrow nav-left" [class.hidden]="!canScrollArtistsLeft" (click)="scrollArtists(-1)">&#10094;</button>
+
+      <div class="slider-outer" #artistsOuter (scroll)="updateArtistsArrows()" (wheel)="onArtistsWheel($event)">
+        <div class="slider-row">
+          @for (artist of popularAuthors; track $index) {
+          <div class="artist-card" (click)="onArtistClick(artist)">
+            <div class="artist-avatar">
+              <img [src]="artist.img" [alt]="artist.name" loading="lazy" />
+            </div>
+            <span class="artist-name">{{ artist.name }}</span>
+            <span class="artist-followers">{{ artist.followers }} lettori</span>
           </div>
-          <span class="artist-name">{{ artist.name }}</span>
-          <span class="artist-followers">{{ artist.followers }} lettori</span>
+          }
         </div>
-        }
       </div>
+
+      <button class="nav-arrow nav-right" [class.hidden]="!canScrollArtistsRight" (click)="scrollArtists(1)">&#10095;</button>
     </div>
   </section>
 
-  <app-book-slider [title]="'Storie Gratis'" subtitle="Leggi storie senza alcun costo" [books]="booksC">
+  <app-book-slider [title]="'Storie in corso'" subtitle="Leggi storie in corso" [books]="ongoingStories">
   </app-book-slider>
 
-  <app-book-slider [title]="'Storie a pagamento'" subtitle="Sostieni l'opera di un autore" [books]="booksD">
+  <app-book-slider [title]="'Storie complete'" subtitle="Leggi storie complete" [books]="completedStories">
+  </app-book-slider>
+
+  <app-book-slider [title]="'Storie incomplete'" subtitle="Leggi storie incomplete" [books]="incompleteStories">
+  </app-book-slider>
+
+  <app-book-slider [title]="'Storie sospese'" subtitle="Leggi storie sospese" [books]="suspendedStories">
   </app-book-slider>
 </div>
 

@@ -1320,47 +1320,381 @@ app.get('/api/stories/popular', async (req, res) => {
   }
 });
 
-// Storie di tendenza (visualizzazioni recenti o dalla registrazione utente)
+// Storie di tendenza (i libri più visti in assoluto tra quelli letti negli ultimi 7 giorni)
 app.get('/api/stories/trending', async (req, res) => {
   try {
-    let dateFilter = "NOW() - INTERVAL '7 days'";
-
-    // Se viene passato userId, consideriamo le visualizzazioni dalla sua registrazione (se più recente di 7 giorni)
-    if (req.query.userId) {
-      const userRes = await pool.query('SELECT created_at FROM users WHERE id = $1', [req.query.userId]);
-      if (userRes.rows.length > 0) {
-        // Usa la data di registrazione se esiste
-        dateFilter = `(SELECT created_at FROM users WHERE id = $1)`;
-      }
-    }
-
-    const query = `
+    const result = await pool.query(`
       SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
              (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
              (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
              s.created_at,
-             u.username AS author_name,
-             COUNT(sv.id) AS week_views
+             u.username AS author_name
       FROM stories s
       LEFT JOIN users u ON u.id = s.author_id
-      LEFT JOIN story_views sv
-        ON sv.story_id = s.id
-        AND sv.viewed_at >= ${req.query.userId ? dateFilter : "NOW() - INTERVAL '7 days'"}
       WHERE s.status = 'published'
-      GROUP BY s.id, u.username
-      ORDER BY week_views DESC, rating DESC
+        AND EXISTS (
+          SELECT 1 FROM story_views
+          WHERE story_id = s.id AND viewed_at >= NOW() - INTERVAL '7 days'
+        )
+      ORDER BY readers_count DESC, rating DESC
       LIMIT 15
-    `;
-
-    const params = req.query.userId ? [req.query.userId] : [];
-    const result = await pool.query(query, params);
-
+    `);
     res.json(result.rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// Storie consigliate in base ai preferiti dell'utente (likes e bookmarks)
+app.get('/api/stories/favorites-based/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const isUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  try {
+    let favoritesRes = { rows: [] };
+    if (isUuid(userId)) {
+      favoritesRes = await pool.query(`
+        SELECT story_id FROM story_likes WHERE user_id = $1
+        UNION
+        SELECT story_id FROM story_bookmarks WHERE user_id = $1
+      `, [userId]);
+    }
+    
+    let targetGenres = [];
+    let excludeStoryIds = [];
+    
+    if (favoritesRes.rows.length > 0) {
+      excludeStoryIds = favoritesRes.rows.map(r => r.story_id);
+      const genresRes = await pool.query(`
+        SELECT DISTINCT genre FROM stories WHERE id = ANY($1)
+      `, [excludeStoryIds]);
+      
+      genresRes.rows.forEach(r => {
+        if (r.genre) {
+          const parts = r.genre.split(',').map(g => g.trim());
+          targetGenres.push(...parts);
+        }
+      });
+    }
+    
+    targetGenres = [...new Set(targetGenres)].filter(Boolean);
+    
+    let query = '';
+    let params = [];
+    
+    if (targetGenres.length > 0) {
+      query = `
+        SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+               s.created_at,
+               u.username AS author_name,
+               COUNT(sv.id) AS view_count
+        FROM stories s
+        LEFT JOIN users u ON u.id = s.author_id
+        LEFT JOIN story_views sv ON sv.story_id = s.id
+        WHERE s.status = 'published'
+          AND s.id != ALL($1)
+          AND (${targetGenres.map((_, idx) => `s.genre ILIKE $${idx + 2}`).join(' OR ')})
+        GROUP BY s.id, u.username
+        ORDER BY view_count DESC, rating DESC
+        LIMIT 20
+      `;
+      params = [excludeStoryIds, ...targetGenres.map(g => `%${g}%`)];
+    } else {
+      const topPopularRes = await pool.query(`
+        SELECT s.id, s.genre, COUNT(sv.id) AS view_count
+        FROM stories s
+        LEFT JOIN story_views sv ON sv.story_id = s.id
+        WHERE s.status = 'published'
+        GROUP BY s.id
+        ORDER BY view_count DESC
+        LIMIT 5
+      `);
+      
+      const popGenres = [];
+      topPopularRes.rows.forEach(r => {
+        if (r.genre) {
+          popGenres.push(...r.genre.split(',').map(g => g.trim()));
+        }
+      });
+      const uniquePopGenres = [...new Set(popGenres)].filter(Boolean);
+      
+      if (uniquePopGenres.length > 0) {
+        query = `
+          SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+                 (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+                 (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+                 s.created_at,
+                 u.username AS author_name,
+                 COUNT(sv.id) AS view_count
+          FROM stories s
+          LEFT JOIN users u ON u.id = s.author_id
+          LEFT JOIN story_views sv ON sv.story_id = s.id
+          WHERE s.status = 'published'
+            AND (${uniquePopGenres.map((_, idx) => `s.genre ILIKE $${idx + 1}`).join(' OR ')})
+          GROUP BY s.id, u.username
+          ORDER BY view_count DESC, rating DESC
+          LIMIT 20
+        `;
+        params = uniquePopGenres.map(g => `%${g}%`);
+      } else {
+        query = `
+          SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+                 (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+                 (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+                 s.created_at,
+                 u.username AS author_name,
+                 COUNT(sv.id) AS view_count
+          FROM stories s
+          LEFT JOIN users u ON u.id = s.author_id
+          LEFT JOIN story_views sv ON sv.story_id = s.id
+          WHERE s.status = 'published'
+          GROUP BY s.id, u.username
+          ORDER BY view_count DESC, rating DESC
+          LIMIT 20
+        `;
+        params = [];
+      }
+    }
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie consigliate in base a cosa l'utente sta leggendo (o generi più visti)
+app.get('/api/stories/recommended/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const isUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  try {
+    let readingRes = { rows: [] };
+    if (isUuid(userId)) {
+      readingRes = await pool.query(`
+        SELECT DISTINCT s.id, s.genre
+        FROM reading_progress rp
+        JOIN chapters c ON c.id = rp.chapter_id
+        JOIN stories s ON s.id = c.story_id
+        WHERE rp.user_id = $1
+      `, [userId]);
+    }
+    
+    let targetGenres = [];
+    let excludeStoryIds = [];
+    
+    if (readingRes.rows.length > 0) {
+      excludeStoryIds = readingRes.rows.map(r => r.id);
+      readingRes.rows.forEach(r => {
+        if (r.genre) {
+          targetGenres.push(...r.genre.split(',').map(g => g.trim()));
+        }
+      });
+    }
+    
+    targetGenres = [...new Set(targetGenres)].filter(Boolean);
+    
+    if (isUuid(userId) && targetGenres.length === 0) {
+      const viewedGenresRes = await pool.query(`
+        SELECT s.genre, COUNT(sv.id) as view_count
+        FROM story_views sv
+        JOIN stories s ON s.id = sv.story_id
+        WHERE sv.user_id = $1 AND s.genre IS NOT NULL
+        GROUP BY s.genre
+        ORDER BY view_count DESC
+        LIMIT 5
+      `, [userId]);
+      
+      viewedGenresRes.rows.forEach(r => {
+        targetGenres.push(...r.genre.split(',').map(g => g.trim()));
+      });
+      targetGenres = [...new Set(targetGenres)].filter(Boolean);
+    }
+    
+    let query = '';
+    let params = [];
+    
+    if (targetGenres.length > 0) {
+      query = `
+        SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+               s.created_at,
+               u.username AS author_name,
+               COUNT(sv.id) AS view_count
+        FROM stories s
+        LEFT JOIN users u ON u.id = s.author_id
+        LEFT JOIN story_views sv ON sv.story_id = s.id
+        WHERE s.status = 'published'
+          ${excludeStoryIds.length > 0 ? 'AND s.id != ALL($1)' : ''}
+          AND (${targetGenres.map((_, idx) => `s.genre ILIKE $${excludeStoryIds.length > 0 ? idx + 2 : idx + 1}`).join(' OR ')})
+        GROUP BY s.id, u.username
+        ORDER BY view_count DESC, rating DESC
+        LIMIT 20
+      `;
+      if (excludeStoryIds.length > 0) {
+        params = [excludeStoryIds, ...targetGenres.map(g => `%${g}%`)];
+      } else {
+        params = targetGenres.map(g => `%${g}%`);
+      }
+    } else {
+      const topGenresRes = await pool.query(`
+        SELECT genre, COUNT(*) as story_count
+        FROM stories
+        WHERE status = 'published' AND genre IS NOT NULL
+        GROUP BY genre
+        ORDER BY story_count DESC
+        LIMIT 3
+      `);
+      const fallbackGenres = [];
+      topGenresRes.rows.forEach(r => {
+        fallbackGenres.push(...r.genre.split(',').map(g => g.trim()));
+      });
+      const uniqueFallback = [...new Set(fallbackGenres)].filter(Boolean);
+      
+      query = `
+        SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+               (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+               s.created_at,
+               u.username AS author_name,
+               COUNT(sv.id) AS view_count
+        FROM stories s
+        LEFT JOIN users u ON u.id = s.author_id
+        LEFT JOIN story_views sv ON sv.story_id = s.id
+        WHERE s.status = 'published'
+          ${uniqueFallback.length > 0 ? `AND (${uniqueFallback.map((_, idx) => `s.genre ILIKE $${idx + 1}`).join(' OR ')})` : ''}
+        GROUP BY s.id, u.username
+        ORDER BY view_count DESC, rating DESC
+        LIMIT 20
+      `;
+      params = uniqueFallback.map(g => `%${g}%`);
+    }
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie scritte da autori iscritti da meno di 2 mesi
+app.get('/api/stories/new-talents', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.created_at,
+             u.username AS author_name
+      FROM stories s
+      JOIN users u ON u.id = s.author_id
+      WHERE s.status = 'published'
+        AND u.created_at >= NOW() - INTERVAL '2 months'
+      ORDER BY s.created_at DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie molto brevi (con da 1 a 5 capitoli)
+app.get('/api/stories/quick-reads', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.created_at,
+             u.username AS author_name,
+             COUNT(c.id) AS chapters_count
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      LEFT JOIN chapters c ON c.story_id = s.id AND c.status = 'published'
+      WHERE s.status = 'published'
+      GROUP BY s.id, u.username
+      HAVING COUNT(c.id) > 0 AND COUNT(c.id) <= 5
+      ORDER BY chapters_count ASC, rating DESC, s.created_at DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Artisti reali dal database (scrittori con storie pubblicate) ordinati per followers
+app.get('/api/authors/popular', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.username AS name, u.avatar_url AS img,
+             (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
+      FROM users u
+      WHERE EXISTS (
+        SELECT 1 FROM stories WHERE author_id = u.id AND status = 'published'
+      )
+      ORDER BY followers DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie in base al completion_status
+app.get('/api/stories/completion/:status', async (req, res) => {
+  const { status } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.created_at,
+             u.username AS author_name
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      WHERE s.status = 'published' AND s.completion_status = $1
+      ORDER BY rating DESC, s.created_at DESC
+      LIMIT 20
+    `, [status]);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Storie con contenuti 18+ (is_18_plus = TRUE)
+app.get('/api/stories/nsfw', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.author_id, s.title, s.description, s.genre, s.image_url, s.is_18_plus, s.completion_status,
+             (SELECT COUNT(*) FROM story_views WHERE story_id = s.id) AS readers_count,
+             (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE story_id = s.id) AS rating,
+             s.created_at,
+             u.username AS author_name
+      FROM stories s
+      LEFT JOIN users u ON u.id = s.author_id
+      WHERE s.status = 'published' AND s.is_18_plus = TRUE
+      ORDER BY rating DESC, s.created_at DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 // Storie simili (Potrebbero piacerti anche)
 app.get('/api/stories/similar/:storyId', async (req, res) => {

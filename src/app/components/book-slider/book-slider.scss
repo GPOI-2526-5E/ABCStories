@@ -95,11 +95,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 12px;
     // Previene decode sincrono durante lo scroll
     content-visibility: auto;
   }
 
-  // Su mobile: nessun hover transform, action icons sempre visibili
+  // Su mobile: nessun hover transform, action icons sempre visibili, dimensioni ridotte
   @media (max-width: 768px) {
     // Disabilita hover transform su mobile (nessun pointer mouse)
     transition: none;
@@ -112,6 +113,42 @@
       transform: none;
       box-shadow: 0 8px 20px rgba(var(--shadow-rgb), 0.15);
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .book-card {
+    flex: 0 0 125px;
+  }
+  .book-cover {
+    width: 125px !important;
+    height: 172px !important;
+    border-radius: 10px !important;
+    
+    img {
+      border-radius: 10px !important;
+    }
+  }
+  .book-title {
+    max-width: 125px !important;
+    font-size: 0.78rem !important;
+  }
+  .book-author {
+    max-width: 125px !important;
+    font-size: 0.7rem !important;
+  }
+  .action-icon {
+    bottom: 8px !important;
+    width: 28px !important;
+    height: 28px !important;
+    
+    svg {
+      width: 14px !important;
+      height: 14px !important;
+    }
+    
+    &.bookmark-icon { left: 8px !important; }
+    &.heart-icon { right: 8px !important; }
   }
 }
 

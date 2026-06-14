@@ -833,6 +833,7 @@ $muted: var(--text-muted);
     height: 100%;
     object-fit: cover;
     display: block;
+    border-radius: 12px;
   }
 
   &:hover {
@@ -845,6 +846,10 @@ $muted: var(--text-muted);
   }
 
   @media (max-width: 768px) {
+    border-radius: 10px !important;
+    img {
+      border-radius: 10px !important;
+    }
     .action-icon {
       opacity: 1;
     }
@@ -1110,19 +1115,18 @@ $muted: var(--text-muted);
 }
 
 .settings-group {
-  padding: 28px 0;
-  border-bottom: 1.5px dashed rgba(255, 255, 255, 0.15);
+  padding: 32px;
+  @include glass-panel(0.15, 25px, 0.3);
+  border-radius: 20px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 
-  &:first-of-type {
-    padding-top: 0;
+  &.settings-group--open {
+    z-index: 20 !important;
   }
 
-  &:last-of-type {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  &__title {
+  .settings-card__title {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -1131,7 +1135,7 @@ $muted: var(--text-muted);
     margin-bottom: 20px;
   }
 
-  &__subtitle {
+  .settings-card__subtitle {
     font-size: 17px;
     font-weight: 750;
     color: $text;
@@ -1807,6 +1811,129 @@ select.setting-input {
   }
 }
 
+// ── Custom Dropdown per Impostazioni ─────────────────────
+.gd-dropdown {
+  position: relative;
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 18px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(16px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(190%) !important;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.62) !important;
+    }
+  }
+
+  &__chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+  }
+
+  &--open &__chevron {
+    transform: rotate(180deg);
+  }
+
+  &--open &__trigger {
+    background: rgba(255, 255, 255, 0.65) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1.5px rgba(255, 255, 255, 0.9) !important;
+    border-radius: 18px 18px 0 0 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.25) !important;
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% - 1px);
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-top: none;
+    border-radius: 0 0 18px 18px;
+    overflow: hidden;
+    z-index: 100;
+    transform-origin: top center;
+    transform: scaleY(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
+  }
+
+  &--open &__menu {
+    transform: scaleY(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 18px !important;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+    box-sizing: border-box;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    &--active {
+      font-weight: 700 !important;
+      color: var(--text-primary) !important;
+      background: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    }
+  }
+
+  &__check {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+
+  &__item:not(&__item--active) {
+    padding-left: calc(18px + 14px + 10px) !important;
+  }
+
+  &__item--active {
+    padding-left: 18px !important;
+  }
+}
+
 // ═══════════════════════════════════════════════════════
 // REDESIGN DA ZERO PER DISPOSITIVI MOBILE (<= 768px)
 // ═══════════════════════════════════════════════════════
@@ -2140,18 +2267,20 @@ select.setting-input {
     border-bottom: 1.5px dashed rgba(255, 255, 255, 0.15) !important;
     box-shadow: none !important;
     padding: 20px 4px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
 
     &:last-of-type {
       border-bottom: none !important;
       padding-bottom: 0 !important;
     }
 
-    &__title {
+    .settings-card__title {
       margin-bottom: 14px !important;
     }
 
-    &__subtitle {
-      font-size: 15px !important;
+    .settings-card__subtitle {
       margin-top: 24px !important;
       margin-bottom: 10px !important;
     }
@@ -2166,12 +2295,7 @@ select.setting-input {
     &__label {
       gap: 2px !important;
 
-      span {
-        font-size: 14.5px !important;
-      }
-
       small {
-        font-size: 12.5px !important;
         line-height: 1.3 !important;
       }
     }
@@ -2198,7 +2322,6 @@ select.setting-input {
     a {
       width: 100% !important;
       padding: 12px 24px !important;
-      font-size: 13.5px !important;
       box-sizing: border-box !important;
     }
   }

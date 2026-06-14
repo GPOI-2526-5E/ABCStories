@@ -69,24 +69,65 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
 
   /** Storie di tendenza (classifica settimanale) */
   trendingBooks: any[] = [];
+  private rawTrending: any[] = [];
 
   booksA: any[] = [];
   booksB: any[] = [];
   booksC: any[] = [];
   booksD: any[] = [];
+  newTalentsBooks: any[] = [];
+  quickReadsBooks: any[] = [];
+  popularAuthors: any[] = [];
+  ongoingStories: any[] = [];
+  completedStories: any[] = [];
+  incompleteStories: any[] = [];
+  suspendedStories: any[] = [];
+  nsfwStories: any[] = [];
 
   @Input() books: any[] = [];
 
-  @Output() bookSelected = new EventEmitter<TalentBook>();
-  @Output() readClicked = new EventEmitter<TalentBook>();
+  @Output() bookSelected = new EventEmitter<any>();
+  @Output() readClicked = new EventEmitter<any>();
 
   @ViewChild('sliderOuter') sliderOuter!: ElementRef;
+  @ViewChild('artistsOuter') artistsOuter!: ElementRef;
 
-  scroll(direction: 1 | -1) {
+  // Classifica arrows state
+  classificaRafPending = false;
+  canScrollClassificaLeft = false;
+  canScrollClassificaRight = true;
+
+  // Nuovi talenti arrows state
+  talentsRafPending = false;
+  canScrollTalentsLeft = false;
+  canScrollTalentsRight = true;
+
+  // Artisti arrows state
+  artistsRafPending = false;
+  canScrollArtistsLeft = false;
+  canScrollArtistsRight = true;
+
+  scrollTalents(direction: 1 | -1) {
     const cardWidth = 170 + 12; // width + gap
     this.sliderOuter.nativeElement.scrollBy({
       left: direction * cardWidth * 3,
       behavior: 'smooth'
+    });
+    setTimeout(() => this.updateTalentsArrows(), 350);
+  }
+
+  updateTalentsArrows() {
+    if (!this.sliderOuter) return;
+    if (this.talentsRafPending) return;
+    this.talentsRafPending = true;
+    requestAnimationFrame(() => {
+      const el = this.sliderOuter.nativeElement;
+      if (el) {
+        this.canScrollTalentsLeft = el.scrollLeft > 5;
+        this.canScrollTalentsRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+      }
+      this.talentsRafPending = false;
+      this.cdr.detectChanges();
     });
   }
 
@@ -94,19 +135,31 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
     if (!isHorizontal) return;
     event.preventDefault();
-    this.sliderOuter.nativeElement.scrollBy({
-      left: event.deltaX * 2,
-      behavior: 'smooth'
-    });
+    this.sliderOuter.nativeElement.scrollLeft += event.deltaX * 1.2;
+    this.updateTalentsArrows();
   }
-
-  @ViewChild('artistsOuter') artistsOuter!: ElementRef;
 
   scrollArtists(direction: 1 | -1) {
     const cardWidth = 130 + 22;
     this.artistsOuter.nativeElement.scrollBy({
       left: direction * cardWidth * 3,
-      behavior: 'smooth' // smooth solo per i bottoni
+      behavior: 'smooth'
+    });
+    setTimeout(() => this.updateArtistsArrows(), 350);
+  }
+
+  updateArtistsArrows() {
+    if (!this.artistsOuter) return;
+    if (this.artistsRafPending) return;
+    this.artistsRafPending = true;
+    requestAnimationFrame(() => {
+      const el = this.artistsOuter.nativeElement;
+      if (el) {
+        this.canScrollArtistsLeft = el.scrollLeft > 5;
+        this.canScrollArtistsRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+      }
+      this.artistsRafPending = false;
+      this.cdr.detectChanges();
     });
   }
 
@@ -114,15 +167,16 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
     if (!isHorizontal) return;
     event.preventDefault();
-    this.artistsOuter.nativeElement.scrollLeft += event.deltaX * 1.2; // niente smooth, diretto
+    this.artistsOuter.nativeElement.scrollLeft += event.deltaX * 1.2;
+    this.updateArtistsArrows();
   }
 
-  onBookClick(book: TalentBook) {
-    this.bookSelected.emit(book);
+  onBookClick(book: any) {
+    this.goToBookDetail(book);
   }
 
-  onReadClick(book: TalentBook) {
-    this.readClicked.emit(book);
+  onReadClick(book: any) {
+    this.goToBookDetail(book);
   }
 
   goToBookDetail(book: any) {
@@ -167,6 +221,7 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
       chaptersCount: s.chapters_count ?? 0,
       liked: false,
       bookmarked: false,
+      weekViews: s.week_views ? parseInt(s.week_views, 10) : 0,
     };
   }
 
@@ -188,6 +243,31 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
         this.cdr.detectChanges();
       });
     }
+
+    const syncTrending = () => {
+      let combined = [...this.rawTrending];
+      const popularMapped = this.booksB || [];
+      for (const p of popularMapped) {
+        if (combined.length >= 15) break;
+        if (!combined.some(b => b.id === p.id)) {
+          combined.push(p);
+        }
+      }
+      if (combined.length === 0) {
+        combined = popularMapped.slice(0, 15);
+      }
+      
+      // Ordina la classifica in modo rigoroso per visualizzazioni totali (readers) decrescenti.
+      combined.sort((a, b) => {
+        const rA = parseInt(a.readers || '0', 10);
+        const rB = parseInt(b.readers || '0', 10);
+        return rB - rA;
+      });
+
+      this.trendingBooks = combined;
+      this.cdr.detectChanges();
+      setTimeout(() => this.updateClassificaArrows(), 200);
+    };
 
     // 3. Carica 'Popolari' e aggiorna Hero Slider (Books B e Hero)
     this.api.getPopularStories().pipe(catchError(() => of([]))).subscribe(popular => {
@@ -215,33 +295,80 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
         }
       }
 
-      this.booksB = popularMapped; // Momentaneo finché non abbiamo 'all'
+      this.booksB = popularMapped;
+      syncTrending();
       this.cdr.detectChanges();
     });
 
     // 4. Carica 'Trending' (Classifica)
     this.api.getTrendingStories(user?.id).pipe(catchError(() => of([]))).subscribe(trending => {
       const trendingMapped = mapList(trending as any[]);
-      this.trendingBooks = trendingMapped;
+      this.rawTrending = trendingMapped;
+      syncTrending();
       this.cdr.detectChanges();
     });
 
-    // 5. Carica tutte le storie per generi specifici (Books C, Books D) e fallback
-    this.api.getStories().pipe(catchError(() => of([]))).subscribe(all => {
-      const allMapped = mapList(all as any[]);
-      const romance = allMapped.filter(b => ['sentimentale', 'romance', 'romanzo'].some(g => (b.genre ?? '').toLowerCase().includes(g)));
-      const horror  = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('horror'));
-      const fantasy = allMapped.filter(b => (b.genre ?? '').toLowerCase().includes('fantasy'));
+    // 5. Carica 'In base ai preferiti' (Books C)
+    this.api.getFavoritesBasedStories(user?.id).pipe(catchError(() => of([]))).subscribe(favBased => {
+      this.booksC = mapList(favBased as any[]);
+      this.cdr.detectChanges();
+    });
 
-      // Se 'booksB' era vuoto, usiamo lo slice di fallback
-      if (this.booksB.length === 0) this.booksB = allMapped.slice(9, 23);
+    // 6. Carica 'Consigliati' (Books D)
+    this.api.getRecommendedStories(user?.id).pipe(catchError(() => of([]))).subscribe(recommended => {
+      this.booksD = mapList(recommended as any[]);
+      this.cdr.detectChanges();
+    });
 
-      this.booksC = romance.length ? romance : allMapped.slice(23, 33);
-      this.booksD = (horror.length || fantasy.length) ? [...horror, ...fantasy] : allMapped.slice(33, 48);
+    // 7. Carica 'Nuovi talenti'
+    this.api.getNewTalents().pipe(catchError(() => of([]))).subscribe(talents => {
+      this.newTalentsBooks = mapList(talents as any[]);
+      this.cdr.detectChanges();
+      setTimeout(() => this.updateTalentsArrows(), 200);
+    });
 
-      // Fallback per trending
-      if (this.trendingBooks.length === 0) this.trendingBooks = allMapped.slice(0, 10);
+    // 8. Carica 'Letture Lampo'
+    this.api.getQuickReads().pipe(catchError(() => of([]))).subscribe(quick => {
+      this.quickReadsBooks = mapList(quick as any[]);
+      this.cdr.detectChanges();
+    });
 
+    // 9. Carica 'Artisti' (Scrittori popolari)
+    this.api.getPopularAuthors().pipe(catchError(() => of([]))).subscribe(authors => {
+      this.popularAuthors = (authors as any[]).map(a => ({
+        id: a.id,
+        name: a.name ?? 'Autore sconosciuto',
+        followers: a.followers ? String(a.followers) : '0',
+        img: a.img ?? 'assets/Pippi/pippiIniziale.png'
+      }));
+      this.cdr.detectChanges();
+      setTimeout(() => this.updateArtistsArrows(), 200);
+    });
+
+    // 10. Carica storie per completion status
+    this.api.getStoriesByCompletionStatus('in_corso').pipe(catchError(() => of([]))).subscribe(ongoing => {
+      this.ongoingStories = mapList(ongoing as any[]);
+      this.cdr.detectChanges();
+    });
+
+    this.api.getStoriesByCompletionStatus('completato').pipe(catchError(() => of([]))).subscribe(completed => {
+      this.completedStories = mapList(completed as any[]);
+      this.cdr.detectChanges();
+    });
+
+    this.api.getStoriesByCompletionStatus('incompleto').pipe(catchError(() => of([]))).subscribe(incomplete => {
+      this.incompleteStories = mapList(incomplete as any[]);
+      this.cdr.detectChanges();
+    });
+
+    this.api.getStoriesByCompletionStatus('sospeso').pipe(catchError(() => of([]))).subscribe(suspended => {
+      this.suspendedStories = mapList(suspended as any[]);
+      this.cdr.detectChanges();
+    });
+
+    // 11. Carica storie 18+ (NSFW)
+    this.api.getNsfwStories().pipe(catchError(() => of([]))).subscribe(nsfw => {
+      this.nsfwStories = mapList(nsfw as any[]);
       this.cdr.detectChanges();
     });
   }
@@ -261,6 +388,13 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     mapList(this.booksC);
     mapList(this.booksD);
     mapList(this.books);
+    mapList(this.newTalentsBooks);
+    mapList(this.quickReadsBooks);
+    mapList(this.ongoingStories);
+    mapList(this.completedStories);
+    mapList(this.incompleteStories);
+    mapList(this.suspendedStories);
+    mapList(this.nsfwStories);
   }
 
   ngAfterViewInit(): void {
@@ -308,6 +442,22 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
     const outer = this.rankTrack.nativeElement.parentElement; // rank-scroll-outer
     const cardWidth = 185 + 24;
     outer.scrollBy({ left: direction * cardWidth * 3, behavior: 'smooth' });
+    setTimeout(() => this.updateClassificaArrows(), 350);
+  }
+
+  updateClassificaArrows() {
+    if (!this.rankTrack) return;
+    if (this.classificaRafPending) return;
+    this.classificaRafPending = true;
+    requestAnimationFrame(() => {
+      const el = this.rankTrack.nativeElement.parentElement;
+      if (el) {
+        this.canScrollClassificaLeft = el.scrollLeft > 5;
+        this.canScrollClassificaRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+      }
+      this.classificaRafPending = false;
+      this.cdr.detectChanges();
+    });
   }
 
   // Artisti
@@ -327,8 +477,10 @@ export class Home implements AfterViewInit, OnDestroy, OnInit {
   ];
   @Output() artistSelected = new EventEmitter<Artist>();
 
-  onArtistClick(artist: Artist) {
-    this.artistSelected.emit(artist);
+  onArtistClick(artist: any) {
+    if (artist && artist.id) {
+      this.router.navigate(['/author'], { state: { authorId: artist.id } });
+    }
   }
 
   private initSlider(): void {

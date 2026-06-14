@@ -147,6 +147,70 @@ export class User implements OnInit {
   searchStoryText: string = '';
   showStoryDropdown = false;
 
+  dropdownsOpen = {
+    tema: false,
+    reading_font: false,
+    reading_font_size: false,
+    reading_width: false
+  };
+
+  toggleDropdown(type: 'tema' | 'reading_font' | 'reading_font_size' | 'reading_width', event: Event) {
+    event.stopPropagation();
+    const currentState = (this.dropdownsOpen as any)[type];
+    Object.keys(this.dropdownsOpen).forEach(k => {
+      (this.dropdownsOpen as any)[k] = false;
+    });
+    (this.dropdownsOpen as any)[type] = !currentState;
+  }
+
+  selectOption(type: 'tema' | 'reading_font' | 'reading_font_size' | 'reading_width', value: any) {
+    (this.settings as any)[type] = value;
+    if (type === 'tema') {
+      this.themeService.setTheme(value);
+    }
+    this.saveSettings();
+    (this.dropdownsOpen as any)[type] = false;
+  }
+
+  getThemeLabel(value: string): string {
+    const map: any = {
+      tropical: 'Tropicale (Predefinito)',
+      dark: 'Scuro (Nero)',
+      light: 'Chiaro',
+      sunset: 'Sunset (Tramonto)'
+    };
+    return map[value] || value;
+  }
+
+  getFontLabel(value: string): string {
+    const map: any = {
+      'sans-serif': 'Sans-serif (Lineare)',
+      'serif': 'Serif (Grazie)',
+      'monospace': 'Monospace (Spazio Fisso)',
+      'opendyslexic': 'OpenDyslexic (Alta Leggibilità)'
+    };
+    return map[value] || value;
+  }
+
+  getFontSizeLabel(value: string): string {
+    const map: any = {
+      small: 'Piccolo',
+      medium: 'Medio',
+      large: 'Grande',
+      'x-large': 'Molto Grande'
+    };
+    return map[value] || value;
+  }
+
+  getWidthLabel(value: string): string {
+    const map: any = {
+      narrow: 'Stretto',
+      medium: 'Medio',
+      wide: 'Largo'
+    };
+    return map[value] || value;
+  }
+
   get filteredStoriesForSearch() {
     if (!this.searchStoryText) return [];
     return this.allStories.filter(s => s.title.toLowerCase().includes(this.searchStoryText.toLowerCase()) && !this.recommendedStoryIds.includes(s.id));
@@ -432,8 +496,16 @@ export class User implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (target && typeof target.closest === 'function' && !target.closest('.story-search-container')) {
-      this.showStoryDropdown = false;
+    if (target && typeof target.closest === 'function') {
+      if (!target.closest('.story-search-container')) {
+        this.showStoryDropdown = false;
+      }
+      if (!target.closest('.glass-select-wrapper')) {
+        this.dropdownsOpen.tema = false;
+        this.dropdownsOpen.reading_font = false;
+        this.dropdownsOpen.reading_font_size = false;
+        this.dropdownsOpen.reading_width = false;
+      }
     }
   }
 

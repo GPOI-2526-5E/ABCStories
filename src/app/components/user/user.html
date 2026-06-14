@@ -365,7 +365,7 @@
         <span *ngIf="savedFeedback" class="save-toast-indicator">Salvato!</span>
       </p>
 
-      <div class="settings-stack glass-core">
+      <div class="settings-stack">
 
         <!-- Dati Account -->
         <div class="settings-group">
@@ -381,32 +381,60 @@
         </div>
 
         <!-- Aspetto -->
-        <div class="settings-group">
+        <div class="settings-group" [class.settings-group--open]="dropdownsOpen.tema">
           <h3 class="settings-card__title">Aspetto</h3>
           <div class="setting-row setting-row--last">
             <div class="setting-row__label">
               <span>Tema dell'applicazione</span>
               <small>Scegli il tuo stile preferito</small>
             </div>
-            <div class="glass-select-wrapper">
-              <select class="setting-input glass-select" [(ngModel)]="settings.tema"
-                (change)="themeService.setTheme(settings.tema)" (ngModelChange)="saveSettings()">
-                <option value="tropical">Tropicale (Predefinito)</option>
-                <option value="dark">Scuro (Nero)</option>
-                <option value="light">Chiaro</option>
-                <option value="sunset">Sunset (Tramonto)</option>
-              </select>
-              <span class="glass-select-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-                  <polyline points="6 9 12 15 18 9" />
+            <div class="glass-select-wrapper gd-dropdown" [class.gd-dropdown--open]="dropdownsOpen.tema">
+              <button class="setting-input glass-select gd-dropdown__trigger" (click)="toggleDropdown('tema', $event)">
+                <span>{{ getThemeLabel(settings.tema) }}</span>
+                <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
-              </span>
+              </button>
+              <div class="gd-dropdown__menu">
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.tema === 'tropical'"
+                  (click)="selectOption('tema', 'tropical')">
+                  <svg *ngIf="settings.tema === 'tropical'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Tropicale (Predefinito)</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.tema === 'dark'"
+                  (click)="selectOption('tema', 'dark')">
+                  <svg *ngIf="settings.tema === 'dark'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Scuro (Nero)</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.tema === 'light'"
+                  (click)="selectOption('tema', 'light')">
+                  <svg *ngIf="settings.tema === 'light'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Chiaro</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.tema === 'sunset'"
+                  (click)="selectOption('tema', 'sunset')">
+                  <svg *ngIf="settings.tema === 'sunset'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Sunset (Tramonto)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Preferenze di Lettura -->
-        <div class="settings-group">
+        <div class="settings-group" [class.settings-group--open]="dropdownsOpen.reading_font || dropdownsOpen.reading_font_size || dropdownsOpen.reading_width">
           <h3 class="settings-card__title">Preferenze di Lettura</h3>
           <p
             style="font-size: 0.85rem; opacity: 0.7; margin-top: -12px; margin-bottom: 16px; color: var(--text-muted);">
@@ -418,19 +446,47 @@
               <span>Font di lettura</span>
               <small>Scegli il tipo di carattere per le storie</small>
             </div>
-            <div class="glass-select-wrapper">
-              <select class="setting-input glass-select" [(ngModel)]="settings.reading_font"
-                (ngModelChange)="saveSettings()">
-                <option value="sans-serif">Sans-serif (Lineare)</option>
-                <option value="serif">Serif (Grazie)</option>
-                <option value="monospace">Monospace (Spazio Fisso)</option>
-                <option value="opendyslexic">OpenDyslexic (Alta Leggibilità)</option>
-              </select>
-              <span class="glass-select-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-                  <polyline points="6 9 12 15 18 9" />
+            <div class="glass-select-wrapper gd-dropdown" [class.gd-dropdown--open]="dropdownsOpen.reading_font">
+              <button class="setting-input glass-select gd-dropdown__trigger" (click)="toggleDropdown('reading_font', $event)">
+                <span>{{ getFontLabel(settings.reading_font) }}</span>
+                <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
-              </span>
+              </button>
+              <div class="gd-dropdown__menu">
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font === 'sans-serif'"
+                  (click)="selectOption('reading_font', 'sans-serif')">
+                  <svg *ngIf="settings.reading_font === 'sans-serif'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Sans-serif (Lineare)</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font === 'serif'"
+                  (click)="selectOption('reading_font', 'serif')">
+                  <svg *ngIf="settings.reading_font === 'serif'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Serif (Grazie)</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font === 'monospace'"
+                  (click)="selectOption('reading_font', 'monospace')">
+                  <svg *ngIf="settings.reading_font === 'monospace'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Monospace (Spazio Fisso)</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font === 'opendyslexic'"
+                  (click)="selectOption('reading_font', 'opendyslexic')">
+                  <svg *ngIf="settings.reading_font === 'opendyslexic'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>OpenDyslexic (Alta Leggibilità)</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -439,19 +495,47 @@
               <span>Dimensione carattere</span>
               <small>Regola la grandezza del testo</small>
             </div>
-            <div class="glass-select-wrapper">
-              <select class="setting-input glass-select" [(ngModel)]="settings.reading_font_size"
-                (ngModelChange)="saveSettings()">
-                <option value="small">Piccolo</option>
-                <option value="medium">Medio</option>
-                <option value="large">Grande</option>
-                <option value="x-large">Molto Grande</option>
-              </select>
-              <span class="glass-select-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-                  <polyline points="6 9 12 15 18 9" />
+            <div class="glass-select-wrapper gd-dropdown" [class.gd-dropdown--open]="dropdownsOpen.reading_font_size">
+              <button class="setting-input glass-select gd-dropdown__trigger" (click)="toggleDropdown('reading_font_size', $event)">
+                <span>{{ getFontSizeLabel(settings.reading_font_size) }}</span>
+                <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
-              </span>
+              </button>
+              <div class="gd-dropdown__menu">
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font_size === 'small'"
+                  (click)="selectOption('reading_font_size', 'small')">
+                  <svg *ngIf="settings.reading_font_size === 'small'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Piccolo</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font_size === 'medium'"
+                  (click)="selectOption('reading_font_size', 'medium')">
+                  <svg *ngIf="settings.reading_font_size === 'medium'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Medio</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font_size === 'large'"
+                  (click)="selectOption('reading_font_size', 'large')">
+                  <svg *ngIf="settings.reading_font_size === 'large'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Grande</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_font_size === 'x-large'"
+                  (click)="selectOption('reading_font_size', 'x-large')">
+                  <svg *ngIf="settings.reading_font_size === 'x-large'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Molto Grande</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -460,18 +544,39 @@
               <span>Larghezza layout</span>
               <small>Larghezza massima dell'area del testo</small>
             </div>
-            <div class="glass-select-wrapper">
-              <select class="setting-input glass-select" [(ngModel)]="settings.reading_width"
-                (ngModelChange)="saveSettings()">
-                <option value="narrow">Stretto</option>
-                <option value="medium">Medio</option>
-                <option value="wide">Largo</option>
-              </select>
-              <span class="glass-select-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-                  <polyline points="6 9 12 15 18 9" />
+            <div class="glass-select-wrapper gd-dropdown" [class.gd-dropdown--open]="dropdownsOpen.reading_width">
+              <button class="setting-input glass-select gd-dropdown__trigger" (click)="toggleDropdown('reading_width', $event)">
+                <span>{{ getWidthLabel(settings.reading_width) }}</span>
+                <svg class="gd-dropdown__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
-              </span>
+              </button>
+              <div class="gd-dropdown__menu">
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_width === 'narrow'"
+                  (click)="selectOption('reading_width', 'narrow')">
+                  <svg *ngIf="settings.reading_width === 'narrow'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Stretto</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_width === 'medium'"
+                  (click)="selectOption('reading_width', 'medium')">
+                  <svg *ngIf="settings.reading_width === 'medium'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Medio</span>
+                </button>
+                <button class="gd-dropdown__item"
+                  [class.gd-dropdown__item--active]="settings.reading_width === 'wide'"
+                  (click)="selectOption('reading_width', 'wide')">
+                  <svg *ngIf="settings.reading_width === 'wide'" class="gd-dropdown__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7"/>
+                  </svg>
+                  <span>Largo</span>
+                </button>
+              </div>
             </div>
           </div>
 

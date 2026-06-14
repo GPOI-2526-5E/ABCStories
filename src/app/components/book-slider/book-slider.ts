@@ -15,6 +15,9 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
   @Input() subtitle: string = '';
   @Input() books: any[] = [];
 
+  displayedBooks: any[] = [];
+  readonly defaultPageSize = 6;
+
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
 
   readonly interactions = inject(InteractionsService);
@@ -23,7 +26,12 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
   canScrollRight = true;
   readonly scrollStep = 600;
 
-  cardWidth = 204.2;
+  get cardWidth(): number {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      return 144.2;
+    }
+    return 204.2;
+  }
   currentIndex = 0;
 
   // Throttle scroll tramite rAF: evita decine di chiamate/secondo durante lo swipe
@@ -41,12 +49,37 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
     setTimeout(() => this.updateArrows(), 100);
   }
 
+  getInitialPageSize(): number {
+    if (typeof window === 'undefined') return this.defaultPageSize;
+    const visibleCount = Math.floor(window.innerWidth / this.cardWidth);
+    // Vogliamo mostrare tutti i libri visibili più almeno 3 extra, in modo che 
+    // ci sia sempre un libro parzialmente tagliato sulla destra che invita a scorrere.
+    return Math.max(this.defaultPageSize, visibleCount + 3);
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['books']) {
+      const initSize = this.getInitialPageSize();
+      this.displayedBooks = (this.books || []).slice(0, initSize);
+      console.log(`[SLIDER - ${this.title}] Inizializzato con ${this.books?.length} libri totali. Primi ${this.displayedBooks.length} caricati nel DOM.`);
       setTimeout(() => {
         this.updateArrows();
       }, 100);
     }
+  }
+
+  loadMore() {
+    const nextIndex = this.displayedBooks.length;
+    const chunkSize = this.getInitialPageSize();
+    const nextChunk = this.books.slice(nextIndex, nextIndex + chunkSize);
+    this.displayedBooks = [...this.displayedBooks, ...nextChunk];
+    console.log(`[SLIDER - ${this.title}] Carico altro... Aggiunti ${nextChunk.length} libri al DOM. Totale caricati: ${this.displayedBooks.length}/${this.books.length}`);
+    setTimeout(() => {
+      const el = this.scrollContainer?.nativeElement;
+      if (el) {
+        this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+      }
+    }, 50);
   }
 
   onBookClick(book: any, index: number) {
@@ -77,6 +110,12 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
   @HostListener('window:resize')
   onResize() {
     this.clamp();
+    const targetSize = this.getInitialPageSize();
+    if (this.displayedBooks.length < targetSize && this.displayedBooks.length < this.books.length) {
+      const nextChunk = this.books.slice(this.displayedBooks.length, targetSize);
+      this.displayedBooks = [...this.displayedBooks, ...nextChunk];
+      console.log(`[SLIDER - ${this.title}] Ridimensionamento: caricati altri libri per riempire lo schermo. Totale caricati: ${this.displayedBooks.length}/${this.books.length}`);
+    }
   }
 
   updateArrows() {
@@ -89,6 +128,14 @@ export class BookSlider implements OnInit, AfterViewInit, OnChanges {
       if (el) {
         this.canScrollLeft = el.scrollLeft > 5;
         this.canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+
+        // Prime Video style: check if near end to load more
+        const threshold = 150;
+        const isNearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - threshold;
+        if (isNearEnd && this.displayedBooks.length < this.books.length) {
+          console.log(`[SLIDER - ${this.title}] Scroll vicino al termine a destra. Attivazione caricamento incrementale...`);
+          this.loadMore();
+        }
       }
       this.rafPending = false;
     });

@@ -121,6 +121,52 @@ export class Api {
     );
   }
 
+  getFavoritesBasedStories(userId?: string) {
+    const url = userId 
+      ? `${this.apiUrl}/api/stories/favorites-based/${userId}`
+      : `${this.apiUrl}/api/stories/favorites-based/anonymous`;
+    return this.http.get<any[]>(url).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
+  getRecommendedStories(userId?: string) {
+    const url = userId
+      ? `${this.apiUrl}/api/stories/recommended/${userId}`
+      : `${this.apiUrl}/api/stories/recommended/anonymous`;
+    return this.http.get<any[]>(url).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
+  getNewTalents() {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/new-talents`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
+  getQuickReads() {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/quick-reads`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
+  getPopularAuthors() {
+    return this.http.get<any[]>(`${this.apiUrl}/api/authors/popular`);
+  }
+
+  getStoriesByCompletionStatus(status: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/completion/${status}`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
+  getNsfwStories() {
+    return this.http.get<any[]>(`${this.apiUrl}/api/stories/nsfw`).pipe(
+      map(stories => this.filter18Plus(stories))
+    );
+  }
+
   // ═══════════════ VIEWS ═══════════════
 
   recordView(storyId: string, userId?: string) {

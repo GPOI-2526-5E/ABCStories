@@ -299,6 +299,7 @@ $danger: var(--tropicalThemeRed, #f2787c);
     object-fit: cover;
     display: block;
     transition: transform 0.3s ease;
+    border-radius: 12px;
   }
 
   .book-spine {
@@ -922,6 +923,10 @@ $danger: var(--tropicalThemeRed, #f2787c);
     height: auto !important;
     aspect-ratio: 185 / 255 !important;
     border-radius: 10px !important;
+
+    img {
+      border-radius: 10px !important;
+    }
 
     .action-icon {
       width: 32px !important;
