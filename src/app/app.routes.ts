@@ -15,6 +15,7 @@ import { StoryEditor } from './components/story-editor/story-editor';
 import { Search } from './components/search/search';
 import { Notifications } from './components/notifications/notifications';
 import { Community } from './components/community/community';
+import { Privacy } from './components/privacy/privacy';
 import { authGuard } from './services/auth.guard';
 import { guestGuard } from './services/auth.guard';
 import { DialogService } from './services/dialog.service';
@@ -46,5 +47,6 @@ export const routes: Routes = [
   { path: 'search',          component: Search,         canActivate: [authGuard] },
   { path: 'notifications',   component: Notifications,  canActivate: [authGuard] },
   { path: 'community',       component: Community,      canActivate: [authGuard] },
+  { path: 'privacy',         component: Privacy,        canActivate: [authGuard] },
 ];
 

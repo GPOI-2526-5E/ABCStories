@@ -393,3 +393,32 @@ nav {
   width: 18px;
   height: 18px;
 }
+
+.link.arrow {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  text-decoration: none !important;
+  transition: all 0.25s ease !important;
+
+  i {
+    font-size: 16px !important;
+    transition: transform 0.25s ease !important;
+  }
+
+  &:hover {
+    color: var(--tropicalThemeYellow, #fed330) !important;
+
+    i {
+      transform: translateX(4px) !important;
+    }
+  }
+}
+
+.mn-icon-btn img {
+  width: 18px;
+  height: 18px;
+}

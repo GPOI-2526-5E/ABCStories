@@ -8,11 +8,11 @@
       <h3>{{ dialog.title }}</h3>
     </div>
     <div class="custom-modal-body">
-      <p>{{ dialog.message }}</p>
+      <div [innerHTML]="dialog.message"></div>
     </div>
     <div class="custom-modal-footer">
       <button class="modal-btn modal-btn-cancel" *ngIf="dialog.type === 'confirm'" (click)="dialogService.resolve(false)">Annulla</button>
-      <button class="modal-btn modal-btn-confirm" (click)="dialogService.resolve(true)">Conferma</button>
+      <button class="modal-btn modal-btn-confirm" (click)="dialogService.resolve(true)">{{ dialog.type === 'confirm' ? 'Conferma' : 'OK' }}</button>
     </div>
   </div>
 </div>

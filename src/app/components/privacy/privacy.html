@@ -1,0 +1,213 @@
+<app-navbar></app-navbar>
+
+<div class="privacy-layout">
+  <main class="privacy-main">
+
+    <!-- ═══════════════ ULTRA-WIDE TRANSPARENCY PORTAL CANVAS ═══════════════ -->
+    <div class="privacy-card glass-core">
+
+      <!-- Riga di navigazione superiore: accessibile subito all'inizio -->
+      <div class="privacy-top-navigation">
+        <a routerLink="/community" class="btn-back-pill-top">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="3" class="arrow-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Torna alla Community</span>
+        </a>
+      </div>
+
+      <!-- Intestazione Portale -->
+      <div class="card-header-section">
+        <div class="header-titles">
+          <div class="shield-glowing-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h1 class="page-title">Informativa sulla Privacy</h1>
+          <p class="page-sub">Trasparenza, crittografia e tutela legale: scopri come proteggiamo la tua identità e
+            valorizziamo le tue opere creative</p>
+        </div>
+      </div>
+
+      <!-- Griglia Multi-Colonna Estesa a Spazio Totale (Risolve i vuoti di image_3f9f78.jpg) -->
+      <div class="privacy-content-grid">
+
+        <!-- 1. Conformità GDPR -->
+        <div class="privacy-glass-node card-span-3">
+          <div class="node-icon-wrapper">🛡️</div>
+          <div class="node-text-block">
+            <h3>Conformità al GDPR</h3>
+            <p>In conformità con il Regolamento Generale sulla Protezione dei Dati (GDPR), ci impegniamo a proteggere la
+              tua privacy e a trattare i tuoi dati personali con trasparenza, integrità e assoluto rispetto delle
+              normative europee vigenti.</p>
+          </div>
+        </div>
+
+        <!-- 2. Titolare del Trattamento -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">💼</div>
+          <div class="node-text-block">
+            <h3>Titolare del Trattamento</h3>
+            <p>Il Titolare del trattamento dei dati personali è lo sviluppatore e amministratore unico di ABC Stories.
+              Per qualsiasi richiesta di chiarimento, estrazione dati, rettifica o cancellazione, puoi contattarci
+              direttamente tramite i canali di supporto ufficiali.</p>
+          </div>
+        </div>
+
+        <!-- 3. Scopo del Trattamento -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">⚙️</div>
+          <div class="node-text-block">
+            <h3>Scopo del Trattamento</h3>
+            <p>I dati raccolti vengono utilizzati esclusivamente per erogare le funzionalità della piattaforma,
+              consentendo la pubblicazione di storie, la gestione dei capitoli, il tracciamento dei progressi di lettura
+              e l'interazione dinamica tra utenti.</p>
+          </div>
+        </div>
+
+        <!-- 4. Cookie e Sessione -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">🍪</div>
+          <div class="node-text-block">
+            <h3>Cookie e Sessione tecniche</h3>
+            <p>Non utilizziamo cookie di tracciamento commerciale o profilazione di terze parti. Sfruttiamo unicamente
+              token JWT di sessione e cookie tecnici indispensabili per convalidare in modo sicuro la tua identità e
+              memorizzare le preferenze grafiche dei temi.</p>
+          </div>
+        </div>
+
+        <!-- 5. Raccolta dei Dati Personali -->
+        <div class="privacy-glass-node card-span-2">
+          <div class="node-icon-wrapper">📥</div>
+          <div class="node-text-block">
+            <h3>Raccolta dei Dati Personali</h3>
+            <p>Memorizziamo nel database relazionale PostgreSQL unicamente i dati necessari per la sussistenza del
+              profilo e dell'interazione social:</p>
+            <ul class="premium-privacy-list">
+              <li><strong>Profilo Utente:</strong> Username unico, indirizzo email protetto da cifratura, credenziali di
+                accesso, avatar di riconoscimento ed eventuali biografie personali.</li>
+              <li><strong>Ecosistema Sociale:</strong> Le storie strutturate da te scritte, i capitoli associati, i
+                commenti pubblicati nei thread delle opere e le preferenze (like e preferiti) espresse.</li>
+              <li><strong>Configurazioni di Sistema:</strong> Scelte relative alle notifiche in tempo reale, attivazione
+                del filtro per contenuti sensibili e personalizzazione del tema di lettura.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 6. Proprietà Intellettuale e Diritto d'Autore (Nuova Sezione) -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">📖</div>
+          <div class="node-text-block">
+            <h3>Diritto d'Autore e Copyright</h3>
+            <p>ABC Stories riconosce la proprietà intellettuale esclusiva dei tuoi testi. I dati relativi a trame,
+              sinossi e capitoli rimangono di tua proprietà. La piattaforma memorizza tali informazioni al solo scopo di
+              indicizzarle e renderle fruibili ai lettori secondo le tue direttive di pubblicazione.</p>
+          </div>
+        </div>
+
+        <!-- 7. Sicurezza e Crittografia -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">🔒</div>
+          <div class="node-text-block">
+            <h3>Sicurezza e Cifratura</h3>
+            <p>Tutti i flussi di dati in transito sono protetti tramite protocolli crittografici SSL/TLS. Le password
+              vengono archiviate applicando algoritmi di hashing asimmetrici non invertibili, isolando l'infrastruttura
+              da accessi esterni non autorizzati.</p>
+          </div>
+        </div>
+
+        <!-- 8. Protezione dei Minori e Filtro 18+ -->
+        <div class="privacy-glass-node card-span-2">
+          <div class="node-icon-wrapper">🔞</div>
+          <div class="node-text-block">
+            <h3>Protezione dei Minori e Filtro 18+</h3>
+            <p>In coerenza con il nostro sistema di etichettatura editoriale, la piattaforma integra un filtro di
+              protezione per i contenuti catalogati come espliciti o dedicati a un pubblico adulto. Gli utenti minorenni
+              o coloro che scelgono di disattivare la visualizzazione dalle proprie impostazioni non avranno accesso in
+              nessun modo all'indicizzazione e alla lettura di tali opere nel catalogo dei generi.</p>
+          </div>
+        </div>
+
+        <!-- 9. Algoritmi e Sistemi di Raccomandazione (Nuova Sezione) -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">📊</div>
+          <div class="node-text-block">
+            <h3>Sistemi di Raccomandazione</h3>
+            <p>I suggerimenti di lettura e l'indicizzazione nelle sezioni "Potrebbero piacerti anche" elaborano i dati
+              delle storie in modo puramente statistico basandosi su genere, visualizzazioni totali, mi piace e
+              preferiti raccolti dalla community, senza profilare l'orientamento politico, l'etnia o l'identità
+              dell'utente.</p>
+          </div>
+        </div>
+
+        <!-- 10. Conservazione e Ridondanza (Nuova Sezione) -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">💾</div>
+          <div class="node-text-block">
+            <h3>Ridondanza e Backup</h3>
+            <p>Per prevenire la perdita accidentale delle tue opere a causa di guasti fisici dell'infrastruttura server,
+              effettuiamo backup periodici automatizzati e cifrati dei database. Questi dati di ridondanza seguono le
+              stesse rigide policy di cancellazione in caso di eliminazione dell'account.</p>
+          </div>
+        </div>
+
+        <!-- 11. Procedure in caso di Data Breach (Nuova Sezione) -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">🚨</div>
+          <div class="node-text-block">
+            <h3>Protocollo Data Breach</h3>
+            <p>Nell'improbabile eventualità di una violazione di sicurezza che possa compromettere l'integrità dei tuoi
+              dati, ABC Stories si impegna a notificare l'evento alle autorità di controllo competenti e a tutti gli
+              utenti interessati entro 72 ore dalla scoperta, delineando le contromisure adottate.</p>
+          </div>
+        </div>
+
+        <!-- 12. Diritti dell'Interessato -->
+        <div class="privacy-glass-node card-span-2">
+          <div class="node-icon-wrapper">🔧</div>
+          <div class="node-text-block">
+            <h3>I tuoi Diritti e Controllo Totale</h3>
+            <p>Hai il diritto in qualsiasi momento di richiedere l'accesso ai tuoi dati, la rettifica, la portabilità o
+              la cancellazione totale dal nostro database (Diritto all'oblio). Puoi decidere in completa autonomia quali
+              notifiche ricevere o modificare la visibilità della tua libreria personale in ogni momento, visitando la
+              sezione <a routerLink="/user" class="privacy-link">Impostazioni</a> del tuo profilo utente.</p>
+          </div>
+        </div>
+
+        <!-- 13. Nessuna Condivisione Terze Parti -->
+        <div class="privacy-glass-node">
+          <div class="node-icon-wrapper">🚫</div>
+          <div class="node-text-block">
+            <h3>Zero Cessioni a Terzi</h3>
+            <p>ABC Stories è uno spazio indipendente. Garantiamo formalmente che nessun dato personale o abitudine di
+              lettura verrà mai venduta, ceduta o condivisa con broker pubblicitari, aziende di marketing esterno o
+              terze parti commerciali.</p>
+          </div>
+        </div>
+
+        <!-- 14. Modifiche all'Informativa -->
+        <div class="privacy-glass-node card-span-3">
+          <div class="node-icon-wrapper">🔄</div>
+          <div class="node-text-block">
+            <h3>Aggiornamenti della presente Policy</h3>
+            <p>Ci riserviamo il diritto di modificare questa informativa per adeguarla ad eventuali evoluzioni
+              tecnologiche o aggiornamenti legislativi. In caso di variazioni strutturali significative, verrai
+              tempestivamente informato tramite una notifica dedicata all'interno del tuo pannello di controllo sulla
+              piattaforma, prima che le modifiche diventino effettive.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer di Cortesia inferiore coordinato -->
+      <div class="privacy-footer">
+        <a routerLink="/community" class="btn-back-community-bottom">Torna alla Community</a>
+      </div>
+
+    </div>
+  </main>
+</div>

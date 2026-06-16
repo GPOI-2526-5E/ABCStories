@@ -37,21 +37,19 @@ export class Community implements OnInit {
 
   // Sezione attiva di navigazione nella sidebar
   activeSection = signal<'home' | 'popular' | 'new' | 'following' | 'top_voted'>('home');
+  activeMobileTab = signal<'feed' | 'composer' | 'activity' | 'settings'>('feed');
   followedStories = signal<any[]>([]);
   followedAuthors = signal<any[]>([]);
   showAllFollowed = signal<boolean>(false);
   selectedCommunityId = signal<string | null>(null);
   selectedCommunityTitle = signal<string | null>(null);
-  selectedAuthorId = signal<number | null>(null);
+  selectedAuthorId = signal<string | null>(null);
   selectedAuthor = signal<any | null>(null);
   filterDropdownOpen = false;
   searchScope = signal<'all' | 'post' | 'author' | 'story'>('all');
   activeRightTab: 'saved' | 'liked' = 'saved';
 
-  // Finestra modale custom per Regolamento e Privacy
-  showModal = false;
-  modalTitle = '';
-  modalContent = '';
+
 
   // Stato Profilo Destro & Statistiche Community (Calcolate dinamicamente sui post caricati)
   userWrittenPostsCount = 0;
@@ -377,6 +375,7 @@ export class Community implements OnInit {
   setSection(section: 'home' | 'popular' | 'new' | 'following' | 'top_voted'): void {
     this.checkAndSaveDraft();
     this.activeSection.set(section);
+    this.activeMobileTab.set('feed');
     this.selectedCommunityId.set(null);
     this.selectedCommunityTitle.set(null);
     this.selectedAuthorId.set(null);
@@ -391,6 +390,7 @@ export class Community implements OnInit {
     this.checkAndSaveDraft();
     this.selectedCommunityId.set(storyId);
     this.selectedCommunityTitle.set(storyTitle);
+    this.activeMobileTab.set('feed');
     this.selectedAuthorId.set(null);
     this.selectedAuthor.set(null);
     this.activeSection.set('home'); // Ritorna al feed principale della community selezionata
@@ -413,8 +413,9 @@ export class Community implements OnInit {
 
   filterByAuthor(author: any): void {
     this.checkAndSaveDraft();
-    this.selectedAuthorId.set(author.id);
+    this.selectedAuthorId.set(author.id ? String(author.id) : null);
     this.selectedAuthor.set(author);
+    this.activeMobileTab.set('feed');
     this.selectedCommunityId.set(null);
     this.selectedCommunityTitle.set(null);
     this.activeSection.set('home');
@@ -424,9 +425,10 @@ export class Community implements OnInit {
     this.cdr.detectChanges();
   }
 
-  filterByAuthorId(authorId: number, authorUsername?: string): void {
+  filterByAuthorId(authorId: string, authorUsername?: string): void {
     this.checkAndSaveDraft();
     this.selectedAuthorId.set(authorId);
+    this.activeMobileTab.set('feed');
     this.selectedCommunityId.set(null);
     this.selectedCommunityTitle.set(null);
     this.activeSection.set('home');
@@ -524,36 +526,16 @@ export class Community implements OnInit {
     return 'Cerca: Tutto';
   }
 
-  openModal(type: 'rules' | 'privacy'): void {
-    this.showModal = true;
-    if (type === 'rules') {
-      this.modalTitle = 'Regolamento della Community';
-      this.modalContent = `
-        <ol class="modal-list-rules">
-          <li><strong>Rispetto reciproco:</strong> Non sono tollerati insulti, volgarità o attacchi personali. Sii sempre gentile e costruttivo.</li>
-          <li><strong>Segnala gli spoiler:</strong> Rispetta la lettura altrui. Se parli di eventi chiave di una trama, avvisa chiaramente o inserisci il tag spoiler.</li>
-          <li><strong>Rimani a tema:</strong> La community è incentrata sulla letteratura, le storie di ABCStories e i consigli di lettura. Evita contenuti fuori tema (spam, politica, ecc.).</li>
-          <li><strong>No Spam o Autopromozione eccessiva:</strong> È vietato fare spam di link esterni o fare pubblicità a servizi terzi non autorizzati.</li>
-        </ol>
-      `;
-    } else {
-      this.modalTitle = 'Privacy Policy';
-      this.modalContent = `
-        <p>La tua privacy è fondamentale per noi. In conformità con il Regolamento Generale sulla Protezione dei Dati (GDPR):</p>
-        <ul>
-          <li><strong>Raccolta dati:</strong> Memorizziamo in modo sicuro le informazioni sui post che crei, i voti che esprimi e i commenti che pubblichi.</li>
-          <li><strong>Scopo:</strong> Questi dati sono utilizzati esclusivamente per offrire le funzionalità social e di interazione all'interno della piattaforma ABCStories.</li>
-          <li><strong>Condivisione:</strong> I tuoi dati non verranno mai condivisi, venduti o ceduti a terze parti.</li>
-          <li><strong>Controllo:</strong> Puoi decidere quali notifiche social ricevere o modificare la visibilità del tuo profilo in qualsiasi momento nella sezione Impostazioni.</li>
-        </ul>
-      `;
-    }
-    this.cdr.detectChanges();
-  }
-
-  closeCustomModal(): void {
-    this.showModal = false;
-    this.cdr.detectChanges();
+  openRulesAlert(): void {
+    const rulesHtml = `
+      <ol>
+        <li><strong>Rispetto reciproco:</strong> Non sono tollerati insulti, volgarità o attacchi personali. Sii sempre gentile e costruttivo.</li>
+        <li><strong>Segnala gli spoiler:</strong> Rispetta la lettura altrui. Se parli di eventi chiave di una trama, avvisa chiaramente o inserisci il tag spoiler.</li>
+        <li><strong>Rimani a tema:</strong> La community è incentrata sulla letteratura, le storie di ABCStories e i consigli di lettura. Evita contenuti fuori tema (spam, politica, ecc.).</li>
+        <li><strong>No Spam o Autopromozione eccessiva:</strong> È vietato fare spam di link esterni o fare pubblicità a servizi terzi non autorizzati.</li>
+      </ol>
+    `;
+    this.dialogService.alert('Regolamento della Community', rulesHtml);
   }
 
   setTab(tab: 'all' | 'quote' | 'comment'): void {
@@ -749,6 +731,7 @@ export class Community implements OnInit {
         }
 
         this.showCenterComposer = false;
+        this.activeMobileTab.set('feed');
         this.resetComposerFields();
         this.showPreviewModal = false;
         
@@ -797,6 +780,7 @@ export class Community implements OnInit {
     if (!isVisible) {
       this.resetAllFilters();
     }
+    this.activeMobileTab.set('feed');
     setTimeout(() => {
       const el = document.getElementById(`post-${post.id}`);
       if (el) {
@@ -932,7 +916,7 @@ export class Community implements OnInit {
     // 1b. Filtra per autore (se selezionato)
     const authorId = this.selectedAuthorId();
     if (authorId) {
-      result = result.filter(p => Number(p.author_id) === Number(authorId));
+      result = result.filter(p => String(p.author_id) === String(authorId));
     }
 
     // 2. Applica la sezione attiva (Ordinamento / Filtro)
@@ -994,6 +978,7 @@ export class Community implements OnInit {
     this.activeDraftId = null;
     this.rightComposerType = type;
     this.showCenterComposer = true;
+    this.activeMobileTab.set('composer');
     this.resetComposerFields();
     this.cdr.detectChanges();
   }
@@ -1001,6 +986,7 @@ export class Community implements OnInit {
   cancelCenterComposer(): void {
     this.checkAndSaveDraft();
     this.showCenterComposer = false;
+    this.activeMobileTab.set('feed');
     this.activeDraftId = null;
     this.resetComposerFields();
     this.cdr.detectChanges();
@@ -1078,6 +1064,7 @@ export class Community implements OnInit {
     }
 
     this.showCenterComposer = true;
+    this.activeMobileTab.set('composer');
     this.cdr.detectChanges();
     this.triggerToast('Bozza caricata');
   }
@@ -1127,6 +1114,7 @@ export class Community implements OnInit {
     this.searchQuery = '';
     this.searchScope.set('all');
     this.showCenterComposer = false;
+    this.activeMobileTab.set('feed');
     this.activeDraftId = null;
     this.resetComposerFields();
     this.cdr.detectChanges();
