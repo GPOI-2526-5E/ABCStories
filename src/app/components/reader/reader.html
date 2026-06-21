@@ -24,10 +24,10 @@
 
   <!-- ── BARRA DI PROGRESSO ───────────────────────────────────── -->
   <div class="reader-progress-bar">
-    <div class="reader-progress-fill" [style.width.%]="globalPercent"></div>
+    <div class="reader-progress-fill" [style.width.%]="globalPercent()"></div>
   </div>
   <div class="reader-progress-label">
-    <span class="reader-progress-pct">{{ globalPercent }}%</span>
+    <span class="reader-progress-pct">{{ globalPercent() }}%</span>
     <span class="reader-progress-text">letto</span>
   </div>
 
@@ -40,7 +40,7 @@
       <button (click)="toggleSidebar()" class="sidebar-close">✕</button>
     </div>
     <ul class="sidebar-list">
-      @for (ch of chapters; track ch.id) {
+      @for (ch of chapters; track $index) {
       <li class="sidebar-item" [class.active]="ch.id === chapter?.id" (click)="goToChapter(ch)">
         <span class="sidebar-num">{{ ch.order_index }}</span>
         <span class="sidebar-title">{{ ch.title }}</span>
@@ -85,17 +85,17 @@
     <article class="reader-article" [ngClass]="readingWidthClass()">
 
       <div class="reader-text" #readerText [ngClass]="[readingFontClass(), readingFontSizeClass(), readingModeClass()]"
-        [class.highlight-mode-active]="highlightModeActive" [class.touch-device]="isTouchDevice()" [style.--active-selection-color]="selectedColor"
+        [class.highlight-mode-active]="highlightModeActive" [class.touch-device]="isTouchDevice()" [class.has-active-selection]="activeSelection" [style.--active-selection-color]="selectedColor"
         (scroll)="onReaderTextScroll($event)" (click)="onReaderTextClick($event)">
         @if (paragraphsWithSegments && paragraphsWithSegments.length > 0) {
         @for (paraSegments of paragraphsWithSegments; track pIdx; let pIdx = $index) {
         <p class="reader-paragraph" [attr.data-para-index]="pIdx">
-          @for (seg of paraSegments; track seg.start) {
+          @for (seg of paraSegments; track $index) {
           <span *ngIf="seg.highlighted" [id]="'highlight-' + seg.highlightId" class="text-highlighted"
             [class.selection-preview]="seg.highlightId === 'selection-preview'" [ngClass]="getHighlightClass(seg.color)"
             (mouseenter)="seg.highlightId !== 'selection-preview' ? onHighlightMouseEnter(seg.highlightId) : null"
             (mouseleave)="seg.highlightId !== 'selection-preview' ? onHighlightMouseLeave(seg.highlightId) : null"
-            (click)="seg.highlightId !== 'selection-preview' ? onHighlightClick(seg, $event) : null">{{ seg.text }}<span
+            (click)="seg.highlightId !== 'selection-preview' ? onHighlightClick(seg, $event) : null"><span *ngIf="seg.highlightId === 'selection-preview' && isTouchDevice()" class="virtual-handle start-handle" [class.dragging]="isDraggingHandle" (touchstart)="handleVirtualTouchStart($event, 'start')"><span class="handle-pin"></span></span>{{ seg.text }}<span *ngIf="seg.highlightId === 'selection-preview' && isTouchDevice()" class="virtual-handle end-handle" [class.dragging]="isDraggingHandle" (touchstart)="handleVirtualTouchStart($event, 'end')"><span class="handle-pin"></span></span><span
               class="highlight-actions-popover glass-core"
               *ngIf="seg.highlightId !== 'selection-preview' && (hoveredHighlightId === seg.highlightId || activeHighlightId === seg.highlightId)"
               (click)="$event.stopPropagation()">

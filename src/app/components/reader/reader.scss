@@ -475,9 +475,59 @@
   line-height: 1.9;
   color: var(--text-primary);
 
-  &.touch-device.highlight-mode-active {
+  &.touch-device.highlight-mode-active,
+  &.touch-device.has-active-selection {
     user-select: none;
     -webkit-user-select: none;
+  }
+
+  /* Virtual selection handles (Teardrop pins) for mobile selection adjustments */
+  .virtual-handle {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    position: relative;
+    vertical-align: middle;
+    z-index: 100;
+
+    &.dragging {
+      pointer-events: none !important;
+      .handle-pin {
+        pointer-events: none !important;
+      }
+    }
+
+    .handle-pin {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: var(--active-selection-color, #f1c40f);
+      border: 2.5px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      top: 6px;
+      left: -10px; /* Centered relative to the 0-width parent boundary */
+      transform-origin: center;
+      transition: transform 0.15s ease;
+
+      /* Line connecting circular pin to caret boundary */
+      &::after {
+        content: '';
+        position: absolute;
+        width: 2.5px;
+        height: 16px;
+        background-color: var(--active-selection-color, #f1c40f);
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+      }
+
+      &:active {
+        transform: scale(1.25);
+      }
+    }
   }
 
   p {
