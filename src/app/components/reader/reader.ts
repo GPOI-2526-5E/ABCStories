@@ -351,47 +351,7 @@ export class Reader implements OnInit, OnDestroy {
       const text = rawParas[pIdx];
       let pHighlights = [...this.chapterHighlights.filter(h => h.paragraph_index === pIdx)];
 
-      // Applicazione della selezione mobile come preview temporanea
-      if (this.isTouchDevice() && this.activeSelection && this.activeSelection.paragraphIndex === pIdx) {
-        const selStart = this.activeSelection.startOffset;
-        const selEnd = this.activeSelection.endOffset;
 
-        const overlapping = pHighlights.filter(h =>
-          selStart < h.end_offset && selEnd > h.start_offset
-        );
-
-        if (overlapping.length > 0) {
-          const mergedStart = Math.min(selStart, ...overlapping.map(o => o.start_offset));
-          const mergedEnd = Math.max(selEnd, ...overlapping.map(o => o.end_offset));
-
-          pHighlights = pHighlights.filter(h => !overlapping.includes(h));
-          pHighlights.push({
-            id: 'selection-preview',
-            user_id: '',
-            story_id: '',
-            chapter_id: '',
-            paragraph_index: pIdx,
-            start_offset: mergedStart,
-            end_offset: mergedEnd,
-            text: text.slice(mergedStart, mergedEnd),
-            color: this.selectedColor,
-            isPreview: true
-          } as any);
-        } else {
-          pHighlights.push({
-            id: 'selection-preview',
-            user_id: '',
-            story_id: '',
-            chapter_id: '',
-            paragraph_index: pIdx,
-            start_offset: selStart,
-            end_offset: selEnd,
-            text: this.activeSelection.text,
-            color: this.selectedColor,
-            isPreview: true
-          } as any);
-        }
-      }
 
       pHighlights.sort((a, b) => a.start_offset - b.start_offset);
 
@@ -471,10 +431,8 @@ export class Reader implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-      // Do NOT clear activeSelection here — this causes a race condition on mobile:
-      // tapping "Sottolinea" collapses the selection (firing selectionchange) BEFORE
-      // the click handler fires, so activeSelection would be null when we need it.
-      // Cleanup is handled by onDocumentClick when the user taps outside text+panel.
+      this.activeSelection = null;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -539,7 +497,9 @@ export class Reader implements OnInit, OnDestroy {
    */
   onReaderTextClick(event: MouseEvent) {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (!this.highlightModeActive || !this.isTouchDevice()) return;
+    // On mobile, let the native text selection gestures (double-tap, long-press) work natively
+    if (this.isTouchDevice()) return;
+    if (!this.highlightModeActive) return;
 
     // Don't interfere with taps on existing highlights (except selection-preview)
     const target = event.target as HTMLElement;
