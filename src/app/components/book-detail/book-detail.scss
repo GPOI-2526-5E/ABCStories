@@ -197,6 +197,7 @@ h2 {
   gap: 0.8rem;
   flex: 1;
   min-width: 0;
+  position: relative;
 
   h1 {
     font-size: clamp(2rem, 4vw, 3.5rem);
@@ -261,7 +262,8 @@ h2 {
   // Dissolvenza cinetica calcolata senza scatti e salti nel testo
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
   .btnContGlass {
     flex: none;
@@ -281,9 +283,11 @@ h2 {
     .btnContGlass {
       color: rgba(20, 20, 10, 0.85) !important;
     }
+
     .btn-interaction-glass {
       color: rgba(20, 20, 10, 0.75) !important;
     }
+
     .read-progress-badge {
       background: rgba(20, 20, 10, 0.12) !important;
       border-color: rgba(20, 20, 10, 0.2) !important;
@@ -1243,4 +1247,329 @@ h2 {
   box-shadow: 0 4px 12px rgba(255, 71, 87, 0.15);
   backdrop-filter: blur(12px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+}
+
+/* ─── Share Button and Dropdown Styles ─── */
+.position-relative {
+  position: relative !important;
+}
+
+.detail-share-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    position: relative;
+    top: unset;
+    right: unset;
+    margin: 10px auto;
+    width: fit-content;
+  }
+}
+
+.btn-share-icon-glass {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  color: #fff;
+  padding: 0;
+
+  svg {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+
+    svg {
+      transform: scale(1.1) rotate(15deg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.active {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #111111 !important;
+
+    svg {
+      color: #111111 !important;
+    }
+  }
+}
+
+.share-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 8px;
+  min-width: 230px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 768px) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: #ffffff !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+      opacity: 0.8;
+      color: #ffffff !important;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff !important;
+
+      svg {
+        color: #ffffff !important;
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 6px 0;
+}
+
+.social-share-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  margin-bottom: 2px;
+}
+
+.social-share-grid {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+
+  &.whatsapp {
+    background: rgba(37, 211, 102, 0.2);
+    border: 1px solid rgba(37, 211, 102, 0.4);
+    color: #25d366;
+
+    &:hover {
+      background: #25d366;
+      color: #fff;
+    }
+  }
+
+  &.telegram {
+    background: rgba(0, 136, 204, 0.2);
+    border: 1px solid rgba(0, 136, 204, 0.4);
+    color: #0088cc;
+
+    &:hover {
+      background: #0088cc;
+      color: #fff;
+    }
+  }
+
+  &.facebook {
+    background: rgba(24, 119, 242, 0.2);
+    border: 1px solid rgba(24, 119, 242, 0.4);
+    color: #1877f2;
+
+    &:hover {
+      background: #1877f2;
+      color: #fff;
+    }
+  }
+
+  &.x {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+
+    &:hover {
+      background: #fff;
+      color: #000;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    margin-top: -8px;
+  }
+
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+
+/* ─── Local Glass Toast ─── */
+.glass-toast {
+  position: fixed;
+  bottom: 24px;
+  right: -350px;
+  z-index: 9999;
+  background: rgba(39, 174, 96, 0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(46, 204, 113, 0.45);
+  box-shadow: 0 10px 30px rgba(39, 174, 96, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  padding: 14px 22px;
+  max-width: 320px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+
+  &.show {
+    right: 24px;
+    opacity: 1;
+  }
+
+  .toast-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .toast-icon-img {
+    filter: drop-shadow(0 2px 6px rgba(46, 204, 113, 0.4));
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .toast-txt {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ─── Reviews & Comments Card Share Button ─── */
+.btn-card-share {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  z-index: 10;
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+
+  &:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// Per commenti (che hanno lo sfondo chiaro nel tema chiaro e scuro nel tema scuro)
+.dd-review-card:not(.cm-card) .btn-card-share {
+  color: rgba(0, 0, 0, 0.6) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+
+  &:hover {
+    color: #000000 !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    transform: scale(1.08);
+  }
+}
+
+:root[data-theme="dark"] .dd-review-card:not(.cm-card) .btn-card-share {
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+
+  &:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    transform: scale(1.08);
+  }
 }

@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, HostListener, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef, HostListener, signal, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Api } from '../../services/api';
@@ -9,6 +9,7 @@ import { DialogService } from '../../services/dialog.service';
 import { Navbar } from '../navbar/navbar';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { BookService } from '../../services/book';
 
 @Component({
   selector: 'app-community',
@@ -25,6 +26,8 @@ export class Community implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private bookService = inject(BookService);
+  private platformId = inject(PLATFORM_ID);
 
   currentUser = this.auth.currentUser;
 
@@ -36,8 +39,8 @@ export class Community implements OnInit {
   activeTab = signal<'all' | 'quote' | 'comment'>('all');
 
   // Sezione attiva di navigazione nella sidebar
-  activeSection = signal<'home' | 'popular' | 'new' | 'following' | 'top_voted'>('home');
-  activeMobileTab = signal<'feed' | 'composer' | 'activity' | 'settings'>('feed');
+  activeSection = signal<'home' | 'popular' | 'new' | 'following' | 'top_voted' | 'highlights'>('home');
+  activeMobileTab = signal<'feed' | 'composer' | 'activity'>('feed');
   followedStories = signal<any[]>([]);
   followedAuthors = signal<any[]>([]);
   showAllFollowed = signal<boolean>(false);
@@ -48,6 +51,12 @@ export class Community implements OnInit {
   filterDropdownOpen = false;
   searchScope = signal<'all' | 'post' | 'author' | 'story'>('all');
   activeRightTab: 'saved' | 'liked' = 'saved';
+
+  communityHighlights: any[] = [];
+  activeShareHighlightId: string | null = null;
+  highlightQuote = '';
+  userHighlights: any[] = [];
+  searchUserHighlightText = '';
 
 
 
@@ -92,7 +101,7 @@ export class Community implements OnInit {
   showSettingsCollapse = false;
 
   // Stato del Compositore della Sidebar Destra
-  rightComposerType: 'general' | 'review_comment' = 'general';
+  rightComposerType: 'general' | 'quote' | 'reply_review' | 'reply_comment' = 'general';
   postTitle = '';
   postText = '';
   postImageBase64: string | null = null;
@@ -163,10 +172,15 @@ export class Community implements OnInit {
       return;
     }
 
-    // Controlla se c'è un post id nei parametri di ricerca per evidenziazione
+    // Controlla se c'è un post id nei parametri di ricerca per evidenziazione o shareStoryId
     this.route.queryParams.subscribe(params => {
       if (params['post']) {
         this.sharedPostId = params['post'];
+      }
+      if (params['shareStoryId'] || params['shareHighlightText']) {
+        if (this.stories && this.stories.length > 0) {
+          this.checkShareStoryIdFromRoute();
+        }
       }
     });
 
@@ -177,6 +191,7 @@ export class Community implements OnInit {
     this.loadLikedAndBookmarkedStories();
     this.loadSettings();
     this.loadDrafts();
+    this.loadUserHighlights();
   }
 
   loadPosts(): void {
@@ -214,8 +229,12 @@ export class Community implements OnInit {
       next: (data) => {
         this.stories = data;
         this.cdr.detectChanges();
+        this.checkShareStoryIdFromRoute();
       },
-      error: (err) => console.error('Errore caricamento storie:', err)
+      error: (err) => {
+        console.error('Errore caricamento storie:', err);
+        this.checkShareStoryIdFromRoute();
+      }
     });
   }
 
@@ -267,8 +286,19 @@ export class Community implements OnInit {
         }
       }
       this.likedAndBookmarkedStories = unique;
+      if (this.rightSelectedStory) {
+        this.addStoryToLikedAndBookmarked(this.rightSelectedStory);
+      }
       this.cdr.detectChanges();
     });
+  }
+
+  addStoryToLikedAndBookmarked(story: any): void {
+    if (!story) return;
+    const exists = this.likedAndBookmarkedStories.some(s => String(s.id) === String(story.id));
+    if (!exists) {
+      this.likedAndBookmarkedStories = [story, ...this.likedAndBookmarkedStories];
+    }
   }
 
   loadSettings(): void {
@@ -372,7 +402,7 @@ export class Community implements OnInit {
     this.userLikesReceivedCount = userPosts.reduce((acc, p) => acc + (Number(p.likes_count) || 0), 0);
   }
 
-  setSection(section: 'home' | 'popular' | 'new' | 'following' | 'top_voted'): void {
+  setSection(section: 'home' | 'popular' | 'new' | 'following' | 'top_voted' | 'highlights'): void {
     this.checkAndSaveDraft();
     this.activeSection.set(section);
     this.activeMobileTab.set('feed');
@@ -383,6 +413,9 @@ export class Community implements OnInit {
     this.showCenterComposer = false;
     this.activeDraftId = null;
     this.resetComposerFields();
+    if (section === 'highlights') {
+      this.loadCommunityHighlights();
+    }
     this.cdr.detectChanges();
   }
 
@@ -481,7 +514,7 @@ export class Community implements OnInit {
       this.api.unfollowUser(currentUser.id, String(author.id)).subscribe({
         next: () => {
           this.followedAuthors.update(authors => authors.filter(a => String(a.id) !== authorIdStr));
-          this.triggerToast(`Non segui più u/${author.name}`);
+          this.triggerToast(`Non segui più ${author.name}`);
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Errore unfollow:', err)
@@ -498,7 +531,7 @@ export class Community implements OnInit {
             description: author.description || ''
           };
           this.followedAuthors.update(authors => [...authors, newAuthor]);
-          this.triggerToast(`Ora segui u/${author.name}`);
+          this.triggerToast(`Ora segui ${author.name}`);
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Errore follow:', err)
@@ -542,8 +575,21 @@ export class Community implements OnInit {
     this.activeTab.set(tab);
   }
 
-  setRightComposerType(type: 'general' | 'review_comment'): void {
+  setRightComposerType(type: 'general' | 'quote' | 'reply_review' | 'reply_comment'): void {
     this.rightComposerType = type;
+    if (type === 'reply_review') {
+      this.reviewCommentType = 'review';
+      this.selectedReviewOrComment = null;
+      this.selectedReviewOrCommentId = null;
+      this.commentSearchQuery = '';
+      this.loadReviewsOrComments();
+    } else if (type === 'reply_comment') {
+      this.reviewCommentType = 'comment';
+      this.selectedReviewOrComment = null;
+      this.selectedReviewOrCommentId = null;
+      this.commentSearchQuery = '';
+      this.loadReviewsOrComments();
+    }
     this.cdr.detectChanges();
   }
 
@@ -566,6 +612,13 @@ export class Community implements OnInit {
       this.selectedReviewOrCommentId = null;
       this.fetchedReviewsOrComments = [];
       this.commentSearchQuery = '';
+
+      if (this.rightComposerType === 'reply_review') {
+        this.reviewCommentType = 'review';
+      } else if (this.rightComposerType === 'reply_comment') {
+        this.reviewCommentType = 'comment';
+      }
+
       this.loadReviewsOrComments();
     }
     this.cdr.detectChanges();
@@ -597,6 +650,7 @@ export class Community implements OnInit {
       this.api.getStoryReviews(storyId).subscribe({
         next: (data) => {
           this.fetchedReviewsOrComments = data;
+          this.checkPreselectedReviewOrComment();
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Errore caricamento recensioni:', err)
@@ -605,10 +659,30 @@ export class Community implements OnInit {
       this.api.getStoryComments(storyId).subscribe({
         next: (data) => {
           this.fetchedReviewsOrComments = data;
+          this.checkPreselectedReviewOrComment();
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Errore caricamento commenti:', err)
       });
+    }
+  }
+
+  checkPreselectedReviewOrComment(): void {
+    const shareReviewId = this.route.snapshot.queryParams['shareReviewId'];
+    const shareCommentId = this.route.snapshot.queryParams['shareCommentId'];
+
+    if (this.reviewCommentType === 'review' && shareReviewId) {
+      const foundReview = this.fetchedReviewsOrComments.find(r => String(r.id) === String(shareReviewId));
+      if (foundReview) {
+        this.selectedReviewOrComment = foundReview;
+        this.selectedReviewOrCommentId = foundReview.id;
+      }
+    } else if (this.reviewCommentType === 'comment' && shareCommentId) {
+      const foundComment = this.fetchedReviewsOrComments.find(c => String(c.id) === String(shareCommentId));
+      if (foundComment) {
+        this.selectedReviewOrComment = foundComment;
+        this.selectedReviewOrCommentId = foundComment.id;
+      }
     }
   }
 
@@ -646,11 +720,16 @@ export class Community implements OnInit {
       this.dialogService.alert('Titolo mancante', 'Inserisci un titolo per visualizzare l\'anteprima.');
       return;
     }
-    if (!this.postText.trim()) {
+    if (this.rightComposerType === 'quote' && !this.highlightQuote.trim()) {
+      this.dialogService.alert('Citazione mancante', 'Inserisci il testo della citazione per visualizzare l\'anteprima.');
+      return;
+    }
+    if (this.rightComposerType !== 'quote' && !this.postText.trim()) {
       this.dialogService.alert('Contenuto mancante', 'Scrivi qualcosa prima di visualizzare l\'anteprima.');
       return;
     }
-    if (this.rightComposerType === 'review_comment' && !this.selectedReviewOrComment) {
+    const isReplyType = this.rightComposerType === 'reply_review' || this.rightComposerType === 'reply_comment';
+    if (isReplyType && !this.selectedReviewOrComment) {
       this.dialogService.alert('Elemento mancante', 'Seleziona una recensione o un commento da citare.');
       return;
     }
@@ -685,11 +764,16 @@ export class Community implements OnInit {
       this.dialogService.alert('Titolo mancante', 'Inserisci un titolo per il tuo post.');
       return;
     }
-    if (!this.postText.trim()) {
+    if (this.rightComposerType === 'quote' && !this.highlightQuote.trim()) {
+      this.dialogService.alert('Citazione mancante', 'Inserisci il testo della citazione.');
+      return;
+    }
+    if (this.rightComposerType !== 'quote' && !this.postText.trim()) {
       this.dialogService.alert('Contenuto mancante', 'Scrivi qualcosa prima di pubblicare il post.');
       return;
     }
-    if (this.rightComposerType === 'review_comment') {
+    const isReplyType = this.rightComposerType === 'reply_review' || this.rightComposerType === 'reply_comment';
+    if (isReplyType) {
       if (!this.rightSelectedStory) {
         this.dialogService.alert('Storia mancante', 'Seleziona una storia.');
         return;
@@ -703,13 +787,19 @@ export class Community implements OnInit {
     const payload: any = {
       author_id: user.id,
       title: this.postTitle.trim(),
-      type: this.rightComposerType === 'general' ? 'general' : 'review_comment',
+      type: this.highlightQuote ? 'quote' : (isReplyType ? 'review_comment' : 'general'),
       story_id: this.rightSelectedStory ? this.rightSelectedStory.id : null,
-      post_image: this.rightComposerType === 'general' ? this.postImageBase64 : null,
+      story_title: this.rightSelectedStory ? this.rightSelectedStory.title : null,
+      story_image: this.rightSelectedStory ? (this.rightSelectedStory.image_url || this.rightSelectedStory.img) : null,
+      post_image: this.rightComposerType === 'general' && !this.highlightQuote ? this.postImageBase64 : null,
       content: this.postText.trim()
     };
 
-    if (this.rightComposerType === 'review_comment') {
+    if (this.highlightQuote) {
+      payload.quote = this.highlightQuote;
+    }
+
+    if (isReplyType) {
       payload.commented_author = this.reviewCommentType === 'review' ? this.selectedReviewOrComment.name : this.selectedReviewOrComment.author_name;
       payload.commented_text = this.reviewCommentType === 'review' ? this.selectedReviewOrComment.content : this.selectedReviewOrComment.text;
       payload.commented_type = this.reviewCommentType;
@@ -772,6 +862,33 @@ export class Community implements OnInit {
         this.triggerToast(res.bookmarked ? 'Post aggiunto ai preferiti!' : 'Post rimosso dai preferiti.');
       },
       error: (err) => console.error('Errore durante salvataggio post nei preferiti:', err)
+    });
+  }
+
+  async deletePost(post: any): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Elimina Post',
+      'Sei sicuro di voler eliminare definitivamente questo post?'
+    );
+    if (!confirmed) return;
+
+    this.loadingService.show();
+    this.api.deleteCommunityPost(post.id).subscribe({
+      next: (res) => {
+        this.loadingService.hide();
+        if (res.success) {
+          this.posts = this.posts.filter(p => p.id !== post.id);
+          this.triggerToast('Post eliminato con successo.');
+          this.cdr.detectChanges();
+        } else {
+          this.dialogService.alert('Errore', 'Impossibile eliminare il post.');
+        }
+      },
+      error: (err) => {
+        this.loadingService.hide();
+        console.error('Errore eliminazione post community:', err);
+        this.dialogService.alert('Errore', 'Si è verificato un errore durante l\'eliminazione del post.');
+      }
     });
   }
 
@@ -973,13 +1090,20 @@ export class Community implements OnInit {
     return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
   }
 
-  activateCenterComposer(type: 'general' | 'review_comment'): void {
+  activateCenterComposer(type: 'general' | 'quote' | 'reply_review' | 'reply_comment'): void {
     this.checkAndSaveDraft();
     this.activeDraftId = null;
     this.rightComposerType = type;
     this.showCenterComposer = true;
     this.activeMobileTab.set('composer');
     this.resetComposerFields();
+
+    if (type === 'reply_review') {
+      this.reviewCommentType = 'review';
+    } else if (type === 'reply_comment') {
+      this.reviewCommentType = 'comment';
+    }
+
     this.cdr.detectChanges();
   }
 
@@ -1093,6 +1217,7 @@ export class Community implements OnInit {
     this.fetchedReviewsOrComments = [];
     this.rightSearchStoryText = '';
     this.commentSearchQuery = '';
+    this.highlightQuote = '';
   }
 
   getActiveSectionName(): string {
@@ -1120,6 +1245,86 @@ export class Community implements OnInit {
     this.cdr.detectChanges();
   }
 
+  checkShareStoryIdFromRoute(): void {
+    const shareStoryId = this.route.snapshot.queryParams['shareStoryId'];
+    const shareReviewId = this.route.snapshot.queryParams['shareReviewId'];
+    const shareCommentId = this.route.snapshot.queryParams['shareCommentId'];
+    const shareHighlightText = this.route.snapshot.queryParams['shareHighlightText'];
+
+    if (shareStoryId || shareHighlightText) {
+      const found = shareStoryId ? this.stories.find(s => String(s.id) === String(shareStoryId)) : null;
+
+      const setupComposer = (story: any) => {
+        if (story) {
+          this.rightSelectedStory = story;
+          this.rightSelectedStoryId = story.id;
+          this.addStoryToLikedAndBookmarked(story);
+        }
+
+        if (shareHighlightText) {
+          this.highlightQuote = shareHighlightText;
+          this.rightComposerType = 'quote';
+          this.postTitle = 'Una citazione stupenda';
+        } else if (shareReviewId) {
+          this.rightComposerType = 'reply_review';
+          this.reviewCommentType = 'review';
+        } else if (shareCommentId) {
+          this.rightComposerType = 'reply_comment';
+          this.reviewCommentType = 'comment';
+        } else {
+          this.rightComposerType = 'general';
+        }
+
+        this.showCenterComposer = true;
+        this.activeMobileTab.set('composer');
+        if (shareStoryId && (shareReviewId || shareCommentId)) {
+          this.loadReviewsOrComments();
+        }
+        this.cdr.detectChanges();
+      };
+
+      if (shareStoryId) {
+        if (found) {
+          setupComposer(found);
+        } else {
+          // Carica la storia dall'API
+          this.api.getStory(shareStoryId).subscribe({
+            next: (story) => {
+              if (story) {
+                const mappedStory = {
+                  id: story.id,
+                  title: story.title,
+                  author_name: story.author_name || story.author_username,
+                  img: story.image_url || story.img
+                };
+                setupComposer(mappedStory);
+              } else {
+                setupComposer(null);
+              }
+            },
+            error: (err) => {
+              console.warn('Errore caricamento della storia da API, provo locale:', err);
+              const localBook = this.bookService.getById(shareStoryId);
+              if (localBook) {
+                const mappedStory = {
+                  id: String(localBook.id),
+                  title: localBook.title,
+                  author_name: localBook.author,
+                  img: localBook.img
+                };
+                setupComposer(mappedStory);
+              } else {
+                setupComposer(null);
+              }
+            }
+          });
+        }
+      } else {
+        setupComposer(null);
+      }
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
@@ -1129,6 +1334,9 @@ export class Community implements OnInit {
       }
       if (!target.closest('.gd-dropdown')) {
         this.filterDropdownOpen = false;
+      }
+      if (!target.closest('.highlight-share-container')) {
+        this.activeShareHighlightId = null;
       }
 
       // Automatically close the composer and save the draft if clicking outside
@@ -1145,6 +1353,195 @@ export class Community implements OnInit {
           this.cancelCenterComposer();
         }
       }
+    }
+  }
+
+  loadUserHighlights(): void {
+    const user = this.currentUser();
+    if (!user) return;
+    this.api.getUserHighlights(user.id).subscribe({
+      next: (data) => {
+        this.userHighlights = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.warn('Errore caricamento sottolineature utente per composer:', err)
+    });
+  }
+
+  get filteredUserHighlights() {
+    const list = this.userHighlights || [];
+    if (!this.searchUserHighlightText.trim()) {
+      return list;
+    }
+    const q = this.searchUserHighlightText.toLowerCase().trim();
+    return list.filter(hl =>
+      (hl.text && hl.text.toLowerCase().includes(q)) ||
+      (hl.story_title && hl.story_title.toLowerCase().includes(q)) ||
+      (hl.chapter_title && hl.chapter_title.toLowerCase().includes(q))
+    );
+  }
+
+  selectUserHighlight(hl: any): void {
+    this.highlightQuote = hl.text;
+    this.postTitle = 'Una citazione da ' + hl.story_title;
+    
+    // Trova la storia collegata
+    const foundStory = this.stories.find(s => String(s.id) === String(hl.story_id));
+    if (foundStory) {
+      this.rightSelectedStory = foundStory;
+      this.rightSelectedStoryId = foundStory.id;
+    } else {
+      this.rightSelectedStory = {
+        id: hl.story_id,
+        title: hl.story_title,
+        img: hl.story_image_url || hl.story_image
+      };
+      this.rightSelectedStoryId = hl.story_id;
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadCommunityHighlights(): void {
+    const user = this.currentUser();
+    if (!user) return;
+    this.api.getCommunityHighlights().subscribe({
+      next: (data) => {
+        this.communityHighlights = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Errore caricamento sottolineature community:', err);
+      }
+    });
+  }
+
+  getFilteredCommunityHighlights() {
+    let result = this.communityHighlights;
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      result = result.filter(hl =>
+        (hl.text && hl.text.toLowerCase().includes(q)) ||
+        (hl.user_name && hl.user_name.toLowerCase().includes(q)) ||
+        (hl.story_title && hl.story_title.toLowerCase().includes(q)) ||
+        (hl.chapter_title && hl.chapter_title.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }
+
+  getHighlightClass(color: string): string {
+    if (!color) return 'yellow';
+    if (color.includes('rgba(241, 196, 15') || color.includes('241, 196, 15')) return 'yellow';
+    if (color.includes('rgba(46, 204, 113') || color.includes('46, 204, 113')) return 'green';
+    if (color.includes('rgba(52, 152, 219') || color.includes('52, 152, 219')) return 'blue';
+    if (color.includes('rgba(231, 76, 60') || color.includes('231, 76, 60')) return 'red';
+    if (color.includes('rgba(155, 89, 182') || color.includes('155, 89, 182')) return 'purple';
+    if (color.includes('rgba(230, 126, 34') || color.includes('230, 126, 34')) return 'orange';
+    if (color.includes('rgba(244, 143, 177') || color.includes('244, 143, 177')) return 'pink';
+    return 'yellow';
+  }
+
+  goToStory(storyId: any): void {
+    this.router.navigate(['/book', storyId]);
+  }
+
+  goToChapterFromHighlight(hl: any): void {
+    this.router.navigate(['/reader', hl.story_id, hl.chapter_id], {
+      queryParams: { highlightId: hl.id }
+    });
+  }
+
+  toggleHighlightShare(hl: any, event: Event): void {
+    event.stopPropagation();
+    this.activeShareHighlightId = this.activeShareHighlightId === hl.id ? null : hl.id;
+    this.cdr.detectChanges();
+  }
+
+  copyHighlightLink(hl: any, event: Event): void {
+    event.stopPropagation();
+    const url = `${window.location.origin}/reader/${hl.story_id}/${hl.chapter_id}?highlightId=${hl.id}`;
+    navigator.clipboard.writeText(url).then(
+      () => {
+        this.triggerToast('Link copiato negli appunti!');
+        this.activeShareHighlightId = null;
+        this.cdr.detectChanges();
+      },
+      () => {
+        this.triggerToast('Impossibile copiare il link.');
+      }
+    );
+  }
+
+  shareHighlightToCommunity(hl: any, event: Event): void {
+    event.stopPropagation();
+    this.activeShareHighlightId = null;
+    this.highlightQuote = hl.text;
+    this.rightComposerType = 'quote';
+    this.postTitle = 'Una citazione stupenda';
+    
+    const foundStory = this.stories.find(s => String(s.id) === String(hl.story_id));
+    if (foundStory) {
+      this.rightSelectedStory = foundStory;
+      this.rightSelectedStoryId = foundStory.id;
+    } else {
+      this.rightSelectedStory = {
+        id: hl.story_id,
+        title: hl.story_title,
+        img: hl.story_image
+      };
+      this.rightSelectedStoryId = hl.story_id;
+    }
+    
+    this.showCenterComposer = true;
+    this.activeMobileTab.set('composer');
+    this.cdr.detectChanges();
+  }
+
+  isNativeShareSupported(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return !!navigator.share;
+  }
+
+  shareHighlightOnSocial(hl: any, platform: string, event: Event): void {
+    event.stopPropagation();
+    const url = encodeURIComponent(`${window.location.origin}/reader/${hl.story_id}/${hl.chapter_id}?highlightId=${hl.id}`);
+    const title = encodeURIComponent(`"${hl.text}" - Citazione da ${hl.story_title}`);
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+        break;
+      case 'native':
+        if (navigator.share) {
+          navigator.share({
+            title: `Citazione da ${hl.story_title}`,
+            text: `"${hl.text}"`,
+            url: decodeURIComponent(url)
+          }).then(() => {
+            this.triggerToast('Condiviso con successo!');
+            this.activeShareHighlightId = null;
+            this.cdr.detectChanges();
+          }).catch((err) => {
+            console.log('Condivisione annullata o fallita:', err);
+          });
+        }
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+      this.activeShareHighlightId = null;
+      this.cdr.detectChanges();
     }
   }
 }

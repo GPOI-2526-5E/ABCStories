@@ -340,16 +340,42 @@ export class Api {
     return this.http.get<any[]>(`${this.apiUrl}/api/users/${userId}/collections`);
   }
 
-  createCollection(userId: string, data: { name: string, description: string, storyIds: string[] }) {
+  createCollection(userId: string, data: { name: string, description: string, type?: string, storyIds?: string[], highlightIds?: string[] }) {
     return this.http.post<any>(`${this.apiUrl}/api/users/${userId}/collections`, data);
   }
 
-  updateCollection(collectionId: string, data: { name: string, description: string, storyIds: string[] }) {
+  updateCollection(collectionId: string, data: { name: string, description: string, type?: string, storyIds?: string[], highlightIds?: string[] }) {
     return this.http.put<any>(`${this.apiUrl}/api/collections/${collectionId}`, data);
   }
 
   deleteCollection(collectionId: string) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/collections/${collectionId}`);
+  }
+
+  // ═══════════════ HIGHLIGHTS ═══════════════
+
+  getCommunityHighlights() {
+    return this.http.get<any[]>(`${this.apiUrl}/api/community/highlights`);
+  }
+
+  getChapterHighlights(chapterId: string, userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/chapters/${chapterId}/highlights?userId=${userId}`);
+  }
+
+  getUserHighlights(userId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}/api/users/${userId}/highlights`);
+  }
+
+  addHighlight(data: { userId: string, storyId: string, chapterId: string, paragraphIndex: number, startOffset: number, endOffset: number, text: string, color?: string }) {
+    return this.http.post<any>(`${this.apiUrl}/api/highlights`, data);
+  }
+
+  deleteHighlight(highlightId: string) {
+    return this.http.delete<any>(`${this.apiUrl}/api/highlights/${highlightId}`);
+  }
+
+  updateHighlight(highlightId: string, data: { color?: string, startOffset?: number, endOffset?: number, text?: string }) {
+    return this.http.put<any>(`${this.apiUrl}/api/highlights/${highlightId}`, data);
   }
 
   // ═══════════════ COMMUNITY ═══════════════
@@ -376,6 +402,10 @@ export class Api {
 
   addCommunityPostComment(postId: string, userId: string, content: string) {
     return this.http.post<any>(`${this.apiUrl}/api/community/posts/${postId}/comments`, { userId, content });
+  }
+
+  deleteCommunityPost(postId: string) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/api/community/posts/${postId}`);
   }
 }
 

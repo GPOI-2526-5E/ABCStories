@@ -85,9 +85,102 @@
     <article class="reader-article" [ngClass]="readingWidthClass()">
 
       <div class="reader-text" #readerText [ngClass]="[readingFontClass(), readingFontSizeClass(), readingModeClass()]"
+        [class.highlight-mode-active]="highlightModeActive"
+        [style.--active-selection-color]="selectedColor"
         (scroll)="onReaderTextScroll($event)">
-        @for (para of paragraphs; track $index) {
-        <p>{{ para }}</p>
+        @if (paragraphsWithSegments && paragraphsWithSegments.length > 0) {
+          @for (paraSegments of paragraphsWithSegments; track pIdx; let pIdx = $index) {
+            <p class="reader-paragraph" [attr.data-para-index]="pIdx">
+              @for (seg of paraSegments; track seg.start) {
+                <span *ngIf="seg.highlighted" [id]="'highlight-' + seg.highlightId" class="text-highlighted" [ngClass]="getHighlightClass(seg.color)" 
+                      (mouseenter)="onHighlightMouseEnter(seg.highlightId)" 
+                      (mouseleave)="onHighlightMouseLeave(seg.highlightId)" 
+                      (click)="onHighlightClick(seg, $event)">
+                  {{ seg.text }}
+                  
+                  <span class="highlight-actions-popover glass-core" *ngIf="hoveredHighlightId === seg.highlightId || activeHighlightId === seg.highlightId" (click)="$event.stopPropagation()">
+                    <button class="hl-popover-btn share-btn" [class.active]="shareMenuOpenForHighlightId === seg.highlightId" (click)="toggleHighlightShareMenu(seg, $event)" title="Condividi">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.2" y1="9.8" x2="15.0" y2="5.8" stroke-width="1.8"/>
+                        <line x1="9.0" y1="11.2" x2="15.8" y2="7.2" stroke-width="1.8"/>
+                        <line x1="9.0" y1="12.8" x2="15.8" y2="16.8" stroke-width="1.8"/>
+                        <line x1="8.2" y1="14.2" x2="15.0" y2="18.2" stroke-width="1.8"/>
+                      </svg>
+                    </button>
+                    <button class="hl-popover-btn delete-btn" (click)="deleteHighlightFromPopover(seg.highlightId, $event)" title="Elimina Sottolineatura">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                      </svg>
+                    </button>
+                    
+                    <div class="hl-share-dropdown share-dropdown-menu" *ngIf="shareMenuOpenForHighlightId === seg.highlightId" (click)="$event.stopPropagation()">
+                      <button class="dropdown-item" (click)="copyHighlightLink(seg, $event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        Copia Link
+                      </button>
+                      <button class="dropdown-item" (click)="shareHighlightToCommunity(seg, $event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Condividi in Community
+                      </button>
+                      <button class="dropdown-item" (click)="shareHighlightOnSocial(seg, 'native', $event)" *ngIf="isNativeShareSupported()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                          <circle cx="6" cy="12" r="3" />
+                          <circle cx="18" cy="5" r="3" />
+                          <circle cx="18" cy="19" r="3" />
+                          <line x1="8.2" y1="9.8" x2="15.0" y2="5.8" stroke-width="1.8" />
+                          <line x1="9.0" y1="11.2" x2="15.8" y2="7.2" stroke-width="1.8" />
+                          <line x1="9.0" y1="12.8" x2="15.8" y2="16.8" stroke-width="1.8" />
+                          <line x1="8.2" y1="14.2" x2="15.0" y2="18.2" stroke-width="1.8" />
+                        </svg>
+                        Condivisione di Sistema
+                      </button>
+
+                      <div class="dropdown-divider"></div>
+                      <div class="social-share-label">Condividi sui Social</div>
+                      <div class="social-share-grid">
+                        <button type="button" class="social-btn whatsapp" (click)="shareHighlightOnSocial(seg, 'whatsapp', $event)" title="WhatsApp">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966C16.69 1.976 14.218 1.97 12 1.97c-5.442 0-9.87 4.372-9.874 9.802-.001 1.962.521 3.878 1.514 5.582l-1.012 3.695 3.83-1.002z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn telegram" (click)="shareHighlightOnSocial(seg, 'telegram', $event)" title="Telegram">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M11.944 0C5.344 0 0 5.344 0 11.944c0 6.6 5.344 11.944 11.944 11.944 6.6 0 11.944-5.344 11.944-11.944C23.888 5.344 18.544 0 11.944 0zm5.824 8.016l-1.928 9.078c-.144.65-.528.81-.976.56l-2.936-2.16-1.416 1.36c-.16.16-.288.288-.592.288l.208-2.984 5.44-4.92c.24-.208-.048-.32-.368-.112l-6.728 4.24-2.896-.904c-.632-.2-.64-.632.128-.936l11.312-4.368c.528-.2.984.112.792.936z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn facebook" (click)="shareHighlightOnSocial(seg, 'facebook', $event)" title="Facebook">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn x" (click)="shareHighlightOnSocial(seg, 'x', $event)" title="X">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </span>
+                </span>
+                <ng-container *ngIf="!seg.highlighted">{{ seg.text }}</ng-container>
+              }
+            </p>
+          }
+        } @else {
+          @for (para of paragraphs; track $index) {
+            <p class="reader-paragraph" [attr.data-para-index]="$index">{{ para }}</p>
+          }
         }
       </div>
 
@@ -129,4 +222,32 @@
     }
   </main>
 
+  <!-- Pannello Sottolineatura in basso a sinistra -->
+  <div class="highlight-panel-container">
+    <!-- Menu Colori (A comparsa glassy) -->
+    <div class="highlight-color-picker glass" [class.open]="highlightModeActive">
+      <button *ngFor="let col of highlightColors" 
+              class="color-dot" 
+              [style.backgroundColor]="col.value"
+              [style.boxShadow]="'0 0 8px ' + col.textShadow"
+              [class.active]="selectedColor === col.value"
+              [title]="col.name"
+              (mousedown)="$event.preventDefault()"
+              (click)="selectColor(col.value)">
+      </button>
+    </div>
+
+    <!-- Bottone Sottolinea Fisso -->
+    <button class="fixed-highlight-btn always-visible" 
+            [class.active]="highlightModeActive"
+            (mousedown)="$event.preventDefault()"
+            (click)="toggleHighlightMode()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px; flex-shrink: 0;">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+      </svg>
+      <span>{{ highlightModeActive ? 'Evidenziatore ON' : 'Evidenziatore' }}</span>
+      <span class="active-color-indicator" [style.backgroundColor]="selectedColor"></span>
+    </button>
+  </div>
 </div>

@@ -22,7 +22,7 @@ export class Notifications implements OnInit {
 
   notifications: any[] = [];
   followedAuthorIds = new Set<string>();
-  filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions' = 'all';
+  filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions' | 'community' = 'all';
   loading = true;
   userProfile: any = null;
 
@@ -98,6 +98,9 @@ export class Notifications implements OnInit {
     if (this.filter === 'interactions') {
       return this.notifications.filter(n => n.type === 'story_like' || n.type === 'story_bookmark');
     }
+    if (this.filter === 'community') {
+      return this.notifications.filter(n => n.type === 'community_like' || n.type === 'community_comment');
+    }
     return this.notifications;
   }
 
@@ -129,7 +132,11 @@ export class Notifications implements OnInit {
     return this.notifications.filter(n => n.type === 'story_like' || n.type === 'story_bookmark').length;
   }
 
-  setFilter(filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions'): void {
+  get communityCount(): number {
+    return this.notifications.filter(n => n.type === 'community_like' || n.type === 'community_comment').length;
+  }
+
+  setFilter(filter: 'all' | 'unread' | 'likes' | 'bookmarks' | 'comments' | 'follows' | 'stories' | 'interactions' | 'community'): void {
     this.filter = filter;
   }
 
@@ -245,6 +252,10 @@ export class Notifications implements OnInit {
     if (filterName === 'interactions') {
       return this.userProfile.notifiche_storie_like === false &&
              this.userProfile.notifiche_storie_preferiti === false;
+    }
+    if (filterName === 'community') {
+      return this.userProfile.notifiche_community_like === false &&
+             this.userProfile.notifiche_community_commento === false;
     }
     return false;
   }

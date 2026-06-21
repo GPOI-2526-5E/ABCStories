@@ -489,6 +489,122 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
     this.router.navigate(['/home']);
   }
 
+  shareMenuOpen = false;
+  showLocalToast = false;
+  localToastMessage = '';
+  private localToastTimeout: any = null;
+
+  toggleShareMenu(event: Event): void {
+    event.stopPropagation();
+    this.shareMenuOpen = !this.shareMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    this.shareMenuOpen = false;
+  }
+
+  copyShareLink(): void {
+    if (!this.book?.id || !isPlatformBrowser(this.platformId)) return;
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(
+      () => {
+        this.triggerLocalToast('Link copiato negli appunti!');
+        this.shareMenuOpen = false;
+      },
+      () => {
+        this.triggerLocalToast('Impossibile copiare il link.');
+      }
+    );
+  }
+
+  shareToCommunity(): void {
+    if (!this.book?.id) return;
+    this.shareMenuOpen = false;
+    this.router.navigate(['/community'], { queryParams: { shareStoryId: this.book.id } });
+  }
+
+  shareReviewToCommunity(review: any): void {
+    if (!this.book?.id || !review?.id) return;
+    this.router.navigate(['/community'], { 
+      queryParams: { 
+        shareStoryId: this.book.id, 
+        shareReviewId: review.id 
+      } 
+    });
+  }
+
+  shareCommentToCommunity(comment: any): void {
+    if (!this.book?.id || !comment?.id) return;
+    this.router.navigate(['/community'], { 
+      queryParams: { 
+        shareStoryId: this.book.id, 
+        shareCommentId: comment.id 
+      } 
+    });
+  }
+
+  isNativeShareSupported(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return !!navigator.share;
+  }
+
+  shareOnSocial(platform: string): void {
+    if (!this.book?.id || !isPlatformBrowser(this.platformId)) return;
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(`Leggi "${this.book.title}" su ABCStories!`);
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+        break;
+      case 'native':
+        if (navigator.share) {
+          navigator.share({
+            title: this.book.title,
+            text: `Leggi "${this.book.title}" su ABCStories!`,
+            url: window.location.href
+          }).then(
+            () => {
+              this.triggerLocalToast('Condiviso con successo!');
+              this.shareMenuOpen = false;
+            },
+            (err) => console.warn('Errore condivisione nativa:', err)
+          );
+          return;
+        }
+        break;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+      this.shareMenuOpen = false;
+    }
+  }
+
+  triggerLocalToast(message: string): void {
+    this.localToastMessage = message;
+    this.showLocalToast = true;
+    this.cdr.detectChanges();
+    if (this.localToastTimeout) {
+      clearTimeout(this.localToastTimeout);
+    }
+    this.localToastTimeout = setTimeout(() => {
+      this.showLocalToast = false;
+      this.cdr.detectChanges();
+    }, 3000);
+  }
+
   reviews: any[] | null = null;
 
   similarBooks = [

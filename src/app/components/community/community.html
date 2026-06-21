@@ -45,6 +45,13 @@
             </span>
             <span class="nav-btn__label">Più Votati</span>
           </button>
+          <button class="nav-link-btn" [class.active]="activeSection() === 'highlights'"
+            (click)="setSection('highlights')" id="btn-side-nav-highlights">
+            <span class="nav-btn__icon">
+              <img src="assets/Icone/sottolinea.png" alt="Sottolineature" class="sidebar-icon-img" />
+            </span>
+            <span class="nav-btn__label">Sottolineature</span>
+          </button>
         </nav>
 
         <hr class="sidebar-divider" />
@@ -108,7 +115,8 @@
         <!-- Header dell'editor -->
         <div class="composer-header-actions mb-4">
           <h3 class="composer-title-text">
-            {{ rightComposerType === 'general' ? 'Crea un Nuovo Post' : 'Rispondi a Recensione / Commento' }}
+            {{ rightComposerType === 'general' ? 'Crea un Nuovo Post' : (rightComposerType === 'quote' ? 'Condividi Frasi' : (rightComposerType === 'reply_review' ?
+            'Rispondi a Recensione' : 'Rispondi a Commento')) }}
           </h3>
           <button type="button" class="btn-close-composer" (click)="cancelCenterComposer()"
             title="Chiudi e salva bozza">✕</button>
@@ -123,11 +131,68 @@
               [(ngModel)]="postTitle" autocomplete="off" />
           </div>
 
+          <!-- Textarea per la citazione (se post tipo quote) -->
+          <div *ngIf="rightComposerType === 'quote'" class="editor-field-group mb-4">
+            <!-- Selettore Sottolineature Utente (Se NON selezionata) -->
+            <label class="editor-step-label mb-2" *ngIf="!highlightQuote">Seleziona una delle tue sottolineature salvate</label>
+            <div class="compact-story-picker mb-4" *ngIf="!highlightQuote">
+              <div class="general-search-wrapper mb-2" *ngIf="userHighlights.length > 0">
+                <input type="text" class="glass-input compact-input" placeholder="Cerca tra le tue frasi..."
+                  [(ngModel)]="searchUserHighlightText" />
+              </div>
+
+              <div class="user-highlights-picker-list" *ngIf="filteredUserHighlights.length > 0"
+                style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(25px); border-radius: 12px; padding: 10px;">
+                <div class="picker-item-card" *ngFor="let hl of filteredUserHighlights"
+                  [class.selected]="highlightQuote === hl.text" (click)="selectUserHighlight(hl)"
+                  style="padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255, 255, 255, 0.25);"
+                  [style.background]="highlightQuote === hl.text ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.12)'">
+                  <div class="picker-item-meta" style="font-size: 11px; color: #475569; display: flex; justify-content: space-between; font-weight: 600;">
+                    <span style="color: #c27d00;">{{ hl.story_title }}</span>
+                    <span>Cap. {{ hl.chapter_title }}</span>
+                  </div>
+                  <p class="picker-item-text" style="font-size: 13px; margin: 4px 0 0 0; font-family: Georgia, serif; font-style: italic; color: #0f172a;">
+                    "{{ hl.text }}"
+                  </p>
+                </div>
+              </div>
+
+              <div class="no-items-warning mt-2" *ngIf="userHighlights.length === 0" style="font-size: 13px; color: #475569; text-align: center; padding: 10px;">
+                Non hai ancora sottolineato nessuna frase. Vai a leggere per crearne una!
+              </div>
+              <div class="no-items-warning mt-2" *ngIf="userHighlights.length > 0 && filteredUserHighlights.length === 0" style="font-size: 13px; color: #475569; text-align: center; padding: 10px;">
+                Nessuna sottolineatura corrisponde alla ricerca.
+              </div>
+            </div>
+
+            <!-- Riquadro frase selezionata (se selezionata) -->
+            <div class="selected-highlight-badge mb-4 animate-fade-in" *ngIf="highlightQuote"
+              style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.15); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px);">
+              <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <span class="selected-badge-title" style="font-size: 11px; font-weight: 700; color: #c27d00; text-transform: uppercase;">Frase Selezionata</span>
+                <p class="selected-badge-text" style="font-size: 14.5px; margin: 4px 0 0 0; font-family: Georgia, serif; font-style: italic; color: #0f172a; line-height: 1.4;">
+                  "{{ highlightQuote }}"
+                </p>
+                <div class="selected-badge-meta" *ngIf="rightSelectedStory" style="font-size: 12px; color: #475569; margin-top: 4px;">
+                  Da <strong>{{ rightSelectedStory.title }}</strong>
+                </div>
+              </div>
+              <button type="button" class="btn-remove-selected-highlight" (click)="highlightQuote = ''; rightSelectedStory = null; rightSelectedStoryId = null;"
+                style="background: rgba(255, 85, 85, 0.15); border: none; border-radius: 6px; color: #ff5555; cursor: pointer; padding: 6px 12px; font-size: 12px; font-weight: bold; transition: all 0.2s; margin-left: 12px;">
+                  ✕ Rimuovi
+              </button>
+            </div>
+          </div>
+
           <!-- SEZIONE COMPOSER RECENSIONE / COMMENTO -->
-          <div *ngIf="rightComposerType === 'review_comment'" class="editor-review-comment-block mb-4">
+          <div *ngIf="rightComposerType === 'reply_review' || rightComposerType === 'reply_comment'"
+            class="editor-review-comment-block mb-4">
 
             <div class="editor-step mb-4">
-              <label class="editor-step-label">1. Seleziona una storia dai tuoi preferiti/like</label>
+              <label class="editor-step-label">
+                {{ rightComposerType === 'reply_review' ? '1. Seleziona una storia dai tuoi preferiti/like per la
+                recensione' : '1. Seleziona una storia dai tuoi preferiti/like per il commento' }}
+              </label>
 
               <div class="compact-story-picker">
                 <div class="general-search-wrapper mb-3" *ngIf="!rightSelectedStoryId">
@@ -174,21 +239,10 @@
             </div>
 
             <div class="editor-step mb-4" *ngIf="rightSelectedStory">
-              <label class="editor-step-label">2. Tipo di elemento da citare</label>
-              <div class="toggle-options-row">
-                <button type="button" class="toggle-option-btn" [class.active]="reviewCommentType === 'review'"
-                  (click)="onReviewCommentTypeChange('review')">
-                  Recensioni
-                </button>
-                <button type="button" class="toggle-option-btn" [class.active]="reviewCommentType === 'comment'"
-                  (click)="onReviewCommentTypeChange('comment')">
-                  Commenti
-                </button>
-              </div>
-            </div>
-
-            <div class="editor-step mb-4" *ngIf="rightSelectedStory">
-              <label class="editor-step-label">3. Seleziona la recensione/commento specifico</label>
+              <label class="editor-step-label">
+                {{ rightComposerType === 'reply_review' ? '2. Seleziona la recensione specifica da commentare' : '2.
+                Seleziona il commento specifico da commentare' }}
+              </label>
 
               <div class="general-search-wrapper mb-2" *ngIf="fetchedReviewsOrComments.length > 0">
                 <input type="text" class="glass-input compact-input" placeholder="Cerca testo o autore..."
@@ -438,23 +492,118 @@
               </button>
             </div>
           </div>
-
-          <div class="loading-state glass-core p-5 text-center" *ngIf="loading">
+              <div class="loading-state glass-core p-5 text-center" *ngIf="loading">
             <div class="spinner-border text-warning" role="status">
               <span class="visually-hidden">Caricamento...</span>
             </div>
             <p class="mt-3 text-muted">Caricamento del feed della community...</p>
           </div>
 
-          <div class="empty-state glass-core p-5 text-center animate-fade-in"
-            *ngIf="!loading && getFilteredPosts().length === 0">
-            <h3>Ancora nessun post in questa categoria</h3>
-            <p class="text-muted">Dai inizio alla conversazione pubblicando il primo post!</p>
-          </div>
+          <!-- Sezione Sottolineature Public della Community -->
+          <ng-container *ngIf="!loading && activeSection() === 'highlights'">
+            <div class="empty-state glass-core p-5 text-center animate-fade-in"
+              *ngIf="getFilteredCommunityHighlights().length === 0">
+              <h3>Nessuna citazione trovata</h3>
+              <p class="text-muted">Nessuna sottolineatura corrisponde alla ricerca o non è stato ancora sottolineato nulla.</p>
+            </div>
 
-          <!-- Post Cards Redesign Stile Reddit -->
-          <div class="post-card glass-core mb-4 animate-fade-in" *ngFor="let post of getFilteredPosts()"
-            [id]="'post-' + post.id" [class.shared-highlight]="post.id === sharedPostId">
+            <div class="community-highlights-grid" *ngIf="getFilteredCommunityHighlights().length > 0">
+              <div class="highlight-profile-card glass-core" *ngFor="let hl of getFilteredCommunityHighlights()" [ngClass]="getHighlightClass(hl.color)">
+                <div class="highlight-card-text" [ngClass]="getHighlightClass(hl.color)" (click)="goToChapterFromHighlight(hl)" title="Leggi nel Reader">
+                  "{{ hl.text }}"
+                </div>
+                <div class="highlight-card-meta">
+                  <span class="hl-user-badge" title="Creatore">
+                    {{ hl.user_name }}
+                  </span>
+                  <span class="hl-book-badge" (click)="$event.stopPropagation(); goToStory(hl.story_id)" title="Esplora storia">
+                    {{ hl.story_title }}
+                  </span>
+                  <span class="hl-chapter-badge" (click)="$event.stopPropagation(); goToChapterFromHighlight(hl)" title="Leggi capitolo">
+                    Cap. {{ hl.chapter_title }}
+                  </span>
+
+                  <div class="highlight-share-container" (click)="$event.stopPropagation()">
+                    <button class="btn-share-highlight" (click)="toggleHighlightShare(hl, $event)" title="Condividi Sottolineatura">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.2" y1="9.8" x2="15.0" y2="5.8" stroke-width="1.8" />
+                        <line x1="9.0" y1="11.2" x2="15.8" y2="7.2" stroke-width="1.8" />
+                        <line x1="9.0" y1="12.8" x2="15.8" y2="16.8" stroke-width="1.8" />
+                        <line x1="8.2" y1="14.2" x2="15.0" y2="18.2" stroke-width="1.8" />
+                      </svg>
+                    </button>
+                    <div class="share-dropdown-menu" *ngIf="activeShareHighlightId === hl.id" (click)="$event.stopPropagation()">
+                      <button class="dropdown-item" (click)="copyHighlightLink(hl, $event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        Copia Link
+                      </button>
+                      <button class="dropdown-item" (click)="shareHighlightToCommunity(hl, $event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Condividi in Community
+                      </button>
+                      <button class="dropdown-item" (click)="shareHighlightOnSocial(hl, 'native', $event)" *ngIf="isNativeShareSupported()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                          <circle cx="6" cy="12" r="3" />
+                          <circle cx="18" cy="5" r="3" />
+                          <circle cx="18" cy="19" r="3" />
+                          <line x1="8.2" y1="9.8" x2="15.0" y2="5.8" stroke-width="1.8" />
+                          <line x1="9.0" y1="11.2" x2="15.8" y2="7.2" stroke-width="1.8" />
+                          <line x1="9.0" y1="12.8" x2="15.8" y2="16.8" stroke-width="1.8" />
+                          <line x1="8.2" y1="14.2" x2="15.0" y2="18.2" stroke-width="1.8" />
+                        </svg>
+                        Condivisione di Sistema
+                      </button>
+
+                      <div class="dropdown-divider"></div>
+                      <div class="social-share-label">Condividi sui Social</div>
+                      <div class="social-share-grid">
+                        <button type="button" class="social-btn whatsapp" (click)="shareHighlightOnSocial(hl, 'whatsapp', $event)" title="WhatsApp">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966C16.69 1.976 14.218 1.97 12 1.97c-5.442 0-9.87 4.372-9.874 9.802-.001 1.962.521 3.878 1.514 5.582l-1.012 3.695 3.83-1.002z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn telegram" (click)="shareHighlightOnSocial(hl, 'telegram', $event)" title="Telegram">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M11.944 0C5.344 0 0 5.344 0 11.944c0 6.6 5.344 11.944 11.944 11.944 6.6 0 11.944-5.344 11.944-11.944C23.888 5.344 18.544 0 11.944 0zm5.824 8.016l-1.928 9.078c-.144.65-.528.81-.976.56l-2.936-2.16-1.416 1.36c-.16.16-.288.288-.592.288l.208-2.984 5.44-4.92c.24-.208-.048-.32-.368-.112l-6.728 4.24-2.896-.904c-.632-.2-.64-.632.128-.936l11.312-4.368c.528-.2.984.112.792.936z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn facebook" (click)="shareHighlightOnSocial(hl, 'facebook', $event)" title="Facebook">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="social-btn x" (click)="shareHighlightOnSocial(hl, 'x', $event)" title="X">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Sezione Post Classica -->
+          <ng-container *ngIf="!loading && activeSection() !== 'highlights'">
+            <div class="empty-state glass-core p-5 text-center animate-fade-in"
+              *ngIf="getFilteredPosts().length === 0">
+              <h3>Ancora nessun post in questa categoria</h3>
+              <p class="text-muted">Dai inizio alla conversazione pubblicando il primo post!</p>
+            </div>
+
+            <!-- Post Cards Redesign Stile Reddit -->
+            <div class="post-card glass-core mb-4 animate-fade-in" *ngFor="let post of getFilteredPosts()"
+              [id]="'post-' + post.id" [class.shared-highlight]="post.id === sharedPostId">
 
             <!-- Desktop Vote Bar (Colonna Sinistra) -->
             <div class="post-vote-sidebar d-none d-lg-flex">
@@ -651,13 +800,28 @@
                   [id]="'btn-share-' + post.id">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.2" y1="9.8" x2="15.0" y2="5.8" stroke-width="1.8" />
+                    <line x1="9.0" y1="11.2" x2="15.8" y2="7.2" stroke-width="1.8" />
+                    <line x1="9.0" y1="12.8" x2="15.8" y2="16.8" stroke-width="1.8" />
+                    <line x1="8.2" y1="14.2" x2="15.0" y2="18.2" stroke-width="1.8" />
                   </svg>
                   <span>Condividi</span>
+                </button>
+
+                <!-- Elimina -->
+                <button class="post-action-btn footer-action-btn delete-post-btn" *ngIf="currentUser()?.id === post.author_id"
+                  (click)="deletePost(post)" [id]="'btn-delete-post-' + post.id">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  <span>Elimina</span>
                 </button>
 
               </div>
@@ -708,8 +872,9 @@
               </div>
 
             </div>
-
           </div>
+
+          </ng-container>
 
         </div>
       </div> <!-- Fine showCenterComposer condition -->
@@ -753,7 +918,7 @@
           <div class="draft-item" *ngFor="let draft of drafts" (click)="loadDraft(draft)">
             <div class="draft-info">
               <span class="draft-title">{{ draft.title }}</span>
-              <span class="draft-meta">{{ draft.type === 'general' ? 'Post' : 'Recensione' }} &bull; {{
+              <span class="draft-meta">{{ draft.type === 'general' ? 'Post' : (draft.type === 'quote' ? 'Frasi' : 'Recensione') }} &bull; {{
                 formatTimeAgo(draft.updatedAt) }}</span>
             </div>
             <button class="btn-delete-draft" (click)="deleteDraft(draft.id, $event)" title="Elimina bozza">
@@ -836,154 +1001,64 @@
             </div>
           </button>
 
-          <button type="button" class="btn-select-composer-type disabled-select" title="Citazione (Stand-by)">
+          <button type="button" class="btn-select-composer-type"
+            [class.active]="showCenterComposer && rightComposerType === 'quote'"
+            (click)="activateCenterComposer('quote')">
             <div class="btn-select-info">
-              <span class="btn-select-title">Citazione Libro <span class="standby-tag">Stand-by</span></span>
-              <span class="btn-select-desc">Condividi una frase o estratto memorabile</span>
-            </div>
-          </button>
-
-          <button type="button" class="btn-select-composer-type disabled-select" title="Opinione (Stand-by)">
-            <div class="btn-select-info">
-              <span class="btn-select-title">Esprimi Opinione <span class="standby-tag">Stand-by</span></span>
-              <span class="btn-select-desc">Condividi un commento piaciuto/non piaciuto</span>
+              <span class="btn-select-title">Condividi Frasi</span>
+              <span class="btn-select-desc">Condividi una delle tue frasi sottolineate</span>
             </div>
           </button>
 
           <button type="button" class="btn-select-composer-type"
-            [class.active]="showCenterComposer && rightComposerType === 'review_comment'"
-            (click)="activateCenterComposer('review_comment')">
+            [class.active]="showCenterComposer && rightComposerType === 'reply_comment'"
+            (click)="activateCenterComposer('reply_comment')">
             <div class="btn-select-info">
-              <span class="btn-select-title">Recensione/Commento</span>
-              <span class="btn-select-desc">Commenta recensioni e risposte di un libro</span>
+              <span class="btn-select-title">Rispondi a Commento</span>
+              <span class="btn-select-desc">Commenta un commento di un libro</span>
+            </div>
+          </button>
+
+          <button type="button" class="btn-select-composer-type"
+            [class.active]="showCenterComposer && rightComposerType === 'reply_review'"
+            (click)="activateCenterComposer('reply_review')">
+            <div class="btn-select-info">
+              <span class="btn-select-title">Rispondi a Recensione</span>
+              <span class="btn-select-desc">Commenta una recensione di un libro</span>
             </div>
           </button>
         </div>
       </div>
 
-      <!-- Impostazioni Community (Sempre Aperte) -->
-      <div class="sidebar-widget settings-widget glass-core">
-        <h3 class="widget-title mb-3">Impostazioni Community</h3>
 
-        <div class="settings-widget-body">
-          <h4 class="settings-sub-title">Notifiche Community</h4>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Risposte commenti</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.risposte_commenti"
-                (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Like commenti</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.like_commenti" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Like post</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.community_like" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Commenti post</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.community_commento"
-                (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Nuovi follower</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.nuovo_follower" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <hr class="settings-divider" />
-
-          <h4 class="settings-sub-title">Filtri Contenuto</h4>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Storie 18+</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Community 18+</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus_community"
-                (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div class="toggle-label-meta">
-              <span>Filtro Sensibile</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.sensitive_filter" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
 
     </aside>
 
   </div>
 
-  <!-- ==================== MOBILE LAYOUT FROM ZERO ==================== -->
-  <div class="community-mobile-layout">
+  <!-- ==================== MODERN MOBILE PROGRESSIVE LAYOUT ==================== -->
+  <div class="community-mobile-viewport">
 
-    <!-- A. TOP STICKY MOBILE NAVIGATION HEADER -->
-    <!-- A. TOP STICKY MOBILE NAVIGATION HEADER MODERNO -->
-    <header class="mobile-header glass-core">
-      <div class="mobile-header-inner-row">
+    <!-- ─── A. MASTER FIXED STICKY GLASS HEADER ─── -->
+    <header class="mobile-premium-header" *ngIf="activeMobileTab() !== 'composer' && activeMobileTab() !== 'activity'">
 
-        <h2 class="mobile-logo-title" *ngIf="!selectedCommunityId() && !selectedAuthorId()">Community</h2>
+      <!-- Prima Riga: Titolo, Badge Filtro Dinamico e Azioni -->
+      <div class="header-top-surface">
+        <h2 class="mobile-section-title-text" *ngIf="!selectedCommunityId() && !selectedAuthorId()">Community</h2>
 
-        <div class="mobile-active-filter-badge" *ngIf="selectedCommunityId() || selectedAuthorId()">
-          <div class="filter-badge-content">
-            <span class="filter-badge-avatar">👤</span>
-            <span class="filter-badge-text">
-              {{ selectedCommunityId() ? 'c/' + selectedCommunityTitle() : 'u/' + selectedAuthor()?.name }}
+        <!-- Badge di Filtraggio Attivo Libero da Bug e Schiacciamenti -->
+        <div class="mobile-active-filter-capsule animate-fade-in" *ngIf="selectedCommunityId() || selectedAuthorId()">
+          <div class="capsule-inner-data">
+            <span class="capsule-avatar-indicator">✨</span>
+            <span class="capsule-label-text">
+              {{ selectedCommunityId() ? 'c/' + selectedCommunityTitle() : selectedAuthor()?.name }}
             </span>
           </div>
-          <button class="btn-clear-mobile-filter" (click)="resetAllFilters()" aria-label="Rimuovi filtro">✕</button>
+          <button class="btn-reset-filter-cross" (click)="resetAllFilters()">✕</button>
         </div>
 
-        <div class="mobile-header-actions">
-          <button class="btn-header-action" [class.active]="filterDropdownOpen" (click)="toggleFilterDropdown()"
-            title="Scope Ricerca">
+        <div class="header-action-trigger-zone">
+          <button class="btn-trigger-action-orb" [class.active]="filterDropdownOpen" (click)="toggleFilterDropdown()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
               <path d="M3 6h18M6 12h12M9 18h6" />
             </svg>
@@ -991,855 +1066,824 @@
         </div>
       </div>
 
-      <div class="mobile-fixed-search-bar" *ngIf="activeMobileTab() === 'feed'">
-        <div class="gd-search">
-          <svg class="gd-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"
-            height="16">
+      <!-- Seconda Riga: Barra di Ricerca XL ad Alta Ergonomia Tattile -->
+      <div class="header-search-surface" *ngIf="activeMobileTab() === 'feed'">
+        <div class="premium-glass-search-box">
+          <svg class="search-box-lens-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            width="16" height="16">
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />
           </svg>
-          <input class="gd-search__input" type="text" placeholder="Cerca post, autori o storie..."
+          <input class="search-box-native-input" type="text" placeholder="Cerca post, storie, autori memorabili..."
             [(ngModel)]="searchQuery" autocomplete="off" />
-          <button *ngIf="searchQuery" class="gd-search__clear" (click)="searchQuery = ''">✕</button>
+          <button *ngIf="searchQuery" class="search-box-clear-cross" (click)="searchQuery = ''">✕</button>
         </div>
 
-        <div class="mobile-search-scopes-drawer animate-fade-in" *ngIf="filterDropdownOpen">
-          <span class="scope-label">Filtra per:</span>
-          <div class="scope-chips">
-            <button class="scope-chip" [class.active]="searchScope() === 'all'"
+        <!-- Cassetto Opzioni Scope Ricerca -->
+        <div class="search-scopes-drawer-panel animate-fade-in" *ngIf="filterDropdownOpen">
+          <span class="drawer-panel-caption">Filtra per:</span>
+          <div class="drawer-panel-chips">
+            <button class="scope-pill-chip" [class.active]="searchScope() === 'all'"
               (click)="selectFilterOption('all')">Tutto</button>
-            <button class="scope-chip" [class.active]="searchScope() === 'author'"
+            <button class="scope-chip-pill" [class.active]="searchScope() === 'author'"
               (click)="selectFilterOption('author')">Autori</button>
-            <button class="scope-chip" [class.active]="searchScope() === 'story'"
+            <button class="scope-chip-pill" [class.active]="searchScope() === 'story'"
               (click)="selectFilterOption('story')">Storie</button>
-            <button class="scope-chip" [class.active]="searchScope() === 'post'"
+            <button class="scope-chip-pill" [class.active]="searchScope() === 'post'"
               (click)="selectFilterOption('post')">Post</button>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- B. TAB PAGES -->
+    <!-- ─── B. MASTER INDEPENDENT SCROLLABLE BODY ─── -->
+    <div class="mobile-viewport-scrollable-body"
+      [class.no-header]="activeMobileTab() === 'composer' || activeMobileTab() === 'activity'">
 
-    <!-- TAB 1: FEED PAGE -->
-    <div class="mobile-tab-content feed-tab-page" *ngIf="activeMobileTab() === 'feed'">
+      <!-- ════ TAB 1: FEEDS TIMELINE ════ -->
+      <div class="mobile-tab-view-page" *ngIf="activeMobileTab() === 'feed'">
 
-      <!-- Horizontal Categories Bar (Home, Popolari, ecc.) -->
-      <div class="mobile-horizontal-categories">
-        <button class="category-pill" [class.active]="activeSection() === 'home' && !selectedCommunityId()"
-          (click)="setSection('home')">Home</button>
-        <button class="category-pill" [class.active]="activeSection() === 'popular'"
-          (click)="setSection('popular')">Popolari</button>
-        <button class="category-pill" [class.active]="activeSection() === 'new'"
-          (click)="setSection('new')">Update</button>
-        <button class="category-pill" [class.active]="activeSection() === 'following'"
-          (click)="setSection('following')">Seguendo</button>
-        <button class="category-pill" [class.active]="activeSection() === 'top_voted'"
-          (click)="setSection('top_voted')">Votati</button>
-      </div>
+        <!-- Canali / Categorie Orizzontali -->
+        <div class="mobile-horizontal-category-scroller">
+          <button class="pill-category-node" [class.active]="activeSection() === 'home' && !selectedCommunityId()"
+            (click)="setSection('home')">Home</button>
+          <button class="pill-category-node" [class.active]="activeSection() === 'popular'"
+            (click)="setSection('popular')">Popolari</button>
+          <button class="pill-category-node" [class.active]="activeSection() === 'new'"
+            (click)="setSection('new')">Update</button>
+          <button class="pill-category-node" [class.active]="activeSection() === 'following'"
+            (click)="setSection('following')">Seguendo</button>
+          <button class="pill-category-node" [class.active]="activeSection() === 'top_voted'"
+            (click)="setSection('top_voted')">Votati</button>
+        </div>
 
-      <!-- Sub-filters Bar (Tutti, Citazioni, Opinioni) -->
-      <div class="mobile-sub-tabs">
-        <button class="sub-tab-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">Tutti</button>
-        <button class="sub-tab-btn" [class.active]="activeTab() === 'quote'"
-          (click)="setTab('quote')">Citazioni</button>
-        <button class="sub-tab-btn" [class.active]="activeTab() === 'comment'"
-          (click)="setTab('comment')">Opinioni</button>
-      </div>
+        <!-- Sotto-Filtri Tipologia Post -->
+        <div class="mobile-sub-navigation-tabs">
+          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">Tutti</button>
+          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'quote'"
+            (click)="setTab('quote')">Citazioni</button>
+          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'comment'"
+            (click)="setTab('comment')">Opinioni</button>
+        </div>
 
-      <!-- Horizontal Sliding Followed Authors -->
-      <div class="mobile-followed-authors-section"
-        *ngIf="followedAuthors().length > 0 && !selectedAuthorId() && !selectedCommunityId()">
-        <h4 class="authors-section-title">Autori che segui</h4>
-        <div class="authors-slider-wrapper">
-          <div class="authors-slider-item" *ngFor="let author of followedAuthors()" (click)="filterByAuthor(author)">
-            <div class="author-avatar-circle">
-              <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="avatar-img" />
-              <div *ngIf="!author.avatar_url" class="avatar-fallback" [style.background]="author.avatarGradient">
-                {{ author.initials }}
+        <!-- Slider Autori Seguiti (Widescreen Mobile Carousel) -->
+        <div class="mobile-authors-carousel-section"
+          *ngIf="followedAuthors().length > 0 && !selectedAuthorId() && !selectedCommunityId()">
+          <h4 class="carousel-section-heading">Autori che segui</h4>
+          <div class="carousel-track-wrapper">
+            <div class="carousel-author-node" *ngFor="let author of followedAuthors()" (click)="filterByAuthor(author)">
+              <div class="author-avatar-glowing-ring">
+                <img *ngIf="author.avatar_url" [src]="author.avatar_url" alt="Avatar" class="avatar-native-img" />
+                <div *ngIf="!author.avatar_url" class="avatar-fallback-initials"
+                  [style.background]="author.avatarGradient">
+                  {{ author.initials }}
+                </div>
+              </div>
+              <span class="author-node-username-text">{{ author.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scheda Profilo Autore Attivo (Filtro) -->
+        <div class="selected-author-profile-card glass-core animate-fade-in mb-4" *ngIf="selectedAuthor()">
+          <button class="btn-close-author-card" (click)="resetAllFilters()">✕</button>
+          <div class="selected-author-profile-card-inner">
+            <div class="author-avatar-large-container">
+              <img *ngIf="selectedAuthor().avatar_url" [src]="selectedAuthor().avatar_url" alt="Avatar"
+                class="author-avatar-large" />
+              <div *ngIf="!selectedAuthor().avatar_url" class="author-avatar-large-fallback"
+                [style.background]="selectedAuthor().avatarGradient">
+                {{ selectedAuthor().initials }}
               </div>
             </div>
-            <span class="author-slider-name">{{ author.name }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Author Filter Profile Card -->
-      <div class="selected-author-profile-card glass-core animate-fade-in mb-3 mx-2" *ngIf="selectedAuthor()">
-        <button class="btn-close-author-card" (click)="resetAllFilters()">✕</button>
-        <div class="selected-author-profile-card-inner">
-          <div class="author-avatar-large-container">
-            <img *ngIf="selectedAuthor().avatar_url" [src]="selectedAuthor().avatar_url" alt="Avatar"
-              class="author-avatar-large" />
-            <div *ngIf="!selectedAuthor().avatar_url" class="author-avatar-large-fallback"
-              [style.background]="selectedAuthor().avatarGradient">
-              {{ selectedAuthor().initials }}
+            <div class="author-meta-large">
+              <h3 class="author-name-large">{{ selectedAuthor().name }}</h3>
+              <p class="author-bio-large text-muted mb-0">{{ selectedAuthor().description || 'Nessuna biografia
+                disponibile.' }}</p>
             </div>
+            <button class="action-follow-btn" [class.action-follow-btn--active]="isFollowingSelectedAuthor()"
+              (click)="toggleFollowSelectedAuthor()">
+              {{ isFollowingSelectedAuthor() ? '✓ Seguendo' : '+ Segui' }}
+            </button>
           </div>
-          <div class="author-meta-large">
-            <h3 class="author-name-large">{{ selectedAuthor().name }}</h3>
-            <p class="author-bio-large text-muted mb-0">{{ selectedAuthor().description || 'Nessuna biografia
-              disponibile per questo autore.' }}</p>
+        </div>
+
+        <!-- Lista Feed Post Ridisegnata -->
+        <div class="mobile-posts-timeline-feed">
+
+          <div class="loading-state glass-core p-4 text-center" *ngIf="loading">
+            <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
+            <p class="mt-2 text-muted mb-0" style="font-size: 13px;">Sincronizzazione feed...</p>
           </div>
-          <button class="action-follow-btn" [class.action-follow-btn--active]="isFollowingSelectedAuthor()"
-            (click)="toggleFollowSelectedAuthor()">
-            {{ isFollowingSelectedAuthor() ? '✓ Seguendo' : '+ Segui' }}
-          </button>
-        </div>
-      </div>
 
-      <!-- Posts List -->
-      <div class="mobile-posts-list px-2 pb-5">
+          <div class="empty-state glass-core p-5 text-center animate-fade-in"
+            *ngIf="!loading && getFilteredPosts().length === 0">
+            <h4 style="font-size: 15px; font-weight: 700;">Nessun post trovato</h4>
+            <p class="text-muted mb-0" style="font-size: 13px; margin-top: 4px;">Dai inizio alla conversazione cambiando
+              scheda o filtri!</p>
+          </div>
 
-        <div class="loading-state glass-core p-4 text-center" *ngIf="loading">
-          <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
-          <p class="mt-2 text-muted mb-0" style="font-size: 13px;">Caricamento feed...</p>
-        </div>
+          <!-- Post Card Mobile Unificata -->
+          <div class="post-card mobile-premium-post-card glass-core mb-3" *ngFor="let post of getFilteredPosts()">
+            <div class="post-main-content">
 
-        <div class="empty-state glass-core p-4 text-center animate-fade-in"
-          *ngIf="!loading && getFilteredPosts().length === 0">
-          <h4 style="font-size: 15px; font-weight: 700;">Nessun post trovato</h4>
-          <p class="text-muted mb-0" style="font-size: 13px;">Inizia la discussione o cambia i filtri applicati.</p>
-        </div>
-
-        <!-- Post Cards Mobile -->
-        <div class="post-card mobile-post-card glass-core mb-3" *ngFor="let post of getFilteredPosts()"
-          [id]="'mobile-post-' + post.id" [class.shared-highlight]="post.id === sharedPostId">
-
-          <div class="post-main-content">
-            <!-- Header (Avatar, Title, Time, Badge) -->
-            <div class="post-header-reddit">
-              <div class="post-author-row">
-                <div class="post-author-avatar-container">
-                  <img *ngIf="post.author_avatar" [src]="post.author_avatar" alt="Avatar" class="post-author-avatar" />
-                  <div *ngIf="!post.author_avatar" class="post-author-avatar-fallback">{{ post.author_username?.slice(0,
-                    2)?.toUpperCase() }}</div>
-                </div>
-                <div class="post-header-text-block">
-                  <div class="d-flex align-items-center gap-1 flex-wrap">
-                    <span class="post-community-name-normal"
-                      [routerLink]="post.story_id ? ['/book', post.story_id] : null" [class.linkable]="post.story_id">
-                      {{ post.story_id ? post.story_title : (post.type === 'general' ? 'Generale' : (post.type ===
-                      'quote' ? 'Citazioni' : 'Opinioni')) }}
-                    </span>
-                    <span class="meta-separator">•</span>
-                    <span class="post-author-name-highlight"
-                      (click)="filterByAuthorId(post.author_id, post.author_username)">
-                      {{ post.author_username }}
-                    </span>
+              <div class="post-header-reddit">
+                <div class="post-author-row">
+                  <div class="post-author-avatar-container">
+                    <img *ngIf="post.author_avatar" [src]="post.author_avatar" alt="Avatar"
+                      class="post-author-avatar" />
+                    <div *ngIf="!post.author_avatar" class="post-author-avatar-fallback">{{
+                      post.author_username?.slice(0, 2)?.toUpperCase() }}</div>
                   </div>
-                  <span class="post-time" style="font-size: 11px;">{{ formatTimeAgo(post.created_at) }}</span>
-                </div>
-              </div>
-
-              <!-- Compact Post Badge -->
-              <div class="post-badge" [class]="'post-badge--' + post.type">
-                <span>{{ post.type === 'general' ? 'Discussione' : (post.type === 'quote' ? 'Citazione' : 'Opinione')
-                  }}</span>
-              </div>
-            </div>
-
-            <!-- Body -->
-            <div class="post-body">
-              <h3 class="post-card-title-mobile">{{ post.title }}</h3>
-
-              <!-- Post Image -->
-              <div class="post-image-container mb-2" *ngIf="post.post_image">
-                <img [src]="post.post_image" alt="Immagine post" class="post-image" />
-              </div>
-
-              <!-- Quote Content -->
-              <div class="quote-content-box" *ngIf="post.type === 'quote'">
-                <span class="quote-mark quote-mark--start">“</span>
-                <p class="quote-text-display">{{ post.quote }}</p>
-                <span class="quote-mark quote-mark--end">”</span>
-              </div>
-
-              <!-- Opinion Content -->
-              <div class="comment-content-box" *ngIf="post.type === 'comment'"
-                [class.comment-content-box--like]="post.feeling === 'like'"
-                [class.comment-content-box--dislike]="post.feeling === 'dislike'">
-                <div class="comment-opinion-header">
-                  <span class="feeling-title">
-                    {{ post.feeling === 'like' ? 'Commento piaciuto:' : 'Commento non piaciuto:' }}
-                  </span>
-                </div>
-                <p class="comment-shared-text">“{{ post.comment_text }}”</p>
-              </div>
-
-              <!-- Quoted Review -->
-              <div class="quoted-feedback-box mb-2" *ngIf="post.type === 'review_comment' && post.commented_text"
-                [class.quoted-feedback-box--review]="post.commented_type === 'review'">
-                <div class="quoted-feedback-header">
-                  <span class="quoted-type-label">
-                    {{ post.commented_type === 'review' ? 'Recensione di' : 'Commento di' }} {{ post.commented_author }}
-                  </span>
-                  <span class="quoted-rating" *ngIf="post.commented_type === 'review'">★</span>
-                </div>
-                <p class="quoted-feedback-text">“{{ post.commented_text }}”</p>
-              </div>
-
-              <!-- Post Text -->
-              <p class="post-main-text-mobile" *ngIf="post.content">{{ post.content }}</p>
-
-              <!-- Connected Story Card -->
-              <div class="linked-story-card glass-core" *ngIf="post.story_id" [routerLink]="['/book', post.story_id]">
-                <img [src]="post.story_image || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
-                  class="story-card-cover" />
-                <div class="story-card-info">
-                  <h5 class="story-card-title">{{ post.story_title }}</h5>
-                  <span class="story-card-tag" *ngIf="post.story_is_18_plus">18+</span>
-                  <span class="story-card-explore">Apri libro →</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer Actions -->
-            <div class="post-footer">
-              <!-- Voting compact -->
-              <div class="vote-group">
-                <button class="post-action-btn vote-btn vote-btn--like" [class.active]="post.user_vote === 'like'"
-                  (click)="votePost(post, 'like')">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                    [attr.fill]="post.user_vote === 'like' ? 'currentColor' : 'none'" stroke="currentColor"
-                    stroke-width="2.5">
-                    <path
-                      d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
-                    </path>
-                  </svg>
-                  <span>{{ post.likes_count }}</span>
-                </button>
-                <button class="post-action-btn vote-btn vote-btn--dislike" [class.active]="post.user_vote === 'dislike'"
-                  (click)="votePost(post, 'dislike')">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                    [attr.fill]="post.user_vote === 'dislike' ? 'currentColor' : 'none'" stroke="currentColor"
-                    stroke-width="2.5">
-                    <path
-                      d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3">
-                    </path>
-                  </svg>
-                  <span>{{ post.dislikes_count }}</span>
-                </button>
-              </div>
-
-              <!-- Comments count -->
-              <button class="post-action-btn footer-action-btn" [class.active]="activeCommentsPostId === post.id"
-                (click)="openComments(post)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2">
-                  <path
-                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
-                  </path>
-                </svg>
-                <span>{{ post.comments_count }}</span>
-              </button>
-
-              <!-- Bookmark -->
-              <button class="post-action-btn footer-action-btn" [class.active]="post.user_bookmarked"
-                (click)="togglePostBookmark(post)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                  [attr.fill]="post.user_bookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                </svg>
-              </button>
-
-              <!-- Share -->
-              <button class="post-action-btn footer-action-btn share-btn" (click)="sharePost(post)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Mobile Comments Section -->
-            <div class="comments-drawer-panel mobile-comments-panel glass-core mt-3"
-              *ngIf="activeCommentsPostId === post.id">
-              <div class="comments-loading p-2 text-center" *ngIf="loadingComments">
-                <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
-                <span class="ms-2" style="font-size: 13px;">Caricamento...</span>
-              </div>
-
-              <div class="comments-list" *ngIf="!loadingComments">
-                <div class="no-comments-fallback text-center py-2" *ngIf="comments.length === 0">
-                  <p class="text-muted mb-0" style="font-size: 12.5px;">Nessun commento. Rispondi per primo!</p>
-                </div>
-
-                <!-- Comment List -->
-                <div class="comment-item animate-fade-in" *ngFor="let comment of comments">
-                  <img [src]="comment.author_avatar" *ngIf="comment.author_avatar" alt="Avatar"
-                    class="comment-avatar" />
-                  <div class="comment-avatar-fallback" *ngIf="!comment.author_avatar">
-                    {{ comment.author_username?.slice(0, 2)?.toUpperCase() }}
-                  </div>
-                  <div class="comment-bubble">
-                    <div class="comment-bubble-header">
-                      <span class="comment-username">{{ comment.author_username }}</span>
-                      <span class="comment-time">{{ formatTimeAgo(comment.created_at) }}</span>
+                  <div class="post-header-text-block">
+                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                      <span class="post-community-name-normal"
+                        [routerLink]="post.story_id ? ['/book', post.story_id] : null" [class.linkable]="post.story_id">
+                        {{ post.story_id ? post.story_title : (post.type === 'general' ? 'Generale' : 'Community') }}
+                      </span>
+                      <span class="meta-separator">•</span>
+                      <span class="post-author-name-highlight"
+                        (click)="filterByAuthorId(post.author_id, post.author_username)">
+                        {{ post.author_username }}
+                      </span>
                     </div>
-                    <p class="comment-content-text">{{ comment.content }}</p>
+                    <span class="post-time">{{ formatTimeAgo(post.created_at) }}</span>
+                  </div>
+                </div>
+                <div class="post-badge" [class]="'post-badge--' + post.type">
+                  <span>{{ post.type === 'general' ? 'Discussione' : (post.type === 'quote' ? 'Citazione' : 'Opinione')
+                    }}</span>
+                </div>
+              </div>
+
+              <div class="post-body">
+                <h3 class="post-card-title-mobile">{{ post.title }}</h3>
+                <div class="post-image-container mb-2" *ngIf="post.post_image">
+                  <img [src]="post.post_image" alt="Post Image" class="post-image" />
+                </div>
+                <p class="post-main-text-mobile" *ngIf="post.content">{{ post.content }}</p>
+
+                <!-- Condizioni layout per Citazioni e Opinioni connesse rimangono agganciate saldamente -->
+                <div class="linked-story-card glass-core" *ngIf="post.story_id" [routerLink]="['/book', post.story_id]">
+                  <img [src]="post.story_image || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
+                    class="story-card-cover" />
+                  <div class="story-card-info">
+                    <h5 class="story-card-title">{{ post.story_title }}</h5>
+                    <span class="story-card-explore">Esplora opera →</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Comment Composer Input -->
-              <div class="comment-box-composer mt-2">
-                <input type="text" class="glass-input comment-input-field" placeholder="Scrivi una risposta..."
-                  [(ngModel)]="newCommentText" (keyup.enter)="addComment(post)" />
-                <button class="btn-send-comment" (click)="addComment(post)" [disabled]="!newCommentText.trim()">
-                  Invia
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- TAB 2: COMPOSER PAGE -->
-    <div class="mobile-tab-content composer-tab-page px-3 pb-5" *ngIf="activeMobileTab() === 'composer'">
-      <div class="center-composer-card mobile-composer-card glass-core mt-2">
-        <div class="composer-header-actions mb-3">
-          <h3 class="composer-title-text" style="font-size: 16px;">
-            {{ rightComposerType === 'general' ? 'Nuovo Post' : 'Rispondi a Feedback' }}
-          </h3>
-          <button type="button" class="btn-close-composer" (click)="cancelCenterComposer()">✕</button>
-        </div>
-
-        <!-- Toggle type button list -->
-        <div class="composer-selection-stack-mobile mb-3">
-          <button type="button" class="btn-select-composer-type-mobile" [class.active]="rightComposerType === 'general'"
-            (click)="setRightComposerType('general')">
-            Post Generale
-          </button>
-          <button type="button" class="btn-select-composer-type-mobile"
-            [class.active]="rightComposerType === 'review_comment'" (click)="setRightComposerType('review_comment')">
-            Rispondi a Feedback
-          </button>
-        </div>
-
-        <div class="composer-body-editor">
-          <!-- Titolo -->
-          <div class="editor-field-group mb-3">
-            <label class="editor-step-label">Titolo</label>
-            <input type="text" class="editor-title-field" placeholder="Titolo del post..." [(ngModel)]="postTitle"
-              autocomplete="off" />
-          </div>
-
-          <!-- Review/Comment Flow -->
-          <div *ngIf="rightComposerType === 'review_comment'" class="editor-review-comment-block mb-3">
-
-            <div class="editor-step mb-3">
-              <label class="editor-step-label">1. Seleziona una storia</label>
-
-              <div class="compact-story-picker">
-                <div class="general-search-wrapper mb-2" *ngIf="!rightSelectedStoryId">
-                  <input type="text" class="glass-input compact-input" placeholder="Cerca tra le tue storie..."
-                    [(ngModel)]="rightSearchStoryText" />
-                </div>
-
-                <div class="stories-cards-grid-mobile" *ngIf="filteredLikedAndBookmarkedStories.length > 0">
-                  <ng-container *ngFor="let s of filteredLikedAndBookmarkedStories">
-                    <div class="story-card-item-mobile" *ngIf="!rightSelectedStoryId || rightSelectedStoryId === s.id"
-                      [class.selected]="rightSelectedStoryId === s.id" (click)="selectStoryRight(s)">
-                      <img [src]="s.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
-                        class="story-card-item-cover" />
-                      <div class="story-card-item-info">
-                        <span class="story-card-item-title">{{ s.title }}</span>
-                        <span class="story-card-item-author">{{ s.author_name || s.author_username }}</span>
-                      </div>
-                    </div>
-                  </ng-container>
-                </div>
-
-                <div class="change-story-btn-container mt-2" *ngIf="rightSelectedStoryId">
-                  <button type="button" class="btn-show-all-books" (click)="removeRightSelectedStory()">
-                    Cambia storia
+              <div class="post-footer">
+                <div class="vote-group">
+                  <button class="post-action-btn vote-btn vote-btn--like" [class.active]="post.user_vote === 'like'"
+                    (click)="votePost(post, 'like')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      [attr.fill]="post.user_vote === 'like' ? 'currentColor' : 'none'" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path
+                        d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+                      </path>
+                    </svg>
+                    <span>{{ post.likes_count }}</span>
+                  </button>
+                  <button class="post-action-btn vote-btn vote-btn--dislike"
+                    [class.active]="post.user_vote === 'dislike'" (click)="votePost(post, 'dislike')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      [attr.fill]="post.user_vote === 'dislike' ? 'currentColor' : 'none'" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path
+                        d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3">
+                      </path>
+                    </svg>
+                    <span>{{ post.dislikes_count }}</span>
                   </button>
                 </div>
-              </div>
-            </div>
 
-            <!-- Choose review or comment -->
-            <div class="editor-step mb-3" *ngIf="rightSelectedStory">
-              <label class="editor-step-label">2. Tipo di feedback</label>
-              <div class="toggle-options-row">
-                <button type="button" class="toggle-option-btn" [class.active]="reviewCommentType === 'review'"
-                  (click)="onReviewCommentTypeChange('review')">
-                  Recensioni
+                <button class="post-action-btn footer-action-btn" [class.active]="activeCommentsPostId === post.id"
+                  (click)="openComments(post)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                    </path>
+                  </svg>
+                  <span>{{ post.comments_count }}</span>
                 </button>
-                <button type="button" class="toggle-option-btn" [class.active]="reviewCommentType === 'comment'"
-                  (click)="onReviewCommentTypeChange('comment')">
-                  Commenti
+
+                <button class="post-action-btn footer-action-btn" [class.active]="post.user_bookmarked"
+                  (click)="togglePostBookmark(post)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                    [attr.fill]="post.user_bookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </button>
+
+                <!-- Elimina (Mobile) -->
+                <button class="post-action-btn footer-action-btn delete-post-btn" *ngIf="currentUser()?.id === post.author_id"
+                  (click)="deletePost(post)" [id]="'btn-delete-post-mob-' + post.id">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
                 </button>
               </div>
-            </div>
 
-            <!-- List elements reviews/comments -->
-            <div class="editor-step mb-3" *ngIf="rightSelectedStory">
-              <label class="editor-step-label">3. Seleziona l'elemento</label>
-
-              <div class="general-search-wrapper mb-2" *ngIf="fetchedReviewsOrComments.length > 0">
-                <input type="text" class="glass-input compact-input" placeholder="Filtra feedback..."
-                  [(ngModel)]="commentSearchQuery" />
-              </div>
-
-              <div class="item-scroll-list-mobile">
-                <div class="no-items-warning" *ngIf="fetchedReviewsOrComments.length === 0">
-                  Nessun elemento presente.
+              <!-- Drawer Commenti Integrato -->
+              <div class="comments-drawer-panel mobile-comments-panel glass-core mt-3"
+                *ngIf="activeCommentsPostId === post.id">
+                <div class="comments-loading p-2 text-center" *ngIf="loadingComments">
+                  <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
                 </div>
-                <div class="picker-item-card" *ngFor="let item of filteredReviewsOrComments"
-                  [class.selected]="selectedReviewOrCommentId === item.id" (click)="selectReviewOrComment(item)">
-                  <div class="picker-item-meta">
-                    <span class="picker-item-author">{{ item.name || item.author_name }}</span>
-                    <span class="picker-item-rating" *ngIf="reviewCommentType === 'review'">★ {{ item.rating }}</span>
+                <div class="comments-list" *ngIf="!loadingComments">
+                  <div class="comment-item" *ngFor="let comment of comments">
+                    <div class="comment-avatar-fallback" *ngIf="!comment.author_avatar">{{
+                      comment.author_username?.slice(0, 2)?.toUpperCase() }}</div>
+                    <div class="comment-bubble">
+                      <div class="comment-bubble-header">
+                        <span class="comment-username">{{ comment.author_username }}</span>
+                      </div>
+                      <p class="comment-content-text">{{ comment.content }}</p>
+                    </div>
                   </div>
-                  <p class="picker-item-text">"{{ item.content || item.text }}"</p>
+                </div>
+                <div class="comment-box-composer mt-2">
+                  <input type="text" class="glass-input comment-input-field" placeholder="Rispondi alla community..."
+                    [(ngModel)]="newCommentText" />
+                  <button class="btn-send-comment" (click)="addComment(post)"
+                    [disabled]="!newCommentText.trim()">Invia</button>
                 </div>
               </div>
-            </div>
 
-            <!-- Selected Feedback Box -->
-            <div class="quoted-feedback-box mb-3 animate-fade-in" *ngIf="selectedReviewOrComment"
-              [class.quoted-feedback-box--review]="reviewCommentType === 'review'">
-              <span class="quoted-type-label">
-                {{ reviewCommentType === 'review' ? 'Recensione di' : 'Commento di' }} {{ selectedReviewOrComment.name
-                || selectedReviewOrComment.author_name }}
-              </span>
-              <p class="quoted-feedback-text">“{{ selectedReviewOrComment.content || selectedReviewOrComment.text }}”
-              </p>
             </div>
-
           </div>
 
-          <!-- Image Uploader (Optional) -->
-          <div *ngIf="rightComposerType === 'general'" class="editor-image-uploader mb-3">
-            <label class="editor-step-label">Immagine (Opzionale)</label>
-            <div class="d-flex align-items-center gap-2">
-              <button type="button" class="btn-upload-image" (click)="mobileImageInput.click()">
-                Carica
-              </button>
-              <span class="text-muted" style="font-size: 13px;">{{ postImageBase64 ? 'Caricata!' : 'Trascina o scegli un
-                file' }}</span>
+        </div>
+      </div>
+
+      <!-- ════ TAB 2: UNIFIED COMPOSER (SCRIVI) ════ -->
+      <div class="mobile-tab-view-page" *ngIf="activeMobileTab() === 'composer'">
+        <div class="mob-composer-wrapper">
+
+          <!-- Header -->
+          <div class="mob-composer-header">
+            <div class="mob-composer-header-left">
+              <div class="mob-composer-avatar">
+                <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar"
+                  class="mob-composer-avatar-img" />
+                <div *ngIf="!currentUser()?.avatar_url" class="mob-composer-avatar-fallback">{{
+                  currentUser()?.username?.slice(0,2)?.toUpperCase() }}</div>
+              </div>
+              <div>
+                <span class="mob-composer-username">{{ currentUser()?.username }}</span>
+                <span class="mob-composer-role">Membro Community</span>
+              </div>
             </div>
+            <button class="mob-composer-clear-btn" (click)="cancelCenterComposer()" title="Pulisci">Pulisci</button>
+          </div>
+
+          <!-- Type Selector Cards -->
+          <div class="mob-composer-type-grid"
+            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px;">
+            <button class="mob-type-card" [class.active]="rightComposerType === 'general'"
+              (click)="setRightComposerType('general')">
+              <span class="mob-type-card-icon">✏️</span>
+              <span class="mob-type-card-label">Generale</span>
+            </button>
+            <button class="mob-type-card" [class.active]="rightComposerType === 'quote'"
+              (click)="setRightComposerType('quote')">
+              <span class="mob-type-card-icon">✍️</span>
+              <span class="mob-type-card-label">Frasi</span>
+            </button>
+            <button class="mob-type-card" [class.active]="rightComposerType === 'reply_review'"
+              (click)="setRightComposerType('reply_review')">
+              <span class="mob-type-card-icon">⭐</span>
+              <span class="mob-type-card-label">Recensioni</span>
+            </button>
+            <button class="mob-type-card" [class.active]="rightComposerType === 'reply_comment'"
+              (click)="setRightComposerType('reply_comment')">
+              <span class="mob-type-card-icon">💬</span>
+              <span class="mob-type-card-label">Commenti</span>
+            </button>
+          </div>
+
+          <!-- Titolo -->
+          <div class="mob-composer-field-block">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">1</span>
+              Titolo del post
+            </label>
+            <input type="text" class="mob-composer-input" placeholder="Dai un titolo accattivante..."
+              [(ngModel)]="postTitle" autocomplete="off" />
+          </div>
+
+          <!-- Selettore Sottolineature Utente Mobile (solo quote se NON selezionata) -->
+          <div class="mob-composer-field-block" *ngIf="rightComposerType === 'quote' && !highlightQuote">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">2</span>
+              Seleziona una delle tue frasi salvate
+            </label>
+            <div class="mob-story-picker">
+              <div class="mob-story-search-input-wrap" *ngIf="userHighlights.length > 0" style="position: relative; margin-bottom: 8px;">
+                <input type="text" class="mob-composer-input" placeholder="Cerca tra le tue frasi..."
+                  [(ngModel)]="searchUserHighlightText" />
+              </div>
+
+              <div class="mob-stories-list" *ngIf="filteredUserHighlights.length > 0"
+                style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) saturate(180%) !important; -webkit-backdrop-filter: blur(25px) saturate(180%) !important; border: 1px solid rgba(255, 255, 255, 0.25) !important; padding: 8px; border-radius: 12px;">
+                <div class="mob-story-item" *ngFor="let hl of filteredUserHighlights"
+                  [class.selected]="highlightQuote === hl.text" (click)="selectUserHighlight(hl)"
+                  style="display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255, 255, 255, 0.25) !important;"
+                  [style.background]="highlightQuote === hl.text ? 'rgba(255, 255, 255, 0.3) !important' : 'rgba(255, 255, 255, 0.12) !important'">
+                  <div style="font-size: 10px; color: #475569 !important; font-weight: 700; display: flex; justify-content: space-between; width: 100%;">
+                    <span style="color: #c27d00 !important;">{{ hl.story_title }}</span>
+                    <span style="opacity: 0.8;">Cap. {{ hl.chapter_title }}</span>
+                  </div>
+                  <p style="font-size: 12px; margin: 4px 0 0 0; font-family: Georgia, serif; font-style: italic; color: #0f172a !important; line-height: 1.3;">
+                    "{{ hl.text }}"
+                  </p>
+                </div>
+              </div>
+
+              <div style="font-size: 12px; color: #475569; text-align: center; padding: 10px;"
+                *ngIf="userHighlights.length === 0">
+                Non hai ancora sottolineato nessuna frase. Vai a leggere per crearne una!
+              </div>
+              <div style="font-size: 12px; color: #475569; text-align: center; padding: 10px;"
+                *ngIf="userHighlights.length > 0 && filteredUserHighlights.length === 0">
+                Nessuna sottolineatura corrisponde alla ricerca.
+              </div>
+            </div>
+          </div>
+
+          <!-- Riquadro frase selezionata Mobile (se selezionata) -->
+          <div class="mob-composer-field-block" *ngIf="rightComposerType === 'quote' && highlightQuote">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">2</span>
+              Frase selezionata
+            </label>
+            <div class="mob-selected-story-badge"
+              style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.15); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px);">
+              <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <p style="font-size: 13px; font-family: Georgia, serif; font-style: italic; color: #0f172a; line-height: 1.4; margin: 0;">
+                  "{{ highlightQuote }}"
+                </p>
+                <div *ngIf="rightSelectedStory" style="font-size: 11px; color: #475569; margin-top: 2px;">
+                  Da <strong>{{ rightSelectedStory.title }}</strong>
+                </div>
+              </div>
+              <button type="button" (click)="highlightQuote = ''; rightSelectedStory = null; rightSelectedStoryId = null;"
+                style="background: rgba(255, 85, 85, 0.15); border: none; color: #ff5555; font-size: 12px; font-weight: bold; cursor: pointer; padding: 6px 10px; border-radius: 6px; margin-left: 8px;">
+                ✕ Rimuovi
+              </button>
+            </div>
+          </div>
+
+          <!-- Immagine (solo generale) -->
+          <div class="mob-composer-field-block" *ngIf="rightComposerType === 'general'">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">2</span>
+              Immagine <span class="mob-optional-tag">opzionale</span>
+            </label>
+
+            <!-- Upload zone vuota -->
+            <div class="mob-upload-zone" (click)="mobileImageInput.click()" *ngIf="!postImageBase64">
+              <svg class="mob-upload-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span class="mob-upload-text">Tocca per aggiungere un'immagine</span>
+              <span class="mob-upload-hint">JPG, PNG · Max 5 MB</span>
+            </div>
+
+            <!-- Anteprima immagine caricata -->
+            <div class="mob-image-preview" *ngIf="postImageBase64">
+              <img [src]="postImageBase64" alt="Anteprima" class="mob-preview-img" />
+              <button class="mob-remove-img-btn" (click)="removeRightUploadedImage()" title="Rimuovi">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
             <input type="file" #mobileImageInput accept="image/*" style="display: none;"
               (change)="onRightImageSelected($event)" />
+          </div>
 
-            <div class="image-preview-thumbnail mt-2" *ngIf="postImageBase64" style="max-width: 120px;">
-              <img [src]="postImageBase64" alt="Caricata" />
-              <button class="btn-remove-preview-img" (click)="removeRightUploadedImage()">✕</button>
+          <!-- Collegamento Storia Mobile (Solo per Post Generale, Facoltativo) -->
+          <div class="mob-composer-field-block" *ngIf="rightComposerType === 'general'">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">3</span>
+              Collega una storia <span class="mob-optional-tag">opzionale</span>
+            </label>
+
+            <!-- Se c'è una storia selezionata -->
+            <div class="mob-selected-story-badge" *ngIf="rightSelectedStory"
+              style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img
+                  [src]="rightSelectedStory.image_url || rightSelectedStory.img || 'assets/Presentazione/promessi-sposi.jpg'"
+                  alt="Cover" style="width: 40px; height: 58px; border-radius: 6px; object-fit: cover;" />
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 14px; font-weight: 600; color: #fff;">{{ rightSelectedStory.title }}</span>
+                  <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">{{ rightSelectedStory.author_name ||
+                    rightSelectedStory.author_username }}</span>
+                </div>
+              </div>
+              <button type="button" (click)="removeRightSelectedStory()"
+                style="background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 16px; cursor: pointer; padding: 4px 8px;">
+                ✕
+              </button>
             </div>
-          </div>
 
-          <!-- Textarea Content -->
-          <div class="editor-field-group mb-3">
-            <label class="editor-step-label">Corpo del Post</label>
-            <textarea class="editor-content-field-mobile" placeholder="Cosa vuoi condividere oggi con la community?"
-              [(ngModel)]="postText" style="min-height: 120px;"></textarea>
-          </div>
-
-          <!-- Connect Story (General only) -->
-          <div *ngIf="rightComposerType === 'general'" class="editor-story-selector mb-3">
-            <label class="editor-step-label">Collega un libro (Opzionale)</label>
-            <div class="compact-story-picker">
-              <div class="general-search-wrapper mb-2" *ngIf="!rightSelectedStoryId">
-                <input type="text" class="glass-input compact-input" placeholder="Cerca storia..."
+            <!-- Altrimenti, mostra ricerca e lista storie -->
+            <div class="mob-story-picker" *ngIf="!rightSelectedStory">
+              <div class="mob-story-search-input-wrap" style="position: relative; margin-bottom: 8px;">
+                <input type="text" class="mob-composer-input" placeholder="Cerca tra preferiti o piaciuti..."
                   [(ngModel)]="rightSearchStoryText" />
               </div>
 
-              <div class="stories-cards-grid-mobile" *ngIf="filteredLikedAndBookmarkedStories.length > 0">
-                <ng-container *ngFor="let s of filteredLikedAndBookmarkedStories">
-                  <div class="story-card-item-mobile" *ngIf="!rightSelectedStoryId || rightSelectedStoryId === s.id"
-                    [class.selected]="rightSelectedStoryId === s.id" (click)="selectStoryRight(s)">
-                    <img [src]="s.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
-                      class="story-card-item-cover" />
-                    <div class="story-card-item-info">
-                      <span class="story-card-item-title">{{ s.title }}</span>
-                      <span class="story-card-item-author">{{ s.author_name || s.author_username }}</span>
-                    </div>
+              <!-- Lista dei risultati -->
+              <div class="mob-stories-list" *ngIf="filteredLikedAndBookmarkedStories.length > 0"
+                style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) saturate(180%) !important; -webkit-backdrop-filter: blur(25px) saturate(180%) !important; border: 1px solid rgba(255, 255, 255, 0.25) !important; padding: 8px; border-radius: 12px;">
+                <div class="mob-story-item" *ngFor="let s of filteredLikedAndBookmarkedStories"
+                  (click)="selectStoryRight(s)"
+                  style="display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.08);">
+                  <img [src]="s.image_url || s.img || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
+                    style="width: 30px; height: 44px; border-radius: 4px; object-fit: cover;" />
+                  <div style="display: flex; flex-direction: column; flex: 1;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: #000000 !important;">{{ s.title }}</span>
+                    <span style="font-size: 11px; color: #000000 !important; opacity: 0.7;">{{ s.author_name ||
+                      s.author_username }}</span>
                   </div>
-                </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collegamento Storia Mobile per Risposta (Recensione o Commento) -->
+          <div class="mob-composer-field-block"
+            *ngIf="rightComposerType === 'reply_review' || rightComposerType === 'reply_comment'">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">1</span>
+              Seleziona una storia
+            </label>
+
+            <!-- Se c'è una storia selezionata -->
+            <div class="mob-selected-story-badge" *ngIf="rightSelectedStory"
+              style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img
+                  [src]="rightSelectedStory.image_url || rightSelectedStory.img || 'assets/Presentazione/promessi-sposi.jpg'"
+                  alt="Cover" style="width: 40px; height: 58px; border-radius: 6px; object-fit: cover;" />
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 14px; font-weight: 600; color: #fff;">{{ rightSelectedStory.title }}</span>
+                  <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">{{ rightSelectedStory.author_name ||
+                    rightSelectedStory.author_username }}</span>
+                </div>
+              </div>
+              <button type="button" (click)="removeRightSelectedStory()"
+                style="background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 16px; cursor: pointer; padding: 4px 8px;">
+                ✕
+              </button>
+            </div>
+
+            <!-- Altrimenti, mostra ricerca e lista storie -->
+            <div class="mob-story-picker" *ngIf="!rightSelectedStory">
+              <div class="mob-story-search-input-wrap" style="position: relative; margin-bottom: 8px;">
+                <input type="text" class="mob-composer-input" placeholder="Cerca tra preferiti o piaciuti..."
+                  [(ngModel)]="rightSearchStoryText" />
               </div>
 
-              <div class="change-story-btn-container mt-2" *ngIf="rightSelectedStoryId">
-                <button type="button" class="btn-show-all-books" (click)="removeRightSelectedStory()">
-                  Scollega libro
+              <div class="mob-stories-list" *ngIf="filteredLikedAndBookmarkedStories.length > 0"
+                style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) saturate(180%) !important; -webkit-backdrop-filter: blur(25px) saturate(180%) !important; border: 1px solid rgba(255, 255, 255, 0.25) !important; padding: 8px; border-radius: 12px;">
+                <div class="mob-story-item" *ngFor="let s of filteredLikedAndBookmarkedStories"
+                  (click)="selectStoryRight(s)"
+                  style="display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.08);">
+                  <img [src]="s.image_url || s.img || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
+                    style="width: 30px; height: 44px; border-radius: 4px; object-fit: cover;" />
+                  <div style="display: flex; flex-direction: column; flex: 1;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: #000000 !important;">{{ s.title }}</span>
+                    <span style="font-size: 11px; color: #000000 !important; opacity: 0.7;">{{ s.author_name ||
+                      s.author_username }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selezione Elemento Specifico Mobile -->
+          <div class="mob-composer-field-block"
+            *ngIf="(rightComposerType === 'reply_review' || rightComposerType === 'reply_comment') && rightSelectedStory">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">2</span>
+              {{ rightComposerType === 'reply_review' ? 'Seleziona la recensione' : 'Seleziona il commento' }}
+            </label>
+
+            <!-- Se c'è un elemento selezionato, mostralo -->
+            <div class="mob-selected-item-preview" *ngIf="selectedReviewOrComment"
+              style="background: rgba(255, 255, 255, 0.06); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase;">
+                {{ rightComposerType === 'reply_review' ? 'Recensione di' : 'Commento di' }} {{
+                selectedReviewOrComment.name || selectedReviewOrComment.author_name }}
+              </span>
+              <p
+                style="font-size: 13px; color: rgba(255,255,255,0.85); margin: 6px 0 0; font-style: italic; line-height: 1.4;">
+                “{{ selectedReviewOrComment.content || selectedReviewOrComment.text }}”
+              </p>
+              <button type="button" (click)="selectedReviewOrComment = null; selectedReviewOrCommentId = null;"
+                style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer;">
+                ✕
+              </button>
+            </div>
+
+            <!-- Altrimenti, mostra la lista degli elementi da selezionare -->
+            <div class="mob-item-picker" *ngIf="!selectedReviewOrComment">
+              <div style="position: relative; margin-bottom: 8px;">
+                <input type="text" class="mob-composer-input" placeholder="Filtra elementi..."
+                  [(ngModel)]="commentSearchQuery" />
+              </div>
+
+              <div class="mob-items-list" *ngIf="filteredReviewsOrComments.length > 0"
+                style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) saturate(180%) !important; -webkit-backdrop-filter: blur(25px) saturate(180%) !important; border: 1px solid rgba(255, 255, 255, 0.25) !important; padding: 8px; border-radius: 12px;">
+                <div class="mob-item-card" *ngFor="let item of filteredReviewsOrComments"
+                  (click)="selectedReviewOrComment = item; selectedReviewOrCommentId = item.id;"
+                  style="padding: 8px; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 11px; font-weight: 700; color: #000000 !important;">
+                    Da: {{ item.name || item.author_name }}
+                  </span>
+                  <span
+                    style="font-size: 12px; color: #000000 !important; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp:2; -webkit-box-orient: vertical;">
+                    {{ item.content || item.text }}
+                  </span>
+                </div>
+              </div>
+
+              <div style="font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; padding: 10px;"
+                *ngIf="filteredReviewsOrComments.length === 0">
+                Nessun elemento presente per questa storia.
+              </div>
+            </div>
+          </div>
+
+          <!-- Corpo del post -->
+          <div class="mob-composer-field-block">
+            <label class="mob-composer-label">
+              <span class="mob-composer-label-dot">{{ rightComposerType === 'general' ? '4' : '3' }}</span>
+              {{ rightComposerType === 'quote' ? 'Aggiungi una descrizione o commento (opzionale)' : 'Scrivi il tuo post' }}
+            </label>
+            <div class="mob-textarea-wrapper">
+              <textarea class="mob-composer-textarea"
+                [placeholder]="rightComposerType === 'quote' ? 'Aggiungi una riflessione a questa frase...' : 'Esprimi un pensiero, racconta un\'esperienza di lettura...'" [(ngModel)]="postText"
+                maxlength="2000"></textarea>
+              <span class="mob-char-counter" [class.near-limit]="postText.length > 1800">{{ postText.length
+                }}/2000</span>
+            </div>
+          </div>
+
+          <!-- Footer: Pubblica -->
+          <div class="mob-composer-publish-bar">
+            <button class="mob-publish-btn" (click)="openPreviewModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Anteprima e Pubblica
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════ TAB 3: USER PORTFOLIO & DRAFTS (LIBRERIA) ════ -->
+      <div class="mobile-tab-view-page" *ngIf="activeMobileTab() === 'activity'">
+
+        <!-- 1. BENTO PROFILE HERO CARD -->
+        <div class="lib-profile-card glass-core">
+          <div class="lib-profile-glow"></div>
+          <div class="lib-profile-header">
+            <div class="lib-avatar-ring">
+              <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar"
+                class="lib-avatar-img" />
+              <div *ngIf="!currentUser()?.avatar_url" class="lib-avatar-fallback"
+                [style.background]="'linear-gradient(135deg, #e8a030, #f2787c)'">
+                {{ currentUser()?.username?.slice(0, 2)?.toUpperCase() }}
+              </div>
+            </div>
+            <div class="lib-user-meta">
+              <span class="lib-username">{{ currentUser()?.username }}</span>
+              <span class="lib-badge">
+                <span class="lib-badge-dot"></span>
+                Scrittore & Lettore
+              </span>
+            </div>
+          </div>
+
+          <div class="lib-stats-grid">
+            <div class="lib-stat-item">
+              <div class="lib-stat-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lib-stat-icon">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path>
+                </svg>
+              </div>
+              <div class="lib-stat-data">
+                <span class="lib-stat-val">{{ userWrittenPostsCount }}</span>
+                <span class="lib-stat-lbl">Post pubblicati</span>
+              </div>
+            </div>
+
+            <div class="lib-stat-item">
+              <div class="lib-stat-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lib-stat-icon">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                  </path>
+                </svg>
+              </div>
+              <div class="lib-stat-data">
+                <span class="lib-stat-val">{{ userLikesReceivedCount }}</span>
+                <span class="lib-stat-lbl">Like ricevuti</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. BOZZE DA COMPLETARE -->
+        <div class="lib-section glass-core">
+          <div class="lib-section-title-bar">
+            <div class="lib-section-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <h3 class="lib-section-title">Le tue Bozze</h3>
+            <span class="lib-section-badge" *ngIf="drafts.length > 0">{{ drafts.length }}</span>
+          </div>
+
+          <div class="lib-drafts-list" *ngIf="drafts.length > 0">
+            <div class="lib-draft-card glass-core" *ngFor="let draft of drafts">
+              <div class="lib-draft-info" (click)="loadDraft(draft)">
+                <span class="lib-draft-badge" [class.badge-post]="draft.type === 'general'">
+                  {{ draft.type === 'general' ? 'Post' : (draft.type === 'quote' ? 'Frasi' : 'Feedback') }}
+                </span>
+                <span class="lib-draft-title">{{ draft.title }}</span>
+                <span class="lib-draft-time">Ultima modifica: {{ formatTimeAgo(draft.updatedAt) }}</span>
+              </div>
+              <div class="lib-draft-actions">
+                <button class="lib-action-btn lib-btn-resume" (click)="loadDraft(draft)" title="Modifica">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </button>
+                <button class="lib-action-btn lib-btn-delete" (click)="deleteDraft(draft.id, $event)" title="Elimina">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
                 </button>
               </div>
             </div>
           </div>
 
-        </div>
-
-        <!-- Footer Actions -->
-        <div class="composer-footer-actions">
-          <button class="btn-composer-cancel" (click)="cancelCenterComposer()">
-            Pulisci
-          </button>
-          <button class="btn-publish" (click)="openPreviewModal()">
-            Anteprima
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- TAB 3: PROFILE ACTIVITY & BOOKMARKS PAGE -->
-    <div class="mobile-tab-content activity-tab-page px-3 pb-5" *ngIf="activeMobileTab() === 'activity'">
-
-      <!-- Profile Card user stats -->
-      <div class="profile-stats-widget-mobile glass-core mt-2 p-3 mb-3">
-        <div class="profile-header-meta">
-          <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar"
-            class="profile-avatar" />
-          <div *ngIf="!currentUser()?.avatar_url" class="profile-avatar-fallback">{{ currentUser()?.username?.slice(0,
-            2)?.toUpperCase() }}</div>
-          <div class="profile-meta-details">
-            <span class="profile-username">{{ currentUser()?.username }}</span>
-            <span class="profile-role">Autore & Lettore</span>
-          </div>
-        </div>
-        <div class="profile-stats-grid mt-3">
-          <div class="stat-cell">
-            <span class="stat-value">{{ userWrittenPostsCount }}</span>
-            <span class="stat-label">Post</span>
-          </div>
-          <div class="stat-cell">
-            <span class="stat-value">{{ userLikesReceivedCount }}</span>
-            <span class="stat-label">Likes</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bozze (Drafts) Stack Mobile -->
-      <div class="mobile-activity-section glass-core p-3 mb-3">
-        <h3 class="mobile-section-heading">Le tue Bozze</h3>
-        <div class="drafts-stack mt-2" *ngIf="drafts.length > 0">
-          <div class="draft-item" *ngFor="let draft of drafts" (click)="loadDraft(draft)">
-            <div class="draft-info">
-              <span class="draft-title">{{ draft.title }}</span>
-              <span class="draft-meta">{{ draft.type === 'general' ? 'Post' : 'Recensione' }} • {{
-                formatTimeAgo(draft.updatedAt) }}</span>
+          <div class="lib-empty-state" *ngIf="drafts.length === 0">
+            <div class="lib-empty-icon-wrap">
+              <span class="lib-empty-icon">📝</span>
             </div>
-            <button class="btn-delete-draft" (click)="deleteDraft(draft.id, $event)">✕</button>
+            <p class="lib-empty-title">Nessuna bozza salvata</p>
+            <p class="lib-empty-desc">Se inizi a comporre un post e cambi scheda, verrà conservato automaticamente in
+              questa sezione.</p>
           </div>
         </div>
-        <div class="no-items-fallback text-center py-2" *ngIf="drafts.length === 0">
-          <p class="text-muted mb-0" style="font-size: 13px; font-style: italic;">Nessuna bozza salvata.</p>
-        </div>
-      </div>
 
-      <!-- Bookmarked / Liked list mobile -->
-      <div class="mobile-activity-section glass-core p-3 mb-3">
-        <div class="widget-tabs-header mobile-activity-tabs mb-2">
-          <button class="widget-tab-btn" [class.active]="activeRightTab === 'saved'" (click)="activeRightTab = 'saved'">
-            Preferiti ({{ bookmarkedCommunityPosts.length }})
-          </button>
-          <button class="widget-tab-btn" [class.active]="activeRightTab === 'liked'" (click)="activeRightTab = 'liked'">
-            Piaciuti ({{ likedCommunityPosts.length }})
-          </button>
-        </div>
+        <!-- 3. INTERACTIVE PREFERITI / PIACIUTI -->
+        <div class="lib-section glass-core">
+          <div class="lib-tabs-header">
+            <button class="lib-tab-btn" [class.active]="activeRightTab === 'saved'" (click)="activeRightTab = 'saved'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lib-tab-icon">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Preferiti ({{ bookmarkedCommunityPosts.length }})
+            </button>
+            <button class="lib-tab-btn" [class.active]="activeRightTab === 'liked'" (click)="activeRightTab = 'liked'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lib-tab-icon">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                </path>
+              </svg>
+              Piaciuti ({{ likedCommunityPosts.length }})
+            </button>
+          </div>
 
-        <div class="widget-tab-content">
-          <!-- Preferiti list -->
-          <div class="posts-sidebar-list" *ngIf="activeRightTab === 'saved'">
-            <div class="sidebar-post-item animate-fade-in" *ngFor="let p of bookmarkedCommunityPosts"
+          <!-- Preferiti Content -->
+          <div class="lib-posts-list animate-fade-in" *ngIf="activeRightTab === 'saved'">
+            <div class="lib-post-card-item glass-core" *ngFor="let p of bookmarkedCommunityPosts"
               (click)="scrollToOrFilterPost(p)">
-              <div class="sidebar-post-meta">
-                <span class="sidebar-post-author">{{ p.author_username }}</span>
-                <span class="sidebar-post-time">{{ formatTimeAgo(p.created_at) }}</span>
+              <div class="lib-post-card-left">
+                <div class="lib-post-avatar">
+                  {{ p.author_username?.slice(0, 2)?.toUpperCase() }}
+                </div>
+                <div class="lib-post-info-data">
+                  <span class="lib-post-title-text">{{ p.title }}</span>
+                  <div class="lib-post-meta-details">
+                    <span class="lib-post-author-name">{{ p.author_username }}</span>
+                    <span class="lib-post-dot">•</span>
+                    <span class="lib-post-time-ago">{{ formatTimeAgo(p.created_at) }}</span>
+                  </div>
+                </div>
               </div>
-              <span class="sidebar-post-title">{{ p.title }}</span>
+              <div class="lib-post-card-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
             </div>
-            <div class="no-items-placeholder text-center py-2" *ngIf="bookmarkedCommunityPosts.length === 0">
-              <p class="placeholder-txt"
-                style="font-size: 12.5px; color: var(--text-muted); margin: 0; font-style: italic;">Nessun post salvato.
-              </p>
+
+            <div class="lib-empty-state" *ngIf="bookmarkedCommunityPosts.length === 0">
+              <div class="lib-empty-icon-wrap">
+                <span class="lib-empty-icon">⭐</span>
+              </div>
+              <p class="lib-empty-title">Nessun preferito</p>
+              <p class="lib-empty-desc">I post che salvi compariranno qui per essere riletti quando vuoi.</p>
             </div>
           </div>
 
-          <!-- Piaciuti list -->
-          <div class="posts-sidebar-list" *ngIf="activeRightTab === 'liked'">
-            <div class="sidebar-post-item animate-fade-in" *ngFor="let p of likedCommunityPosts"
+          <!-- Piaciuti Content -->
+          <div class="lib-posts-list animate-fade-in" *ngIf="activeRightTab === 'liked'">
+            <div class="lib-post-card-item glass-core" *ngFor="let p of likedCommunityPosts"
               (click)="scrollToOrFilterPost(p)">
-              <div class="sidebar-post-meta">
-                <span class="sidebar-post-author">{{ p.author_username }}</span>
-                <span class="sidebar-post-time">{{ formatTimeAgo(p.created_at) }}</span>
+              <div class="lib-post-card-left">
+                <div class="lib-post-avatar">
+                  {{ p.author_username?.slice(0, 2)?.toUpperCase() }}
+                </div>
+                <div class="lib-post-info-data">
+                  <span class="lib-post-title-text">{{ p.title }}</span>
+                  <div class="lib-post-meta-details">
+                    <span class="lib-post-author-name">{{ p.author_username }}</span>
+                    <span class="lib-post-dot">•</span>
+                    <span class="lib-post-time-ago">{{ formatTimeAgo(p.created_at) }}</span>
+                  </div>
+                </div>
               </div>
-              <span class="sidebar-post-title">{{ p.title }}</span>
+              <div class="lib-post-card-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
             </div>
-            <div class="no-items-placeholder text-center py-2" *ngIf="likedCommunityPosts.length === 0">
-              <p class="placeholder-txt"
-                style="font-size: 12.5px; color: var(--text-muted); margin: 0; font-style: italic;">Nessun post
-                piaciuto.</p>
+
+            <div class="lib-empty-state" *ngIf="likedCommunityPosts.length === 0">
+              <div class="lib-empty-icon-wrap">
+                <span class="lib-empty-icon">💖</span>
+              </div>
+              <p class="lib-empty-title">Nessun post piaciuto</p>
+              <p class="lib-empty-desc">Lascia un mi piace ai post nel feed per ritrovarli facilmente qui.</p>
             </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- TAB 4: SETTINGS PAGE -->
-    <div class="mobile-tab-content settings-tab-page px-3 pb-5" *ngIf="activeMobileTab() === 'settings'">
-
-      <!-- Impostazioni community settings mobile -->
-      <div class="sidebar-widget settings-widget glass-core mt-2 p-3">
-        <h3 class="widget-title mb-3" style="font-size: 16px;">Impostazioni Community</h3>
-
-        <div class="settings-widget-body">
-          <h4 class="settings-sub-title">Notifiche Community</h4>
-
-          <div class="setting-toggle-row">
-            <span>Risposte commenti</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.risposte_commenti"
-                (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <span>Like commenti</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.like_commenti" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <span>Like post</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.community_like" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <span>Commenti post</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.notifiche.community_commento"
-                (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <hr class="settings-divider" />
-
-          <h4 class="settings-sub-title">Filtri Contenuto</h4>
-
-          <div class="setting-toggle-row">
-            <span>Storie 18+</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.visualizza_18plus" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <span>Filtro Sensibile</span>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="settings.sensitive_filter" (ngModelChange)="saveSettings()" />
-              <span class="toggle__slider"></span>
-            </label>
-          </div>
-
-          <hr class="settings-divider" />
-
-          <h4 class="settings-sub-title">Norme della Piattaforma</h4>
-
-          <!-- Rules button row -->
-          <div class="mobile-setting-action-row" (click)="openRulesAlert()">
-            <div class="d-flex align-items-center gap-2">
-              <span class="action-icon">📜</span>
-              <span>Visualizza Regolamento</span>
-            </div>
-            <span class="chevron-right">›</span>
-          </div>
-
-          <!-- Privacy link row -->
-          <div class="mobile-setting-action-row" routerLink="/privacy">
-            <div class="d-flex align-items-center gap-2">
-              <span class="action-icon">🔒</span>
-              <span>Privacy Policy Informativa</span>
-            </div>
-            <span class="chevron-right">›</span>
           </div>
 
         </div>
+
       </div>
+
 
     </div>
 
-    <!-- C. NATIVE BOTTOM NAVIGATION BAR (FIXED) -->
+    <!-- ─── C. NATIVE STICKY FLOATING BOTTOM NAV DOCK ─── -->
     <nav class="mobile-bottom-nav glass-core">
-      <!-- Item 1: Bacheca -->
       <button class="bottom-nav-item" [class.active]="activeMobileTab() === 'feed'"
         (click)="activeMobileTab.set('feed')">
-        <span class="bottom-nav-icon">
-          <img src="assets/Icone/home.png" alt="Bacheca" class="bottom-nav-img" />
-        </span>
+        <span class="bottom-nav-icon"><img src="assets/Icone/home.png" alt="Feed" class="bottom-nav-img" /></span>
         <span class="bottom-nav-label">Feed</span>
       </button>
-
-      <!-- Item 2: Scrivi -->
       <button class="bottom-nav-item" [class.active]="activeMobileTab() === 'composer'"
         (click)="activeMobileTab.set('composer')">
-        <span class="bottom-nav-icon">
-          <img src="assets/Icone/update.png" alt="Scrivi" class="bottom-nav-img" />
-        </span>
+        <span class="bottom-nav-icon"><img src="assets/Icone/scrivi.png" alt="Scrivi" class="bottom-nav-img" /></span>
         <span class="bottom-nav-label">Scrivi</span>
       </button>
-
-      <!-- Item 3: Attività (Preferiti / Bozze) -->
       <button class="bottom-nav-item" [class.active]="activeMobileTab() === 'activity'"
         (click)="activeMobileTab.set('activity')">
-        <span class="bottom-nav-icon">
-          <img src="assets/Icone/seguendo.png" alt="Attività" class="bottom-nav-img" />
-        </span>
+        <span class="bottom-nav-icon"><img src="assets/Icone/libreria.png" alt="Libreria"
+            class="bottom-nav-img" /></span>
         <span class="bottom-nav-label">Libreria</span>
       </button>
 
-      <!-- Item 4: Impostazioni -->
-      <button class="bottom-nav-item" [class.active]="activeMobileTab() === 'settings'"
-        (click)="activeMobileTab.set('settings')">
-        <span class="bottom-nav-icon">
-          <img src="assets/Icone/regolamento.png" alt="Impostazioni" class="bottom-nav-img" />
-        </span>
-        <span class="bottom-nav-label">Opzioni</span>
-      </button>
     </nav>
 
-  </div>
-</div>
-
-<!-- Toast Feedback -->
-<div class="glass-toast" [class.show]="showToast">
-  <div class="toast-content-wrapper">
-    <img src="assets/Icone/ok.png" alt="Successo" class="toast-icon-img" />
-    <span class="toast-txt">{{ toastMessage }}</span>
-  </div>
-</div>
-
-
-<!-- Preview Modal Overlay -->
-<div class="preview-modal-overlay animate-fade-in" *ngIf="showPreviewModal" (click)="closePreviewModal()">
-  <div class="preview-modal-card glass-core" (click)="$event.stopPropagation()">
-
-    <div class="preview-modal-header">
-      <h3 class="preview-modal-title">Anteprima del Post</h3>
-      <button class="btn-close-preview" (click)="closePreviewModal()">✕</button>
-    </div>
-
-    <div class="preview-modal-body">
-      <div class="simulated-feed">
-        <div class="post-card glass-core preview-card" style="margin-bottom: 0;">
-          <div class="post-vote-sidebar">
-            <button class="vote-sidebar-btn upvote" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <path
-                  d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
-                </path>
-              </svg>
-            </button>
-            <span class="vote-sidebar-count">1</span>
-          </div>
-
-          <div class="post-main-content">
-            <div class="post-header-reddit">
-              <div class="post-author-row">
-                <div class="post-author-avatar-container">
-                  <img *ngIf="currentUser()?.avatar_url" [src]="currentUser()?.avatar_url" alt="Avatar"
-                    class="post-author-avatar" />
-                  <div *ngIf="!currentUser()?.avatar_url" class="post-author-avatar-fallback">{{
-                    currentUser()?.username?.slice(0, 2)?.toUpperCase() }}</div>
-                </div>
-                <span class="post-community-name">
-                  {{ rightSelectedStory ? rightSelectedStory.title : 'Generale' }}
-                </span>
-                <span class="meta-separator">•</span>
-                <span class="post-author-name">Scritto da {{ currentUser()?.username }}</span>
-                <span class="meta-separator">•</span>
-                <span class="post-time">Adesso</span>
-              </div>
-              <div class="post-badge" [class.post-badge--general]="rightComposerType === 'general'"
-                [class.post-badge--comment]="rightComposerType === 'review_comment'">
-                <span>{{ rightComposerType === 'general' ? 'Discussione' : (reviewCommentType === 'review' ?
-                  'Recensione' : 'Commento') }}</span>
-              </div>
-            </div>
-
-            <div class="post-body">
-              <h2 class="post-card-title">{{ postTitle }}</h2>
-
-              <div class="post-image-container mb-3" *ngIf="rightComposerType === 'general' && postImageBase64">
-                <img [src]="postImageBase64" alt="Anteprima Immagine" class="post-image" />
-              </div>
-
-              <div class="quoted-feedback-box mb-3"
-                *ngIf="rightComposerType === 'review_comment' && selectedReviewOrComment"
-                [class.quoted-feedback-box--review]="reviewCommentType === 'review'">
-                <div class="quoted-feedback-header">
-                  <span class="quoted-type-label">
-                    {{ reviewCommentType === 'review' ? 'Recensione di' : 'Commento di' }} {{
-                    selectedReviewOrComment.name || selectedReviewOrComment.author_name }}
-                  </span>
-                  <span class="quoted-rating" *ngIf="reviewCommentType === 'review'">★</span>
-                </div>
-                <p class="quoted-feedback-text">“{{ selectedReviewOrComment.content || selectedReviewOrComment.text }}”
-                </p>
-              </div>
-
-              <p class="post-main-text">{{ postText }}</p>
-
-              <div class="linked-story-card glass-core" *ngIf="rightSelectedStory">
-                <img [src]="rightSelectedStory.image_url || 'assets/Presentazione/promessi-sposi.jpg'" alt="Cover"
-                  class="story-card-cover" />
-                <div class="story-card-info">
-                  <h5 class="story-card-title">{{ rightSelectedStory.title }}</h5>
-                  <span class="story-card-tag" *ngIf="rightSelectedStory.is_18_plus">18+</span>
-                  <span class="story-card-explore">Esplora storia →</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="post-footer">
-              <button class="post-action-btn footer-action-btn" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2">
-                  <path
-                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
-                  </path>
-                </svg>
-                <span>0 Commenti</span>
-              </button>
-              <button class="post-action-btn footer-action-btn share-btn" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-                <span>Condividi</span>
-              </button>
-            </div>
-          </div>
-        </div>
+    <!-- Global Glass Toast -->
+    <div class="glass-toast" [class.show]="showToast">
+      <div class="toast-content-wrapper">
+        <img src="assets/Icone/ok.png" alt="Successo" class="toast-icon-img" />
+        <span class="toast-txt">{{ toastMessage }}</span>
       </div>
     </div>
 
-    <div class="preview-modal-footer">
-      <button class="btn-cancel-preview" (click)="closePreviewModal()">Modifica ancora</button>
-      <button class="btn-submit-from-preview" (click)="publishPost()">Conferma e Pubblica</button>
-    </div>
-
   </div>
-</div>

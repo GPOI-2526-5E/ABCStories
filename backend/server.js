@@ -173,6 +173,41 @@ const pool = process.env.DATABASE_URL
       );
     `);
     console.log('[DATABASE] Tabella community_post_bookmarks creata o verificata.');
+
+    // Sottolineature & Collezioni Sottolineature Migrations
+    await pool.query(`
+      ALTER TABLE collections ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'books';
+    `);
+    console.log('[DATABASE] Colonna type verificata in tabella collections.');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS highlights (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+        chapter_id UUID NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+        paragraph_index INTEGER NOT NULL,
+        start_offset INTEGER NOT NULL,
+        end_offset INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        color VARCHAR(50) DEFAULT 'rgba(241, 196, 15, 0.3)'
+      );
+    `);
+    console.log('[DATABASE] Tabella highlights creata o verificata.');
+
+    await pool.query(`
+      ALTER TABLE highlights ADD COLUMN IF NOT EXISTS color VARCHAR(50) DEFAULT 'rgba(241, 196, 15, 0.3)';
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS collection_highlights (
+        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+        highlight_id UUID NOT NULL REFERENCES highlights(id) ON DELETE CASCADE,
+        PRIMARY KEY (collection_id, highlight_id)
+      );
+    `);
+    console.log('[DATABASE] Tabella collection_highlights creata o verificata.');
   } catch (err) {
     console.error('[DATABASE ERROR] Errore durante la creazione delle tabelle iniziali:', err);
   }
@@ -518,18 +553,36 @@ app.get('/api/users/:userId/collections', async (req, res) => {
     
     const collections = [];
     for (const col of collectionsRes.rows) {
-      const storiesRes = await pool.query(
-        `SELECT s.*, u.username as author_name 
-         FROM collection_stories cs 
-         JOIN stories s ON s.id = cs.story_id 
-         JOIN users u ON u.id = s.author_id
-         WHERE cs.collection_id = $1`,
-        [col.id]
-      );
-      collections.push({
-        ...col,
-        stories: storiesRes.rows
-      });
+      if (col.type === 'highlights') {
+        const highlightsRes = await pool.query(
+          `SELECT h.*, s.title AS story_title, s.image_url AS story_image_url, c.title AS chapter_title 
+           FROM collection_highlights ch 
+           JOIN highlights h ON h.id = ch.highlight_id 
+           JOIN stories s ON s.id = h.story_id
+           JOIN chapters c ON c.id = h.chapter_id
+           WHERE ch.collection_id = $1`,
+          [col.id]
+        );
+        collections.push({
+          ...col,
+          stories: [],
+          highlights: highlightsRes.rows
+        });
+      } else {
+        const storiesRes = await pool.query(
+          `SELECT s.*, u.username as author_name 
+           FROM collection_stories cs 
+           JOIN stories s ON s.id = cs.story_id 
+           JOIN users u ON u.id = s.author_id
+           WHERE cs.collection_id = $1`,
+          [col.id]
+        );
+        collections.push({
+          ...col,
+          stories: storiesRes.rows,
+          highlights: []
+        });
+      }
     }
     res.json(collections);
   } catch (error) {
@@ -540,20 +593,32 @@ app.get('/api/users/:userId/collections', async (req, res) => {
 
 app.post('/api/users/:userId/collections', async (req, res) => {
   const { userId } = req.params;
-  const { name, description, storyIds } = req.body;
+  const { name, description, type, storyIds, highlightIds } = req.body;
+  const collectionType = type || 'books';
   try {
     const colRes = await pool.query(
-      'INSERT INTO collections (user_id, name, description) VALUES ($1, $2, $3) RETURNING *',
-      [userId, name, description]
+      'INSERT INTO collections (user_id, name, description, type) VALUES ($1, $2, $3, $4) RETURNING *',
+      [userId, name, description, collectionType]
     );
     const newCollection = colRes.rows[0];
     
-    if (storyIds && storyIds.length > 0) {
-      for (const storyId of storyIds) {
-        await pool.query(
-          'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [newCollection.id, storyId]
-        );
+    if (collectionType === 'highlights') {
+      if (highlightIds && highlightIds.length > 0) {
+        for (const highlightId of highlightIds) {
+          await pool.query(
+            'INSERT INTO collection_highlights (collection_id, highlight_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [newCollection.id, highlightId]
+          );
+        }
+      }
+    } else {
+      if (storyIds && storyIds.length > 0) {
+        for (const storyId of storyIds) {
+          await pool.query(
+            'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [newCollection.id, storyId]
+          );
+        }
       }
     }
     
@@ -566,7 +631,7 @@ app.post('/api/users/:userId/collections', async (req, res) => {
 
 app.put('/api/collections/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, description, storyIds } = req.body;
+  const { name, description, storyIds, highlightIds } = req.body;
   try {
     const colRes = await pool.query(
       'UPDATE collections SET name = $1, description = $2 WHERE id = $3 RETURNING *',
@@ -575,18 +640,31 @@ app.put('/api/collections/:id', async (req, res) => {
     if (colRes.rows.length === 0) {
       return res.status(404).json({ error: 'Collection not found' });
     }
+    const collection = colRes.rows[0];
     
-    await pool.query('DELETE FROM collection_stories WHERE collection_id = $1', [id]);
-    if (storyIds && storyIds.length > 0) {
-      for (const storyId of storyIds) {
-        await pool.query(
-          'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [id, storyId]
-        );
+    if (collection.type === 'highlights') {
+      await pool.query('DELETE FROM collection_highlights WHERE collection_id = $1', [id]);
+      if (highlightIds && highlightIds.length > 0) {
+        for (const highlightId of highlightIds) {
+          await pool.query(
+            'INSERT INTO collection_highlights (collection_id, highlight_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [id, highlightId]
+          );
+        }
+      }
+    } else {
+      await pool.query('DELETE FROM collection_stories WHERE collection_id = $1', [id]);
+      if (storyIds && storyIds.length > 0) {
+        for (const storyId of storyIds) {
+          await pool.query(
+            'INSERT INTO collection_stories (collection_id, story_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [id, storyId]
+          );
+        }
       }
     }
     
-    res.json(colRes.rows[0]);
+    res.json(collection);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -601,6 +679,132 @@ app.delete('/api/collections/:id', async (req, res) => {
       return res.status(404).json({ error: 'Collection not found' });
     }
     res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// ═══════════════ HIGHLIGHTS ═══════════════
+
+app.get('/api/community/highlights', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT h.*, 
+              u.username AS user_name, 
+              s.title AS story_title, 
+              s.image_url AS story_image,
+              s.is_18_plus,
+              c.title AS chapter_title,
+              c.order_index AS chapter_order_index,
+              (SELECT name FROM users WHERE id = s.author_id) as author_name
+       FROM highlights h
+       JOIN users u ON u.id = h.user_id
+       JOIN stories s ON s.id = h.story_id
+       JOIN chapters c ON c.id = h.chapter_id
+       ORDER BY h.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Errore get community highlights:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/chapters/:chapterId/highlights', async (req, res) => {
+  const { chapterId } = req.params;
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId parameter' });
+  }
+  try {
+    const result = await pool.query(
+      'SELECT * FROM highlights WHERE chapter_id = $1 AND user_id = $2',
+      [chapterId, userId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/users/:userId/highlights', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT h.*, s.title AS story_title, s.image_url AS story_image_url, c.title AS chapter_title 
+       FROM highlights h
+       JOIN stories s ON s.id = h.story_id
+       JOIN chapters c ON c.id = h.chapter_id
+       WHERE h.user_id = $1
+       ORDER BY h.created_at DESC`,
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/highlights', async (req, res) => {
+  const { userId, storyId, chapterId, paragraphIndex, startOffset, endOffset, text, color } = req.body;
+  if (!userId || !storyId || !chapterId || paragraphIndex === undefined || startOffset === undefined || endOffset === undefined || !text) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+  try {
+    const result = await pool.query(
+      `INSERT INTO highlights (user_id, story_id, chapter_id, paragraph_index, start_offset, end_offset, text, color) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+       RETURNING *`,
+      [userId, storyId, chapterId, paragraphIndex, startOffset, endOffset, text, color || 'rgba(241, 196, 15, 0.3)']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/highlights/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM highlights WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Highlight not found' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/highlights/:id', async (req, res) => {
+  const { id } = req.params;
+  const { color, startOffset, endOffset, text } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE highlights 
+       SET color = COALESCE($1, color),
+           start_offset = COALESCE($2, start_offset),
+           end_offset = COALESCE($3, end_offset),
+           text = COALESCE($4, text)
+       WHERE id = $5 
+       RETURNING *`,
+      [
+        color || null,
+        startOffset !== undefined ? startOffset : null,
+        endOffset !== undefined ? endOffset : null,
+        text || null,
+        id
+      ]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Highlight not found' });
+    }
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -2382,6 +2586,21 @@ app.put('/api/notifications/:id/read', async (req, res) => {
   }
 });
 
+app.put('/api/notifications/user/:userId/read-all', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE notifications
+      SET is_read = TRUE
+      WHERE user_id = $1
+      RETURNING *
+    `, [req.params.userId]);
+    res.json({ success: true, count: result.rowCount });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // ── COMMUNITY ENDPOINTS ──
 
 app.get('/api/community/posts', async (req, res) => {
@@ -2438,8 +2657,31 @@ app.get('/api/community/posts', async (req, res) => {
 });
 
 app.post('/api/community/posts', async (req, res) => {
-  const { author_id, title, type, content, story_id, quote, comment_text, feeling, post_image, commented_author, commented_text, commented_type } = req.body;
+  let { author_id, title, type, content, story_id, quote, comment_text, feeling, post_image, commented_author, commented_text, commented_type, story_title, story_image } = req.body;
   try {
+    const isValidUuid = (uuid) => {
+      if (!uuid) return false;
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
+    };
+
+    if (story_id && !isValidUuid(story_id)) {
+      story_id = null;
+    }
+
+    if (story_id) {
+      // Check if the story exists in the database
+      const checkStory = await pool.query('SELECT id FROM stories WHERE id = $1', [story_id]);
+      if (checkStory.rows.length === 0) {
+        // story doesn't exist, let's insert a placeholder so the foreign key constraint passes
+        const sTitle = story_title || 'Storia condivisa';
+        const sImage = story_image || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80';
+        await pool.query(`
+          INSERT INTO stories (id, author_id, title, genre, status, image_url)
+          VALUES ($1, $2, $3, 'Romanzo', 'published', $4)
+        `, [story_id, author_id, sTitle, sImage]);
+      }
+    }
+
     const insertRes = await pool.query(`
       INSERT INTO community_posts (author_id, title, type, content, story_id, quote, comment_text, feeling, post_image, commented_author, commented_text, commented_type)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -2449,7 +2691,7 @@ app.post('/api/community/posts', async (req, res) => {
       title || null,
       type,
       content || null,
-      story_id || null,
+      story_id,
       quote || null,
       comment_text || null,
       feeling || null,
@@ -2648,6 +2890,25 @@ app.post('/api/community/posts/:id/comments', async (req, res) => {
     }
 
     res.json(newComment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/community/posts/:id', async (req, res) => {
+  const postId = req.params.id;
+  try {
+    // Delete referenced records in dependent tables
+    await pool.query('DELETE FROM community_post_votes WHERE post_id = $1', [postId]);
+    await pool.query('DELETE FROM community_post_bookmarks WHERE post_id = $1', [postId]);
+    await pool.query('DELETE FROM community_post_comments WHERE post_id = $1', [postId]);
+    await pool.query('DELETE FROM notifications WHERE community_post_id = $1', [postId]);
+    
+    // Delete the main post
+    await pool.query('DELETE FROM community_posts WHERE id = $1', [postId]);
+    
+    res.json({ success: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });

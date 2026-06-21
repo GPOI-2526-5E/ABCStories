@@ -193,3 +193,27 @@ CREATE TABLE IF NOT EXISTS community_post_bookmarks (
   PRIMARY KEY (user_id, post_id)
 );
 
+-- 16. Highlights and Highlights Collections
+ALTER TABLE collections ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'books';
+
+CREATE TABLE IF NOT EXISTS highlights (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+  chapter_id UUID NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  paragraph_index INTEGER NOT NULL,
+  start_offset INTEGER NOT NULL,
+  end_offset INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  color VARCHAR(50) DEFAULT 'rgba(241, 196, 15, 0.3)'
+);
+
+ALTER TABLE highlights ADD COLUMN IF NOT EXISTS color VARCHAR(50) DEFAULT 'rgba(241, 196, 15, 0.3)';
+
+CREATE TABLE IF NOT EXISTS collection_highlights (
+  collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  highlight_id UUID NOT NULL REFERENCES highlights(id) ON DELETE CASCADE,
+  PRIMARY KEY (collection_id, highlight_id)
+);
+

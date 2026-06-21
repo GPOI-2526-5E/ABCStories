@@ -32,6 +32,9 @@
         <button class="tab-btn" [class.tab-btn--active]="filter === 'comments'" (click)="setFilter('comments')">
           Commenti <span class="count-badge">{{ commentsCount }}</span>
         </button>
+        <button class="tab-btn" [class.tab-btn--active]="filter === 'community'" (click)="setFilter('community')">
+          Community <span class="count-badge">{{ communityCount }}</span>
+        </button>
         <button class="tab-btn" [class.tab-btn--active]="filter === 'follows'" (click)="setFilter('follows')">
           Seguaci <span class="count-badge">{{ followsCount }}</span>
         </button>
@@ -72,6 +75,7 @@
             saranno novità!</p>
           <p *ngIf="filter === 'unread'">Non hai notifiche non lette. Ottimo lavoro!</p>
           <p *ngIf="filter === 'comments'">Non ci sono notifiche relative ai commenti.</p>
+          <p *ngIf="filter === 'community'">Non ci sono notifiche relative alla community.</p>
           <p *ngIf="filter === 'follows'">Nessuno ha ancora iniziato a seguirti.</p>
           <p *ngIf="filter === 'stories'">Non ci sono aggiornamenti sulle storie o capitoli degli autori seguiti.</p>
           <p *ngIf="filter === 'interactions'">Non hai ricevuto interazioni (like/preferiti) sulle tue storie.</p>

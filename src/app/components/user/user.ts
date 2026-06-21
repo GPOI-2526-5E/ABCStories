@@ -13,7 +13,7 @@ import { DialogService } from '../../services/dialog.service';
 
 import { RouterModule, Router } from '@angular/router';
 
-export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni' | 'collezioni';
+export type Section = 'profilo' | 'mipiace' | 'preferiti' | 'autori' | 'impostazioni' | 'collezioni' | 'sottolineature';
 
 export interface UserBook {
   id: string;
@@ -77,6 +77,7 @@ export class User implements OnInit {
     { id: 'mipiace', label: 'Mi piace', icon: '/assets/Icone/mipiace.png' },
     { id: 'preferiti', label: 'Preferiti', icon: '/assets/Icone/preferiti.png' },
     { id: 'autori', label: 'Autori seguiti', icon: '/assets/Icone/autore.png' },
+    { id: 'sottolineature', label: 'Sottolineature', icon: '/assets/Icone/sottolinea.png' },
     { id: 'collezioni', label: 'Collezioni', icon: '/assets/Icone/romanzo.png' },
     { id: 'impostazioni', label: 'Impostazioni', icon: '/assets/Icone/impostazioni.png' },
   ];
@@ -84,6 +85,9 @@ export class User implements OnInit {
   likedBooks: UserBook[] = [];
 
   favoriteBooks: UserBook[] = [];
+
+  // Sottolineature
+  userHighlights: any[] = [];
 
   // Collezioni
   collections: any[] = [];
@@ -93,7 +97,9 @@ export class User implements OnInit {
     id: '',
     name: '',
     description: '',
-    storyIds: [] as string[]
+    type: 'books' as 'books' | 'highlights',
+    storyIds: [] as string[],
+    highlightIds: [] as string[]
   };
 
   // Filtri e ricerca per la creazione della collezione
@@ -105,6 +111,14 @@ export class User implements OnInit {
 
   followersCount = 0;
   followingCount = 0;
+
+  // Ricerca nelle sezioni
+  searchLikes = '';
+  searchFavorites = '';
+  searchAuthors = '';
+  searchHighlights = '';
+  searchCollections = '';
+  activeShareHighlightId: string | null = null;
 
   settings = {
     nome: '',
@@ -212,6 +226,15 @@ export class User implements OnInit {
       wide: 'Largo'
     };
     return map[value] || value;
+  }
+
+  getHighlightClass(color: string): string {
+    if (!color) return 'hl-yellow';
+    if (color.includes('46, 204, 113') || color === 'green') return 'hl-green';
+    if (color.includes('231, 76, 60') || color === 'red') return 'hl-red';
+    if (color.includes('52, 152, 219') || color === 'blue') return 'hl-blue';
+    if (color.includes('155, 89, 182') || color === 'purple') return 'hl-purple';
+    return 'hl-yellow';
   }
 
   get filteredStoriesForSearch() {
@@ -345,6 +368,15 @@ export class User implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => console.warn('Errore caricamento recommended:', err)
+      });
+
+      // Carica sottolineature dal DB
+      this.api.getUserHighlights(u.id).subscribe({
+        next: (hl) => {
+          this.userHighlights = hl;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.warn('Errore caricamento sottolineature:', err)
       });
     }
   }
@@ -518,6 +550,9 @@ export class User implements OnInit {
         this.dropdownsOpen.reading_font_size = false;
         this.dropdownsOpen.reading_width = false;
       }
+      if (!target.closest('.highlight-share-container')) {
+        this.activeShareHighlightId = null;
+      }
     }
   }
 
@@ -603,6 +638,40 @@ export class User implements OnInit {
     });
   }
 
+  getFilteredLikedBooks(): UserBook[] {
+    if (!this.searchLikes.trim()) return this.likedBooks;
+    const q = this.searchLikes.toLowerCase().trim();
+    return this.likedBooks.filter(b => b.title?.toLowerCase().includes(q) || b.author?.toLowerCase().includes(q));
+  }
+
+  getFilteredFavoriteBooks(): UserBook[] {
+    if (!this.searchFavorites.trim()) return this.favoriteBooks;
+    const q = this.searchFavorites.toLowerCase().trim();
+    return this.favoriteBooks.filter(b => b.title?.toLowerCase().includes(q) || b.author?.toLowerCase().includes(q));
+  }
+
+  getFilteredFollowedAuthors(): any[] {
+    if (!this.searchAuthors.trim()) return this.followedAuthors;
+    const q = this.searchAuthors.toLowerCase().trim();
+    return this.followedAuthors.filter(a => a.name?.toLowerCase().includes(q) || a.description?.toLowerCase().includes(q));
+  }
+
+  getFilteredUserHighlights(): any[] {
+    if (!this.searchHighlights.trim()) return this.userHighlights;
+    const q = this.searchHighlights.toLowerCase().trim();
+    return this.userHighlights.filter(hl => 
+      hl.text?.toLowerCase().includes(q) || 
+      hl.story_title?.toLowerCase().includes(q) || 
+      hl.chapter_title?.toLowerCase().includes(q)
+    );
+  }
+
+  getFilteredCollections(): any[] {
+    if (!this.searchCollections.trim()) return this.collections;
+    const q = this.searchCollections.toLowerCase().trim();
+    return this.collections.filter(c => c.name?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q));
+  }
+
   getMergedBooks(): any[] {
     return [...this.likedBooks, ...this.favoriteBooks].reduce((acc, book) => {
       const existing = acc.find(b => b.id === book.id);
@@ -652,7 +721,9 @@ export class User implements OnInit {
       id: '',
       name: '',
       description: '',
-      storyIds: []
+      type: 'books',
+      storyIds: [],
+      highlightIds: []
     };
     this.filterLikes = true;
     this.filterFavorites = true;
@@ -666,13 +737,31 @@ export class User implements OnInit {
       id: col.id,
       name: col.name,
       description: col.description || '',
-      storyIds: col.stories ? col.stories.map((s: any) => s.id) : []
+      type: col.type || 'books',
+      storyIds: col.stories ? col.stories.map((s: any) => s.id) : [],
+      highlightIds: col.highlights ? col.highlights.map((h: any) => h.id) : []
     };
     this.filterLikes = true;
     this.filterFavorites = true;
     this.pickerSearchText = '';
     this.isEditingCollection = true;
     this.cdr.detectChanges();
+  }
+
+  setCollectionType(type: 'books' | 'highlights') {
+    this.collectionForm.type = type;
+    this.pickerSearchText = '';
+    this.autoSaveCollection();
+  }
+
+  getFilteredPickerHighlights(): any[] {
+    return this.userHighlights.filter(hl => {
+      if (!this.pickerSearchText.trim()) return true;
+      const query = this.pickerSearchText.toLowerCase().trim();
+      return hl.text?.toLowerCase().includes(query) ||
+             hl.story_title?.toLowerCase().includes(query) ||
+             hl.chapter_title?.toLowerCase().includes(query);
+    });
   }
 
   toggleStoryInCollectionForm(storyId: string) {
@@ -682,40 +771,73 @@ export class User implements OnInit {
     } else {
       this.collectionForm.storyIds.splice(index, 1);
     }
-    if (this.collectionForm.id) {
-      this.autoSaveCollection();
+    this.autoSaveCollection();
+  }
+
+  toggleHighlightInCollectionForm(highlightId: string) {
+    const index = this.collectionForm.highlightIds.indexOf(highlightId);
+    if (index === -1) {
+      this.collectionForm.highlightIds.push(highlightId);
+    } else {
+      this.collectionForm.highlightIds.splice(index, 1);
     }
+    this.autoSaveCollection();
   }
 
   autoSaveCollection() {
     const u = this.currentUser();
-    if (!u || !this.collectionForm.id || !this.collectionForm.name.trim()) return;
+    if (!u || !this.collectionForm.name.trim()) return;
 
     const payload = {
       name: this.collectionForm.name.trim(),
       description: this.collectionForm.description.trim(),
-      storyIds: this.collectionForm.storyIds
+      type: this.collectionForm.type,
+      storyIds: this.collectionForm.type === 'books' ? this.collectionForm.storyIds : undefined,
+      highlightIds: this.collectionForm.type === 'highlights' ? this.collectionForm.highlightIds : undefined
     };
 
-    this.api.updateCollection(this.collectionForm.id, payload).subscribe({
-      next: () => {
-        this.loadCollections();
-        this.showToast = true;
-        this.cdr.detectChanges();
-        if (this.toastTimeout) {
-          clearTimeout(this.toastTimeout);
-        }
-        this.toastTimeout = setTimeout(() => {
-          this.showToast = false;
+    if (this.collectionForm.id) {
+      this.api.updateCollection(this.collectionForm.id, payload).subscribe({
+        next: () => {
+          this.loadCollections();
+          this.showToast = true;
           this.cdr.detectChanges();
-        }, 3000);
-      },
-      error: (err) => console.error('Errore auto-salvataggio collezione:', err)
-    });
+          if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+          }
+          this.toastTimeout = setTimeout(() => {
+            this.showToast = false;
+            this.cdr.detectChanges();
+          }, 3000);
+        },
+        error: (err) => console.error('Errore auto-salvataggio collezione:', err)
+      });
+    } else {
+      this.api.createCollection(u.id, payload).subscribe({
+        next: (newCol: any) => {
+          this.collectionForm.id = newCol.id;
+          this.loadCollections();
+          this.showToast = true;
+          this.cdr.detectChanges();
+          if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+          }
+          this.toastTimeout = setTimeout(() => {
+            this.showToast = false;
+            this.cdr.detectChanges();
+          }, 3000);
+        },
+        error: (err) => console.error('Errore auto-salvataggio (creazione) collezione:', err)
+      });
+    }
   }
 
   isStorySelectedInCollectionForm(storyId: string): boolean {
     return this.collectionForm.storyIds.includes(storyId);
+  }
+
+  isHighlightSelectedInCollectionForm(highlightId: string): boolean {
+    return this.collectionForm.highlightIds.includes(highlightId);
   }
 
   saveCollection() {
@@ -725,7 +847,9 @@ export class User implements OnInit {
     const payload = {
       name: this.collectionForm.name.trim(),
       description: this.collectionForm.description.trim(),
-      storyIds: this.collectionForm.storyIds
+      type: this.collectionForm.type,
+      storyIds: this.collectionForm.type === 'books' ? this.collectionForm.storyIds : undefined,
+      highlightIds: this.collectionForm.type === 'highlights' ? this.collectionForm.highlightIds : undefined
     };
 
     if (this.collectionForm.id) {
@@ -744,6 +868,63 @@ export class User implements OnInit {
         },
         error: (err) => console.error('Errore creazione collezione:', err)
       });
+    }
+  }
+
+  deleteHighlight(highlightId: string): void {
+    this.api.deleteHighlight(highlightId).subscribe({
+      next: () => {
+        this.userHighlights = this.userHighlights.filter(h => h.id !== highlightId);
+        for (const col of this.collections) {
+          if (col.type === 'highlights' && col.highlights) {
+            col.highlights = col.highlights.filter((h: any) => h.id !== highlightId);
+          }
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Errore rimozione sottolineatura:', err)
+    });
+  }
+
+  goToStory(storyId: string) {
+    this.router.navigate(['/book', storyId]);
+  }
+
+  goToChapterFromHighlight(hl: any) {
+    this.router.navigate(['/reader', hl.story_id, hl.chapter_id], { queryParams: { highlightId: hl.id } });
+  }
+
+  removeHighlightFromCollection(collectionId: string, highlightId: string) {
+    if (this.selectedCollection) {
+      const remainingIds = this.selectedCollection.highlights
+        .map((h: any) => h.id)
+        .filter((id: string) => id !== highlightId);
+
+      const payload = {
+        name: this.selectedCollection.name,
+        description: this.selectedCollection.description,
+        highlightIds: remainingIds
+      };
+
+      this.api.updateCollection(collectionId, payload).subscribe({
+        next: () => {
+          this.loadCollections();
+        },
+        error: (err) => console.error('Errore rimozione frase da collezione:', err)
+      });
+    }
+  }
+
+  getCollectionCovers(col: any): string[] {
+    if (col.type === 'highlights') {
+      if (!col.highlights) return [];
+      const urls = col.highlights
+        .map((h: any) => h.story_image_url)
+        .filter((url: any) => !!url);
+      return Array.from(new Set(urls)) as string[];
+    } else {
+      if (!col.stories) return [];
+      return col.stories.map((s: any) => s.image_url).filter((url: any) => !!url) as string[];
     }
   }
 
@@ -770,5 +951,88 @@ export class User implements OnInit {
     img.onload = () => this.loadingService.hide();
     img.onerror = () => this.loadingService.hide();
     img.src = url;
+  }
+
+  toggleHighlightShare(hl: any, event: Event) {
+    event.stopPropagation();
+    if (this.activeShareHighlightId === hl.id) {
+      this.activeShareHighlightId = null;
+    } else {
+      this.activeShareHighlightId = hl.id;
+    }
+    this.cdr.detectChanges();
+  }
+
+  copyHighlightLink(hl: any, event: Event) {
+    event.stopPropagation();
+    const url = window.location.origin + '/reader/' + hl.story_id + '/' + hl.chapter_id + '?highlightId=' + hl.id;
+    navigator.clipboard.writeText(url).then(
+      () => {
+        this.dialogService.alert('Copiato', 'Link della citazione copiato negli appunti!');
+        this.activeShareHighlightId = null;
+        this.cdr.detectChanges();
+      },
+      () => {
+        this.dialogService.alert('Errore', 'Impossibile copiare il link.');
+      }
+    );
+  }
+
+  shareHighlightToCommunity(hl: any, event: Event) {
+    event.stopPropagation();
+    this.activeShareHighlightId = null;
+    this.router.navigate(['/community'], { 
+      queryParams: { 
+        shareStoryId: hl.story_id, 
+        shareHighlightText: hl.text 
+      } 
+    });
+  }
+
+  isNativeShareSupported(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return !!navigator.share;
+  }
+
+  shareHighlightOnSocial(hl: any, platform: string, event: Event) {
+    event.stopPropagation();
+    const url = encodeURIComponent(window.location.origin + '/reader/' + hl.story_id + '/' + hl.chapter_id + '?highlightId=' + hl.id);
+    const title = encodeURIComponent(`"${hl.text}" - Citazione da ${hl.story_title}`);
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+        break;
+      case 'native':
+        if (navigator.share) {
+          navigator.share({
+            title: `Citazione da ${hl.story_title}`,
+            text: `"${hl.text}"`,
+            url: decodeURIComponent(url)
+          }).then(() => {
+            this.activeShareHighlightId = null;
+            this.cdr.detectChanges();
+          }).catch((err) => {
+            console.log('Condivisione annullata o fallita:', err);
+          });
+        }
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+      this.activeShareHighlightId = null;
+      this.cdr.detectChanges();
+    }
   }
 }
