@@ -1,6 +1,7 @@
 import {
   Component, OnInit, OnDestroy, Inject, PLATFORM_ID,
-  HostListener, signal, computed, ChangeDetectorRef, inject
+  HostListener, signal, computed, ChangeDetectorRef, inject,
+  ViewChild, ElementRef
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -115,6 +116,29 @@ export class Reader implements OnInit, OnDestroy {
   paragraphsWithSegments: any[] = [];
   activeSelection: any = null;
   selectedHighlightToDelete: any = null;
+
+  // Touch drawing state (Mobile Swipe-to-Highlight)
+  private readerTextElement: HTMLElement | null = null;
+  private touchStartPos: { x: number; y: number } | null = null;
+  private touchParagraphIndex: number | null = null;
+  private touchStartOffset: number | null = null;
+  private touchParagraphEl: HTMLElement | null = null;
+  private isDrawingHighlight = false;
+  private isTouchScrolling = false;
+
+  private boundTouchStart = this.handleTouchStart.bind(this);
+  private boundTouchMove = this.handleTouchMove.bind(this);
+  private boundTouchEnd = this.handleTouchEnd.bind(this);
+
+  @ViewChild('readerText') set readerText(elementRef: ElementRef<HTMLElement> | undefined) {
+    if (elementRef) {
+      this.readerTextElement = elementRef.nativeElement;
+      this.setupTouchListeners();
+    } else {
+      this.cleanupTouchListeners();
+      this.readerTextElement = null;
+    }
+  }
   floatingBtnStyle = {
     display: 'none',
     top: '0px',
@@ -165,6 +189,7 @@ export class Reader implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.saveTimer) clearInterval(this.saveTimer);
     this.persistProgress();
+    this.cleanupTouchListeners();
   }
 
   private loadChapter(chapterId: string): void {
@@ -351,7 +376,20 @@ export class Reader implements OnInit, OnDestroy {
       const text = rawParas[pIdx];
       let pHighlights = [...this.chapterHighlights.filter(h => h.paragraph_index === pIdx)];
 
+      if (this.activeSelection && this.activeSelection.paragraphIndex === pIdx) {
+        const start = this.activeSelection.startOffset;
+        const end = this.activeSelection.endOffset;
+        // Filter out overlapping highlights to preview the merged highlight in real-time
+        pHighlights = pHighlights.filter(h => !(start < h.end_offset && end > h.start_offset));
 
+        pHighlights.push({
+          id: 'selection-preview',
+          paragraph_index: pIdx,
+          start_offset: start,
+          end_offset: end,
+          color: this.selectedColor
+        });
+      }
 
       pHighlights.sort((a, b) => a.start_offset - b.start_offset);
 
@@ -472,6 +510,7 @@ export class Reader implements OnInit, OnDestroy {
   @HostListener('document:mouseup', ['$event'])
   onMouseUp(event: any) {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (this.isTouchDevice()) return;
     const target = event.target as HTMLElement;
     const panel = document.querySelector('.highlight-panel-container');
     if (panel && panel.contains(target)) {
@@ -481,13 +520,144 @@ export class Reader implements OnInit, OnDestroy {
     if (event.type === 'mouseup' && this.highlightModeActive && this.activeSelection) {
       this.createHighlight();
     }
-    // On mobile (touchend): do NOT auto-highlight — user must tap "Sottolinea" button
   }
 
   /** Returns true on touch devices (mobile/tablet) */
   isTouchDevice(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     return 'ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  private setupTouchListeners() {
+    if (!this.readerTextElement || !this.isTouchDevice()) return;
+    this.cleanupTouchListeners();
+
+    this.readerTextElement.addEventListener('touchstart', this.boundTouchStart, { passive: true });
+    this.readerTextElement.addEventListener('touchmove', this.boundTouchMove, { passive: false });
+    this.readerTextElement.addEventListener('touchend', this.boundTouchEnd, { passive: true });
+    this.readerTextElement.addEventListener('touchcancel', this.boundTouchEnd, { passive: true });
+  }
+
+  private cleanupTouchListeners() {
+    if (!this.readerTextElement) return;
+    this.readerTextElement.removeEventListener('touchstart', this.boundTouchStart);
+    this.readerTextElement.removeEventListener('touchmove', this.boundTouchMove);
+    this.readerTextElement.removeEventListener('touchend', this.boundTouchEnd);
+    this.readerTextElement.removeEventListener('touchcancel', this.boundTouchEnd);
+  }
+
+  private handleTouchStart(event: TouchEvent) {
+    if (!this.highlightModeActive) return;
+    if (event.touches.length !== 1) return;
+
+    const touch = event.touches[0];
+    const target = event.target as HTMLElement;
+    const pEl = target.closest('.reader-paragraph') as HTMLElement;
+    if (!pEl) return;
+
+    const pIdxStr = pEl.getAttribute('data-para-index');
+    if (pIdxStr === null) return;
+
+    const pIdx = parseInt(pIdxStr, 10);
+    const startOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, pEl);
+    if (startOffset === null) return;
+
+    this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+    this.touchParagraphIndex = pIdx;
+    this.touchStartOffset = startOffset;
+    this.touchParagraphEl = pEl;
+    this.isDrawingHighlight = false;
+    this.isTouchScrolling = false;
+
+    this.activeSelection = null;
+  }
+
+  private handleTouchMove(event: TouchEvent) {
+    if (!this.highlightModeActive || !this.touchStartPos || !this.touchParagraphEl) return;
+    if (event.touches.length !== 1) return;
+
+    const touch = event.touches[0];
+    const dx = touch.clientX - this.touchStartPos.x;
+    const dy = touch.clientY - this.touchStartPos.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (!this.isDrawingHighlight && !this.isTouchScrolling) {
+      if (absDx > absDy && absDx > 8) {
+        this.isDrawingHighlight = true;
+      } else if (absDy > absDx && absDy > 8) {
+        this.isTouchScrolling = true;
+        return;
+      }
+    }
+
+    if (this.isTouchScrolling) return;
+
+    if (this.isDrawingHighlight) {
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+
+      const currentOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, this.touchParagraphEl);
+      if (currentOffset !== null && this.touchParagraphIndex !== null) {
+        const start = Math.min(this.touchStartOffset!, currentOffset);
+        const end = Math.max(this.touchStartOffset!, currentOffset);
+        const paragraphText = this.paragraphs[this.touchParagraphIndex] || '';
+        const selectedText = paragraphText.slice(start, end);
+
+        this.activeSelection = {
+          paragraphIndex: this.touchParagraphIndex,
+          startOffset: start,
+          endOffset: end,
+          text: selectedText
+        };
+
+        this.recomputeSegments();
+        this.cdr.detectChanges();
+      }
+    }
+  }
+
+  private handleTouchEnd(event: TouchEvent) {
+    if (this.isDrawingHighlight && this.activeSelection && this.activeSelection.text && this.activeSelection.text.trim().length > 0) {
+      this.createHighlight();
+    }
+
+    this.touchStartPos = null;
+    this.touchParagraphIndex = null;
+    this.touchStartOffset = null;
+    this.touchParagraphEl = null;
+    this.isDrawingHighlight = false;
+    this.isTouchScrolling = false;
+
+    this.activeSelection = null;
+    this.recomputeSegments();
+    this.cdr.detectChanges();
+  }
+
+  private getCaretOffsetFromPoint(x: number, y: number, pEl: HTMLElement): number | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+
+    let range: Range | null = null;
+    if (typeof (document as any).caretRangeFromPoint === 'function') {
+      range = (document as any).caretRangeFromPoint(x, y);
+    } else if (typeof (document as any).caretPositionFromPoint === 'function') {
+      const pos = (document as any).caretPositionFromPoint(x, y);
+      if (pos && pos.offsetNode) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.setEnd(pos.offsetNode, pos.offset);
+      }
+    }
+
+    if (!range) return null;
+
+    if (!pEl.contains(range.startContainer)) {
+      return null;
+    }
+
+    const offsets = this.getRangeCharacterOffsetsWithin(range, pEl);
+    return offsets ? offsets.start : null;
   }
 
   /**
