@@ -475,10 +475,9 @@
   line-height: 1.9;
   color: var(--text-primary);
 
-  &.touch-device.highlight-mode-active,
-  &.touch-device.has-active-selection {
-    user-select: none;
-    -webkit-user-select: none;
+  &.touch-device {
+    user-select: none !important;
+    -webkit-user-select: none !important;
   }
 
   /* Virtual selection handles (Teardrop pins) for mobile selection adjustments */
@@ -492,6 +491,7 @@
 
     &.dragging {
       pointer-events: none !important;
+
       .handle-pin {
         pointer-events: none !important;
       }
@@ -507,7 +507,8 @@
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
       cursor: pointer;
       top: 6px;
-      left: -10px; /* Centered relative to the 0-width parent boundary */
+      left: -10px;
+      /* Centered relative to the 0-width parent boundary */
       transform-origin: center;
       transition: transform 0.15s ease;
 
@@ -1330,6 +1331,8 @@
     padding: 8px;
     overflow: visible;
     animation: popoverReveal 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
+    contain: layout style paint;
 
     .dropdown-item {
       display: flex;
@@ -1496,21 +1499,22 @@
   right: 0;
   width: 100%;
   max-height: 85vh;
-  background: rgba(var(--glass-rgb, 15, 23, 42), 0.55) !important;
-  backdrop-filter: blur(35px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(35px) saturate(180%) !important;
+  background: rgba(var(--glass-rgb, 15, 23, 42), 0.65) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
   border-top: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.25);
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
   z-index: 3000;
-  transform: translateY(100%);
+  transform: translateY(100%) translateZ(0);
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 16px 20px 34px 20px;
   box-sizing: border-box;
   overflow-y: auto;
+  will-change: transform;
 
   &.open {
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
   }
 
   .sheet-header {
@@ -1579,6 +1583,7 @@
       margin: 0 0 6px 0;
       display: -webkit-box;
       -webkit-line-clamp: 3;
+      line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }

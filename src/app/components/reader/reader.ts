@@ -603,7 +603,7 @@ export class Reader implements OnInit, OnDestroy {
     if (this.highlightModeActive) {
       const startOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, pEl);
       if (startOffset !== null) {
-        this.touchStartOffset = startOffset;
+        this.touchStartOffset = this.getWordBoundaryOffset(startOffset, pEl, 'start');
       }
     }
   }
@@ -627,27 +627,26 @@ export class Reader implements OnInit, OnDestroy {
     }
 
     if (this.highlightModeActive) {
-      if (!this.isDrawingHighlight && !this.isTouchScrolling) {
-        if (absDx > absDy && absDx > 8) {
-          this.isDrawingHighlight = true;
-          this.activeSelection = null; // Clear active selection to start fresh swipe highlight
-        } else if (absDy > absDx && absDy > 8) {
-          this.isTouchScrolling = true;
-          return;
-        }
+      // Prevent scrolling unconditionally on mobile when highlighter is active
+      if (event.cancelable) {
+        event.preventDefault();
       }
 
-      if (this.isTouchScrolling) return;
+      if (!this.isDrawingHighlight && !this.isTouchScrolling) {
+        this.isDrawingHighlight = true;
+        this.activeSelection = null; // Clear active selection to start fresh swipe highlight
+      }
 
       if (this.isDrawingHighlight && this.touchStartOffset !== null) {
-        if (event.cancelable) {
-          event.preventDefault();
-        }
-
         const currentOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, this.touchParagraphEl);
         if (currentOffset !== null && this.touchParagraphIndex !== null) {
-          const start = Math.min(this.touchStartOffset, currentOffset);
-          const end = Math.max(this.touchStartOffset, currentOffset);
+          let start = Math.min(this.touchStartOffset, currentOffset);
+          let end = Math.max(this.touchStartOffset, currentOffset);
+
+          // Snap selection boundaries to full word boundaries
+          start = this.getWordBoundaryOffset(start, this.touchParagraphEl, 'start');
+          end = this.getWordBoundaryOffset(end, this.touchParagraphEl, 'end');
+
           const paragraphText = this.paragraphs[this.touchParagraphIndex] || '';
           const selectedText = paragraphText.slice(start, end);
 
@@ -760,6 +759,7 @@ export class Reader implements OnInit, OnDestroy {
     this.touchParagraphIndex = paragraphIndex;
     this.touchParagraphEl = pEl;
     this.justSelectedWord = true;
+    this.highlightModeActive = true; // Auto-activate highlighter mode when selecting a word!
 
     // Clear native browser selection
     window.getSelection()?.removeAllRanges();
@@ -868,6 +868,23 @@ export class Reader implements OnInit, OnDestroy {
       }
     }
     return null;
+  }
+
+  private getWordBoundaryOffset(offset: number, pEl: HTMLElement, boundary: 'start' | 'end'): number {
+    const text = pEl.textContent || '';
+    const WORD_BREAK = /[\s\n\r,;:.!?'"«»\-\u2013\u2014()\[\]]/;
+    let off = Math.min(Math.max(0, offset), text.length);
+
+    if (boundary === 'start') {
+      while (off > 0 && !WORD_BREAK.test(text[off - 1])) {
+        off--;
+      }
+    } else {
+      while (off < text.length && !WORD_BREAK.test(text[off])) {
+        off++;
+      }
+    }
+    return off;
   }
 
   /**
@@ -1028,6 +1045,37 @@ export class Reader implements OnInit, OnDestroy {
     this.hideFloatingBtn();
 
     if (overlapping.length > 0) {
+      // Se la nuova selezione è interamente contenuta in una sottolineatura esistente, cambiamo solo il colore o non facciamo nulla
+      const fullyContained = overlapping.find(h => start >= h.start_offset && end <= h.end_offset);
+      if (fullyContained) {
+        if (fullyContained.color !== this.selectedColor) {
+          const backupHighlights = JSON.parse(JSON.stringify(this.chapterHighlights));
+          fullyContained.color = this.selectedColor;
+          this.recomputeSegments();
+          this.cdr.detectChanges();
+
+          this.api.updateHighlight(fullyContained.id, {
+            color: this.selectedColor,
+            startOffset: fullyContained.start_offset,
+            endOffset: fullyContained.end_offset,
+            text: fullyContained.text
+          }).subscribe({
+            next: (updated) => {
+              this.chapterHighlights = this.chapterHighlights.map(h => h.id === fullyContained.id ? updated : h);
+              this.recomputeSegments();
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              console.error('Errore aggiornamento colore sottolineatura contenuta:', err);
+              this.chapterHighlights = backupHighlights;
+              this.recomputeSegments();
+              this.cdr.detectChanges();
+            }
+          });
+        }
+        return;
+      }
+
       // Manteniamo un backup per poter ripristinare in caso di errore
       const backupHighlights = JSON.parse(JSON.stringify(this.chapterHighlights));
 

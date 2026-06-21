@@ -1319,24 +1319,29 @@ h2 {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(35px) saturate(200%);
+  -webkit-backdrop-filter: blur(35px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
   padding: 8px;
   min-width: 230px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
   z-index: 100;
   display: flex;
   flex-direction: column;
   gap: 6px;
   animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  contain: layout style paint;
 
   @media (max-width: 768px) {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
+    /* Blur ridotto per mobile */
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
   }
 
   .dropdown-item {
@@ -1347,25 +1352,25 @@ h2 {
     padding: 10px 14px;
     border: none;
     background: transparent;
-    color: #ffffff !important;
+    color: #0f172a !important;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     text-align: left;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     svg {
-      opacity: 0.8;
-      color: #ffffff !important;
+      opacity: 0.9;
+      stroke: #0f172a !important;
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff !important;
+      background: rgba(0, 0, 0, 0.06);
+      color: #000000 !important;
 
       svg {
-        color: #ffffff !important;
+        stroke: #000000 !important;
         opacity: 1;
       }
     }
@@ -1374,14 +1379,14 @@ h2 {
 
 .dropdown-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.12);
   margin: 6px 0;
 }
 
 .social-share-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(15, 23, 42, 0.65);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 2px 8px;

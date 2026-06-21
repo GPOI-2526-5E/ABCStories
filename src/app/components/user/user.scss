@@ -3062,6 +3062,8 @@ select.setting-input {
     gap: 6px;
     overflow: visible;
     animation: userDropdownReveal 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
+    contain: layout style paint;
 
     .dropdown-item {
       display: flex;
@@ -3197,6 +3199,9 @@ select.setting-input {
     min-width: 0 !important;
     bottom: 54px !important;
     transform: none !important;
+    /* Riduzione blur su mobile per migliori performance GPU */
+    backdrop-filter: blur(16px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
   }
 }
 
