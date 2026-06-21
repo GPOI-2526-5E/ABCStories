@@ -564,7 +564,7 @@
     height: 56px !important;
     padding: 0 12px !important;
     border-radius: 40px !important;
-    
+
     .reader-back-btn,
     .reader-chapters-btn {
       width: 38px !important;
@@ -573,16 +573,16 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      
+
       svg {
         width: 18px !important;
         height: 18px !important;
       }
     }
-    
+
     .reader-topbar-info {
       gap: 2px !important;
-      
+
       .reader-story-title {
         font-size: 12.5px !important;
         font-weight: 700 !important;
@@ -591,7 +591,7 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
       }
-      
+
       .reader-chapter-label {
         font-size: 10px !important;
         font-weight: 500 !important;
@@ -611,13 +611,13 @@
   .reader-hero-content {
     padding: 38vh 16px 24px !important;
     gap: 12px !important;
-    
+
     .reader-chapter-title {
       font-size: clamp(1.6rem, 5vw, 2.2rem) !important;
       font-weight: 850 !important;
       line-height: 1.25 !important;
     }
-    
+
     .reader-chapter-author {
       font-size: 11px !important;
       padding: 6px 16px !important;
@@ -638,7 +638,7 @@
     border-radius: 24px 24px 0 0 !important;
     box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.18) !important;
     transform: translateY(100%) !important;
-    
+
     &.open {
       transform: translateY(0) !important;
     }
@@ -661,11 +661,11 @@
   .sidebar-item {
     padding: 14px 24px !important;
     gap: 12px !important;
-    
+
     .sidebar-title {
       font-size: 14px !important;
     }
-    
+
     .sidebar-num {
       width: 26px !important;
       height: 26px !important;
@@ -696,11 +696,11 @@
   .reader-text {
     font-size: 1.05rem !important;
     line-height: 1.8 !important;
-    
+
     p {
       margin-bottom: 1.4em !important;
       text-align: left !important;
-      
+
       &:first-of-type::first-letter {
         font-size: 2.6em !important;
         line-height: 0.85 !important;
@@ -739,13 +739,13 @@
 
   .page-controls {
     padding-top: 12px !important;
-    
+
     .page-arrow {
       width: 32px !important;
       height: 32px !important;
       font-size: 1rem !important;
     }
-    
+
     .page-indicator {
       font-size: 11px !important;
     }
@@ -926,6 +926,7 @@
   }
 
   &.highlight-mode-active {
+
     &::selection,
     & *::selection {
       background: var(--active-selection-color, rgba(241, 196, 15, 0.35)) !important;
@@ -996,6 +997,7 @@
   &.hl-yellow {
     background: rgba(241, 196, 15, 0.22);
     border-bottom-color: rgb(241, 196, 15);
+
     &:hover {
       background: rgba(241, 196, 15, 0.4);
       border-bottom-color: rgb(241, 196, 15);
@@ -1005,6 +1007,7 @@
   &.hl-green {
     background: rgba(46, 204, 113, 0.22);
     border-bottom-color: rgb(46, 204, 113);
+
     &:hover {
       background: rgba(46, 204, 113, 0.4);
       border-bottom-color: rgb(46, 204, 113);
@@ -1014,6 +1017,7 @@
   &.hl-red {
     background: rgba(231, 76, 60, 0.22);
     border-bottom-color: rgb(231, 76, 60);
+
     &:hover {
       background: rgba(231, 76, 60, 0.4);
       border-bottom-color: rgb(231, 76, 60);
@@ -1023,6 +1027,7 @@
   &.hl-blue {
     background: rgba(52, 152, 219, 0.22);
     border-bottom-color: rgb(52, 152, 219);
+
     &:hover {
       background: rgba(52, 152, 219, 0.4);
       border-bottom-color: rgb(52, 152, 219);
@@ -1032,6 +1037,7 @@
   &.hl-purple {
     background: rgba(155, 89, 182, 0.22);
     border-bottom-color: rgb(155, 89, 182);
+
     &:hover {
       background: rgba(155, 89, 182, 0.4);
       border-bottom-color: rgb(155, 89, 182);
@@ -1160,10 +1166,12 @@
   0% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 1;
     text-shadow: 0 0 8px currentColor;
   }
+
   100% {
     opacity: 0.5;
   }
@@ -1230,6 +1238,7 @@
     &.delete-btn:hover {
       background: rgba(239, 68, 68, 0.2) !important;
       border-color: rgba(239, 68, 68, 0.35) !important;
+
       svg {
         stroke: #ef4444 !important;
       }
@@ -1388,6 +1397,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(8px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);

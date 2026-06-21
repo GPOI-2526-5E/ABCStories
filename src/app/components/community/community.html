@@ -1103,31 +1103,34 @@
       <!-- ════ TAB 1: FEEDS TIMELINE ════ -->
       <div class="mobile-tab-view-page" *ngIf="activeMobileTab() === 'feed'">
 
-        <!-- Canali / Categorie Orizzontali -->
-        <div class="mobile-horizontal-category-scroller">
-          <button class="pill-category-node" [class.active]="activeSection() === 'home' && !selectedCommunityId()"
-            (click)="setSection('home')">Home</button>
-          <button class="pill-category-node" [class.active]="activeSection() === 'popular'"
-            (click)="setSection('popular')">Popolari</button>
-          <button class="pill-category-node" [class.active]="activeSection() === 'new'"
-            (click)="setSection('new')">Update</button>
-          <button class="pill-category-node" [class.active]="activeSection() === 'following'"
-            (click)="setSection('following')">Seguendo</button>
-          <button class="pill-category-node" [class.active]="activeSection() === 'top_voted'"
-            (click)="setSection('top_voted')">Votati</button>
-        </div>
+        <!-- mobile filters glass panel -->
+        <div class="mobile-filters-glass-panel glass-core mb-3">
+          <!-- Canali / Categorie Orizzontali -->
+          <div class="mobile-horizontal-category-scroller">
+            <button class="pill-category-node" [class.active]="activeSection() === 'home' && !selectedCommunityId()"
+              (click)="setSection('home')">Home</button>
+            <button class="pill-category-node" [class.active]="activeSection() === 'popular'"
+              (click)="setSection('popular')">Popolari</button>
+            <button class="pill-category-node" [class.active]="activeSection() === 'new'"
+              (click)="setSection('new')">Update</button>
+            <button class="pill-category-node" [class.active]="activeSection() === 'following'"
+              (click)="setSection('following')">Seguendo</button>
+            <button class="pill-category-node" [class.active]="activeSection() === 'top_voted'"
+              (click)="setSection('top_voted')">Votati</button>
+          </div>
 
-        <!-- Sotto-Filtri Tipologia Post -->
-        <div class="mobile-sub-navigation-tabs">
-          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">Tutti</button>
-          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'quote'"
-            (click)="setTab('quote')">Citazioni</button>
-          <button class="sub-tab-node-btn" [class.active]="activeTab() === 'comment'"
-            (click)="setTab('comment')">Opinioni</button>
+          <!-- Sotto-Filtri Tipologia Post -->
+          <div class="mobile-sub-navigation-tabs">
+            <button class="sub-tab-node-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">Tutti</button>
+            <button class="sub-tab-node-btn" [class.active]="activeTab() === 'quote'"
+              (click)="setTab('quote')">Citazioni</button>
+            <button class="sub-tab-node-btn" [class.active]="activeTab() === 'comment'"
+              (click)="setTab('comment')">Opinioni</button>
+          </div>
         </div>
 
         <!-- Slider Autori Seguiti (Widescreen Mobile Carousel) -->
-        <div class="mobile-authors-carousel-section"
+        <div class="mobile-authors-carousel-section glass-core mb-3"
           *ngIf="followedAuthors().length > 0 && !selectedAuthorId() && !selectedCommunityId()">
           <h4 class="carousel-section-heading">Autori che segui</h4>
           <div class="carousel-track-wrapper">
@@ -1350,27 +1353,28 @@
             style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px;">
             <button class="mob-type-card" [class.active]="rightComposerType === 'general'"
               (click)="setRightComposerType('general')">
-              <span class="mob-type-card-icon">✏️</span>
+              <span class="mob-type-card-icon"><img src="assets/Icone/scrivi.png" alt="Generale" class="mob-type-card-img" /></span>
               <span class="mob-type-card-label">Generale</span>
             </button>
             <button class="mob-type-card" [class.active]="rightComposerType === 'quote'"
               (click)="setRightComposerType('quote')">
-              <span class="mob-type-card-icon">✍️</span>
+              <span class="mob-type-card-icon"><img src="assets/Icone/sottolinea.png" alt="Frasi" class="mob-type-card-img" /></span>
               <span class="mob-type-card-label">Frasi</span>
             </button>
             <button class="mob-type-card" [class.active]="rightComposerType === 'reply_review'"
               (click)="setRightComposerType('reply_review')">
-              <span class="mob-type-card-icon">⭐</span>
+              <span class="mob-type-card-icon"><img src="assets/Icone/recensione.png" alt="Recensioni" class="mob-type-card-img" /></span>
               <span class="mob-type-card-label">Recensioni</span>
             </button>
             <button class="mob-type-card" [class.active]="rightComposerType === 'reply_comment'"
               (click)="setRightComposerType('reply_comment')">
-              <span class="mob-type-card-icon">💬</span>
+              <span class="mob-type-card-icon"><img src="assets/Icone/commento.png" alt="Commenti" class="mob-type-card-img" /></span>
               <span class="mob-type-card-label">Commenti</span>
             </button>
           </div>
 
-          <!-- Titolo -->
+          <div class="mob-composer-unified-card glass-core mb-4">
+            <!-- Titolo -->
           <div class="mob-composer-field-block">
             <label class="mob-composer-label">
               <span class="mob-composer-label-dot">1</span>
@@ -1631,18 +1635,19 @@
             </div>
           </div>
 
-          <!-- Corpo del post -->
-          <div class="mob-composer-field-block">
-            <label class="mob-composer-label">
-              <span class="mob-composer-label-dot">{{ rightComposerType === 'general' ? '4' : '3' }}</span>
-              {{ rightComposerType === 'quote' ? 'Aggiungi una descrizione o commento (opzionale)' : 'Scrivi il tuo post' }}
-            </label>
-            <div class="mob-textarea-wrapper">
-              <textarea class="mob-composer-textarea"
-                [placeholder]="rightComposerType === 'quote' ? 'Aggiungi una riflessione a questa frase...' : 'Esprimi un pensiero, racconta un\'esperienza di lettura...'" [(ngModel)]="postText"
-                maxlength="2000"></textarea>
-              <span class="mob-char-counter" [class.near-limit]="postText.length > 1800">{{ postText.length
-                }}/2000</span>
+            <!-- Corpo del post -->
+            <div class="mob-composer-field-block">
+              <label class="mob-composer-label">
+                <span class="mob-composer-label-dot">{{ rightComposerType === 'general' ? '4' : '3' }}</span>
+                {{ rightComposerType === 'quote' ? 'Aggiungi una descrizione o commento (opzionale)' : 'Scrivi il tuo post' }}
+              </label>
+              <div class="mob-textarea-wrapper">
+                <textarea class="mob-composer-textarea"
+                  [placeholder]="rightComposerType === 'quote' ? 'Aggiungi una riflessione a questa frase...' : 'Esprimi un pensiero, racconta un\'esperienza di lettura...'" [(ngModel)]="postText"
+                  maxlength="2000"></textarea>
+                <span class="mob-char-counter" [class.near-limit]="postText.length > 1800">{{ postText.length
+                  }}/2000</span>
+              </div>
             </div>
           </div>
 

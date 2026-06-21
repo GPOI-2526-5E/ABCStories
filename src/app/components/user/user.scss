@@ -3185,6 +3185,21 @@ select.setting-input {
   }
 }
 
+@media (max-width: 768px) {
+  .highlight-share-container {
+    position: static !important;
+  }
+
+  .share-dropdown-menu {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    bottom: 54px !important;
+    transform: none !important;
+  }
+}
+
 @keyframes userDropdownReveal {
   from {
     opacity: 0;

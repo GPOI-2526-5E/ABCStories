@@ -83,7 +83,7 @@ export class Reader implements OnInit, OnDestroy {
 
     const user = this.currentUser();
     if ((user as any)?.reading_mode !== 'page') return;
-    
+
     const scrolled = el.scrollLeft;
     const total = el.scrollWidth - el.clientWidth;
     const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
@@ -123,7 +123,7 @@ export class Reader implements OnInit, OnDestroy {
 
   highlightModeActive: boolean = false;
   selectedColor: string = 'rgba(241, 196, 15, 0.3)';
-  
+
   hoveredHighlightId: string | null = null;
   activeHighlightId: string | null = null;
   shareMenuOpenForHighlightId: string | null = null;
@@ -144,7 +144,7 @@ export class Reader implements OnInit, OnDestroy {
     private auth: AuthService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   private highlightIdToScroll: string | null = null;
 
@@ -241,11 +241,11 @@ export class Reader implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const el = document.documentElement;
     const scrolled = el.scrollTop;
-    
+
     // Aggiorna lo stato della topbar
     this.isScrolled.set(scrolled > 20); // La barra diventa pillola quasi subito
     this.isPastTitle.set(scrolled > window.innerHeight * 0.4); // Mostra il titolo quando si supera l'header (circa 40vh)
-    
+
     const total = el.scrollHeight - el.clientHeight;
     const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
     this.scrollPercent.set(Math.min(100, pct));
@@ -419,7 +419,10 @@ export class Reader implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-      this.hideFloatingBtn();
+      // Do NOT clear activeSelection here — this causes a race condition on mobile:
+      // tapping "Sottolinea" collapses the selection (firing selectionchange) BEFORE
+      // the click handler fires, so activeSelection would be null when we need it.
+      // Cleanup is handled by onDocumentClick when the user taps outside text+panel.
       return;
     }
 
@@ -457,7 +460,6 @@ export class Reader implements OnInit, OnDestroy {
   }
 
   @HostListener('document:mouseup', ['$event'])
-  @HostListener('document:touchend', ['$event'])
   onMouseUp(event: any) {
     if (!isPlatformBrowser(this.platformId)) return;
     const target = event.target as HTMLElement;
@@ -465,20 +467,94 @@ export class Reader implements OnInit, OnDestroy {
     if (panel && panel.contains(target)) {
       return;
     }
-    if (this.highlightModeActive && this.activeSelection) {
+    // On desktop (mouseup): auto-highlight if mode is active
+    if (event.type === 'mouseup' && this.highlightModeActive && this.activeSelection) {
       this.createHighlight();
     }
+    // On mobile (touchend): do NOT auto-highlight — user must tap "Sottolinea" button
+  }
+
+  /** Returns true on touch devices (mobile/tablet) */
+  private isTouchDevice(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return 'ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  /**
+   * On mobile when highlight mode is active, a single tap on the text selects the word
+   * under the finger using caretRangeFromPoint. This bypasses the difficult long-press
+   * gesture and lets the native selection handles appear for easy refinement.
+   */
+  onReaderTextClick(event: MouseEvent) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.highlightModeActive || !this.isTouchDevice()) return;
+
+    // Don't interfere with taps on existing highlights (they stop propagation)
+    const target = event.target as HTMLElement;
+    if (target.closest('.text-highlighted') || target.closest('.highlight-actions-popover')) return;
+
+    // Resolve caret position from tap coordinates
+    let range: Range | null = null;
+    const x = event.clientX;
+    const y = event.clientY;
+
+    if (typeof (document as any).caretRangeFromPoint === 'function') {
+      // Chrome, Safari, Edge
+      range = (document as any).caretRangeFromPoint(x, y);
+    } else if (typeof (document as any).caretPositionFromPoint === 'function') {
+      // Firefox
+      const pos = (document as any).caretPositionFromPoint(x, y);
+      if (pos && pos.offsetNode) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.setEnd(pos.offsetNode, pos.offset);
+      }
+    }
+
+    if (!range || range.startContainer.nodeType !== Node.TEXT_NODE) return;
+
+    // Make sure the tap is inside the reader content
+    const readerText = document.querySelector('.reader-text');
+    if (!readerText || !readerText.contains(range.startContainer)) return;
+
+    // Expand the caret range to full word boundaries
+    const textNode = range.startContainer as Text;
+    const fullText = textNode.textContent || '';
+    const WORD_BREAK = /[\s\n\r,;:.!?'"«»\-\u2013\u2014()\[\]]/;
+
+    let startOff = range.startOffset;
+    let endOff = range.startOffset;
+
+    while (startOff > 0 && !WORD_BREAK.test(fullText[startOff - 1])) startOff--;
+    while (endOff < fullText.length && !WORD_BREAK.test(fullText[endOff])) endOff++;
+
+    if (startOff >= endOff) return; // Tapped on whitespace/punctuation only
+
+    range.setStart(textNode, startOff);
+    range.setEnd(textNode, endOff);
+
+    // Apply selection — native handles will appear for easy refinement
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    // selectionchange will fire and update this.activeSelection automatically
   }
 
   toggleHighlightMode() {
-    this.highlightModeActive = !this.highlightModeActive;
+    if (this.activeSelection) {
+      this.createHighlight();
+    } else {
+      this.highlightModeActive = !this.highlightModeActive;
+    }
     this.cdr.detectChanges();
   }
 
   selectColor(color: string) {
     this.selectedColor = color;
     this.highlightModeActive = true;
-    
+
     // Se c'è una selezione attiva, applica subito la sottolineatura!
     if (this.activeSelection) {
       this.createHighlight();
@@ -623,11 +699,11 @@ export class Reader implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     const readerArticle = document.querySelector('.reader-article');
     const panel = document.querySelector('.highlight-panel-container');
-    
+
     // Controlliamo se il click è dentro l'articolo o nel pannello dei colori/highlight
     const isInsideText = readerArticle && readerArticle.contains(target);
     const isInsidePanel = panel && panel.contains(target);
-    
+
     // Controlliamo se è un click su un dialog di conferma o un overlay (per l'eliminazione)
     const isInsideDialog = target.closest('.dialog-overlay') || target.closest('.dialog-container') || target.closest('.modal-container');
 
@@ -660,7 +736,7 @@ export class Reader implements OnInit, OnDestroy {
 
   onHighlightClick(seg: any, event: Event) {
     event.stopPropagation();
-    // Toggle active lock
+    // Toggle active lock on click (works on both desktop and mobile)
     if (this.activeHighlightId === seg.highlightId) {
       this.activeHighlightId = null;
       this.shareMenuOpenForHighlightId = null;
@@ -738,11 +814,11 @@ export class Reader implements OnInit, OnDestroy {
     event.stopPropagation();
     if (!this.chapter) return;
     this.shareMenuOpenForHighlightId = null;
-    this.router.navigate(['/community'], { 
-      queryParams: { 
-        shareStoryId: this.chapter.story_id, 
-        shareHighlightText: seg.text 
-      } 
+    this.router.navigate(['/community'], {
+      queryParams: {
+        shareStoryId: this.chapter.story_id,
+        shareHighlightText: seg.text
+      }
     });
   }
 
