@@ -127,6 +127,7 @@ export class Reader implements OnInit, OnDestroy {
   hoveredHighlightId: string | null = null;
   activeHighlightId: string | null = null;
   shareMenuOpenForHighlightId: string | null = null;
+  activeShareHighlight: any = null;
   private hoverTimeout: any = null;
 
   highlightColors = [
@@ -348,9 +349,51 @@ export class Reader implements OnInit, OnDestroy {
 
     for (let pIdx = 0; pIdx < rawParas.length; pIdx++) {
       const text = rawParas[pIdx];
-      const pHighlights = this.chapterHighlights
-        .filter(h => h.paragraph_index === pIdx)
-        .sort((a, b) => a.start_offset - b.start_offset);
+      let pHighlights = [...this.chapterHighlights.filter(h => h.paragraph_index === pIdx)];
+
+      // Applicazione della selezione mobile come preview temporanea
+      if (this.isTouchDevice() && this.activeSelection && this.activeSelection.paragraphIndex === pIdx) {
+        const selStart = this.activeSelection.startOffset;
+        const selEnd = this.activeSelection.endOffset;
+
+        const overlapping = pHighlights.filter(h =>
+          selStart < h.end_offset && selEnd > h.start_offset
+        );
+
+        if (overlapping.length > 0) {
+          const mergedStart = Math.min(selStart, ...overlapping.map(o => o.start_offset));
+          const mergedEnd = Math.max(selEnd, ...overlapping.map(o => o.end_offset));
+
+          pHighlights = pHighlights.filter(h => !overlapping.includes(h));
+          pHighlights.push({
+            id: 'selection-preview',
+            user_id: '',
+            story_id: '',
+            chapter_id: '',
+            paragraph_index: pIdx,
+            start_offset: mergedStart,
+            end_offset: mergedEnd,
+            text: text.slice(mergedStart, mergedEnd),
+            color: this.selectedColor,
+            isPreview: true
+          } as any);
+        } else {
+          pHighlights.push({
+            id: 'selection-preview',
+            user_id: '',
+            story_id: '',
+            chapter_id: '',
+            paragraph_index: pIdx,
+            start_offset: selStart,
+            end_offset: selEnd,
+            text: this.activeSelection.text,
+            color: this.selectedColor,
+            isPreview: true
+          } as any);
+        }
+      }
+
+      pHighlights.sort((a, b) => a.start_offset - b.start_offset);
 
       const segments = [];
       let idx = 0;
@@ -397,6 +440,15 @@ export class Reader implements OnInit, OnDestroy {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return null;
     const range = selection.getRangeAt(0);
+    const preSelectionRange = range.cloneRange();
+    preSelectionRange.selectNodeContents(element);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
+    const start = preSelectionRange.toString().length;
+    const end = start + range.toString().length;
+    return { start, end };
+  }
+
+  getRangeCharacterOffsetsWithin(range: Range, element: HTMLElement) {
     const preSelectionRange = range.cloneRange();
     preSelectionRange.selectNodeContents(element);
     preSelectionRange.setEnd(range.startContainer, range.startOffset);
@@ -475,23 +527,25 @@ export class Reader implements OnInit, OnDestroy {
   }
 
   /** Returns true on touch devices (mobile/tablet) */
-  private isTouchDevice(): boolean {
+  isTouchDevice(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     return 'ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches;
   }
 
   /**
-   * On mobile when highlight mode is active, a single tap on the text selects the word
-   * under the finger using caretRangeFromPoint. This bypasses the difficult long-press
-   * gesture and lets the native selection handles appear for easy refinement.
+   * On mobile when highlight mode is active, tapping the text triggers a range selection
+   * preview: the first tap on a word starts selection, the second tap on another word in
+   * the same paragraph expands selection to cover everything in between.
    */
   onReaderTextClick(event: MouseEvent) {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!this.highlightModeActive || !this.isTouchDevice()) return;
 
-    // Don't interfere with taps on existing highlights (they stop propagation)
+    // Don't interfere with taps on existing highlights (except selection-preview)
     const target = event.target as HTMLElement;
-    if (target.closest('.text-highlighted') || target.closest('.highlight-actions-popover')) return;
+    const highlightedEl = target.closest('.text-highlighted');
+    if (highlightedEl && !highlightedEl.classList.contains('selection-preview')) return;
+    if (target.closest('.highlight-actions-popover')) return;
 
     // Resolve caret position from tap coordinates
     let range: Range | null = null;
@@ -533,13 +587,51 @@ export class Reader implements OnInit, OnDestroy {
     range.setStart(textNode, startOff);
     range.setEnd(textNode, endOff);
 
-    // Apply selection — native handles will appear for easy refinement
+    // Apply selection
+    const pEl = range.startContainer.parentElement?.closest('.reader-paragraph') as HTMLElement;
+    if (!pEl) return;
+    const pIdxStr = pEl.getAttribute('data-para-index');
+    if (pIdxStr === null) return;
+    const paragraphIndex = parseInt(pIdxStr, 10);
+
+    const wordOffsets = this.getRangeCharacterOffsetsWithin(range, pEl);
+    if (!wordOffsets) return;
+
+    // Word text
+    const selectedText = fullText.slice(startOff, endOff);
+
+    // If we have an active selection in the same paragraph, expand it!
+    if (this.activeSelection && this.activeSelection.paragraphIndex === paragraphIndex) {
+      // Find start and end offset spanning both selections
+      const start = Math.min(this.activeSelection.startOffset, wordOffsets.start);
+      const end = Math.max(this.activeSelection.endOffset, wordOffsets.end);
+      const paragraphText = this.paragraphs[paragraphIndex] || '';
+
+      this.activeSelection = {
+        paragraphIndex,
+        startOffset: start,
+        endOffset: end,
+        text: paragraphText.slice(start, end)
+      };
+    } else {
+      // Otherwise, start a new selection
+      this.activeSelection = {
+        paragraphIndex,
+        startOffset: wordOffsets.start,
+        endOffset: wordOffsets.end,
+        text: selectedText
+      };
+    }
+
+    // Clear native selection so browser handles don't clash with our preview
     const selection = window.getSelection();
     if (selection) {
       selection.removeAllRanges();
-      selection.addRange(range);
     }
-    // selectionchange will fire and update this.activeSelection automatically
+
+    // Recompute segments to show the selection preview immediately
+    this.recomputeSegments();
+    this.cdr.detectChanges();
   }
 
   toggleHighlightMode() {
@@ -714,9 +806,10 @@ export class Reader implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
 
-    if (!target.closest('.text-highlighted') && !target.closest('.highlight-actions-popover')) {
+    if (!target.closest('.text-highlighted') && !target.closest('.highlight-actions-popover') && !target.closest('.mobile-share-sheet')) {
       this.activeHighlightId = null;
       this.shareMenuOpenForHighlightId = null;
+      this.activeShareHighlight = null;
       this.cdr.detectChanges();
     }
   }
@@ -786,11 +879,20 @@ export class Reader implements OnInit, OnDestroy {
 
   toggleHighlightShareMenu(seg: any, event: Event) {
     event.stopPropagation();
-    if (this.shareMenuOpenForHighlightId === seg.highlightId) {
-      this.shareMenuOpenForHighlightId = null;
+    if (this.isTouchDevice()) {
+      this.activeShareHighlight = seg;
     } else {
-      this.shareMenuOpenForHighlightId = seg.highlightId;
+      if (this.shareMenuOpenForHighlightId === seg.highlightId) {
+        this.shareMenuOpenForHighlightId = null;
+      } else {
+        this.shareMenuOpenForHighlightId = seg.highlightId;
+      }
     }
+    this.cdr.detectChanges();
+  }
+
+  closeMobileShareMenu() {
+    this.activeShareHighlight = null;
     this.cdr.detectChanges();
   }
 
@@ -802,6 +904,7 @@ export class Reader implements OnInit, OnDestroy {
       () => {
         this.dialogService.alert('Copiato', 'Link della citazione copiato negli appunti!');
         this.shareMenuOpenForHighlightId = null;
+        this.activeShareHighlight = null;
         this.cdr.detectChanges();
       },
       () => {
@@ -814,6 +917,7 @@ export class Reader implements OnInit, OnDestroy {
     event.stopPropagation();
     if (!this.chapter) return;
     this.shareMenuOpenForHighlightId = null;
+    this.activeShareHighlight = null;
     this.router.navigate(['/community'], {
       queryParams: {
         shareStoryId: this.chapter.story_id,
@@ -855,6 +959,7 @@ export class Reader implements OnInit, OnDestroy {
             url: decodeURIComponent(url)
           }).then(() => {
             this.shareMenuOpenForHighlightId = null;
+            this.activeShareHighlight = null;
             this.cdr.detectChanges();
           }).catch((err) => {
             console.log('Condivisione annullata o fallita:', err);
@@ -866,6 +971,7 @@ export class Reader implements OnInit, OnDestroy {
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
       this.shareMenuOpenForHighlightId = null;
+      this.activeShareHighlight = null;
       this.cdr.detectChanges();
     }
   }
