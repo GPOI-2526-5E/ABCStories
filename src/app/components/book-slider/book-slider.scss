@@ -2,7 +2,7 @@
 // SLIDER PER IMMAGINI
 
 .slider-section {
-  padding-bottom: 2rem ;
+  padding-bottom: 2rem;
   background: var(--tropicalTheme);
 
   @media (max-width: 768px) {
@@ -38,10 +38,12 @@
   width: 100%;
   padding: 50px 0;
   margin-top: -20px;
+
   // scroll-behavior: smooth rimosso: causa jank su iOS durante il touch
   &::-webkit-scrollbar {
     display: none;
   }
+
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
@@ -88,7 +90,9 @@
     transform: translateY(-8px) scale(1.03);
     box-shadow: 0 15px 30px rgba(var(--shadow-rgb), 0.35);
 
-    .action-icon { opacity: 1; }
+    .action-icon {
+      opacity: 1;
+    }
   }
 
   img {
@@ -120,35 +124,44 @@
   .book-card {
     flex: 0 0 125px;
   }
+
   .book-cover {
     width: 125px !important;
     height: 172px !important;
     border-radius: 10px !important;
-    
+
     img {
       border-radius: 10px !important;
     }
   }
+
   .book-title {
     max-width: 125px !important;
     font-size: 0.78rem !important;
   }
+
   .book-author {
     max-width: 125px !important;
     font-size: 0.7rem !important;
   }
+
   .action-icon {
     bottom: 8px !important;
     width: 28px !important;
     height: 28px !important;
-    
+
     svg {
       width: 14px !important;
       height: 14px !important;
     }
-    
-    &.bookmark-icon { left: 8px !important; }
-    &.heart-icon { right: 8px !important; }
+
+    &.bookmark-icon {
+      left: 8px !important;
+    }
+
+    &.heart-icon {
+      right: 8px !important;
+    }
   }
 }
 
@@ -177,21 +190,30 @@
     stroke-width: 2;
   }
 
-  &:hover { transform: scale(1.15); background: rgba(0, 0, 0, 0.6); }
+  &:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.6);
+  }
 
   &.active {
     opacity: 1;
     background: white;
     animation: iconPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49);
-    svg { stroke-width: 0; }
+
+    svg {
+      stroke-width: 0;
+    }
   }
 
   @media (max-width: 768px) {
     width: 36px;
     height: 36px;
     bottom: 8px;
+
     // Su mobile disabilita hover transform (nessun mouse)
-    &:hover { transform: none; }
+    &:hover {
+      transform: none;
+    }
 
     svg {
       width: 18px;
@@ -202,18 +224,32 @@
 
 .bookmark-icon {
   left: 12px;
-  &.active svg { fill: #f1c40f; }
+
+  &.active svg {
+    fill: #f1c40f;
+  }
 }
 
 .heart-icon {
   right: 12px;
-  &.active svg { fill: #e74c3c; }
+
+  &.active svg {
+    fill: #e74c3c;
+  }
 }
 
 @keyframes iconPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .nav-arrow.hidden {
@@ -282,10 +318,23 @@
   transition: opacity 0.25s ease, transform 0.2s ease;
   backdrop-filter: blur(6px);
 
-  &:hover { background: rgba(44, 26, 14, 1); transform: scale(1.08); }
-  &.hidden { opacity: 0; pointer-events: none; }
-  &.nav-left { left: 0.5rem; }
-  &.nav-right { right: 0.5rem; }
+  &:hover {
+    background: rgba(44, 26, 14, 1);
+    transform: scale(1.08);
+  }
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &.nav-left {
+    left: 0.5rem;
+  }
+
+  &.nav-right {
+    right: 0.5rem;
+  }
 
   // Nascondi frecce su mobile: si swipe direttamente
   @media (max-width: 768px) {

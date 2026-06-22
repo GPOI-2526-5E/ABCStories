@@ -14,7 +14,7 @@ import { isPlatformBrowser } from '@angular/common';
 @Component({
   selector: 'app-author-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, Navbar, Footer],
+  imports: [CommonModule, RouterModule, Navbar],
   templateUrl: './author-detail.html',
   styleUrl: './author-detail.scss',
 })
@@ -36,7 +36,6 @@ export class AuthorDetail implements OnInit {
   isCurrentUser = false;
   notificationsEnabled = true;
 
-  // Followers Info
   followersList: any[] = [];
   followingList: any[] = [];
   followersCount: number = 0;
@@ -44,16 +43,14 @@ export class AuthorDetail implements OnInit {
   displayedFollowersCount: number = 10;
   displayedFollowingCount: number = 10;
 
-  // Pagination
   displayedBooksCount: number = 10;
 
-  // New State for Tabs
   tabs = ['Tutte', 'Più popolari', 'Recenti'];
   activeTab = 'Tutte';
 
-
-  // Recommended Books
   recommendedBooks: any[] = [];
+
+  activeSubView: 'opere' | 'follower' | 'seguiti' = 'opere';
 
   get initials(): string {
     return this.author?.username?.slice(0, 2).toUpperCase() || 'AU';
@@ -72,7 +69,7 @@ export class AuthorDetail implements OnInit {
         return idB - idA;
       });
     }
-    return copy; // 'Tutte'
+    return copy;
   }
 
   get displayedStories() {
@@ -89,7 +86,7 @@ export class AuthorDetail implements OnInit {
 
   setTab(tab: string) {
     this.activeTab = tab;
-    this.displayedBooksCount = 10; // Reset pagination on tab change
+    this.displayedBooksCount = 10;
   }
 
   showMoreBooks() {
@@ -120,7 +117,7 @@ export class AuthorDetail implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       const state = this.router.getCurrentNavigation()?.extras?.state || window.history.state;
       const stateId = state?.authorId;
-      
+
       if (stateId) {
         if (stateId !== this.authorId) {
           this.authorId = stateId;
@@ -148,7 +145,6 @@ export class AuthorDetail implements OnInit {
       this.displayedBooksCount = 10;
       this.displayedFollowersCount = 10;
 
-      // Fetch Author Profile
       this.api.getUserProfile(this.authorId).subscribe({
         next: (data) => {
           this.author = data;
@@ -160,7 +156,6 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error fetching author', err)
       });
 
-      // Fetch Author Stories
       this.api.getAuthorStories(this.authorId).subscribe({
         next: (data) => {
           this.stories = data;
@@ -169,7 +164,6 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error fetching stories', err)
       });
 
-      // Fetch Followers and Follow Counts
       this.api.getFollowsCount(this.authorId).subscribe({
         next: (data) => {
           this.followersCount = data.followersCount;
@@ -195,7 +189,6 @@ export class AuthorDetail implements OnInit {
         error: (err) => console.error('Error fetching following', err)
       });
 
-      // Fetch Recommended Books
       this.api.getAuthorRecommended(this.authorId).subscribe({
         next: (data) => {
           this.recommendedBooks = data.map((s: any) => ({
@@ -248,16 +241,15 @@ export class AuthorDetail implements OnInit {
           this.notificationsEnabled = true;
           this.followersCount += 1;
 
-          // Aggiungi immediatamente l'utente corrente alla lista
           this.followersList.unshift({
             id: currentUser.id,
             name: currentUser.username,
             handle: currentUser.email,
             description: (currentUser as any).bio || '',
             avatar_url: (currentUser as any).avatar_url || '',
-            stories_count: 0, // Mocked for immediate display
-            followers_count: 0, // Mocked
-            following_count: 0 // Mocked
+            stories_count: 0,
+            followers_count: 0,
+            following_count: 0
           });
 
           this.cdr.detectChanges();

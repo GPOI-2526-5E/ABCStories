@@ -5,44 +5,60 @@
   <div class="ambient-workspace">
     <div class="glow-orb orb-1"></div>
     <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
     <div class="ambient-curtain"></div>
   </div>
 
   <div class="generi-container">
 
-    <div class="generi-hero">
-      <p class="generi-hero__eyebrow">Esplora</p>
-      <h1 class="generi-hero__title">Tutti i Generi</h1>
-      <p class="generi-hero__sub">
-        Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
-      </p>
+    <div class="generi-hero-clean-zone">
+      <div class="generi-hero">
+        <span class="generi-hero__eyebrow">Esplora</span>
+        <h1 class="generi-hero__title">Tutti i Generi</h1>
+        <p class="generi-hero__sub">
+          Scegli il tuo universo e immergiti in storie scritte da chi, come te, ama leggere e creare.
+        </p>
+      </div>
     </div>
 
     <div class="generi-grid-canvas">
-      <div *ngFor="let g of generi" class="premium-genre-card glass-core" (click)="goToGenere(g.slug)"
+
+      <div *ngFor="let g of generi" class="premium-genre-editorial-card" (click)="goToGenere(g.slug)"
         (keydown.enter)="goToGenere(g.slug)" tabindex="0" role="button" [attr.aria-label]="'Vai al genere ' + g.nome">
-        <div class="genre-card-art-box">
-          <div class="genre-card-img-bg" [style.backgroundImage]="'url(' + g.imageUrl + ')'"></div>
-          <div class="genre-card-art-overlay"></div>
+
+        <div class="genre-card-artistic-backdrop">
+          <div class="genre-card-native-img" [style.backgroundImage]="'url(' + g.imageUrl + ')'"></div>
+          <div class="genre-card-chromatic-curtain"></div>
         </div>
 
-        <div class="genre-card-body-panel">
-          <div class="genre-card-content-stack">
-            <span class="genre-card-count-tag">{{ g.count }} storie</span>
-            <h2 class="genre-card-headline-title">{{ g.nome }}</h2>
-            <p class="genre-card-description-text">{{ g.descrizione }}</p>
+        <div class="genre-card-glass-plate">
+
+          <div class="glass-plate-header">
+            <div class="genre-card-badge-pill">
+              <span class="badge-counter-text">{{ g.count }} storie</span>
+            </div>
           </div>
 
-          <div class="genre-card-cta-orb" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
+          <div class="glass-plate-body-content">
+            <h2 class="genre-card-monumental-title">{{ g.nome }}</h2>
+            <p class="genre-card-narrative-abstract">{{ g.descrizione }}</p>
           </div>
+
+          <div class="glass-plate-footer-action">
+            <span class="action-call-text">Esplora Genere</span>
+            <div class="genre-card-action-arrow-ring" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+          </div>
+
         </div>
 
       </div>
+
     </div>
 
   </div>

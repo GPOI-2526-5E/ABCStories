@@ -4,38 +4,37 @@
   display: block;
 }
 
-// ─── Tokens Tipografici & Cromatici Dichiarati ───────────
-$text-slate: #12121e;
-$text-muted-dark: #4a4a5a;
-$accent-gold: #fac040;
+// ─── Token di Raffinazione Stilistica ───
+$text-light-solid: #ffffff;
+$text-light-muted: rgba(255, 255, 255, 0.7);
+$luxury-gold: #fac040;
+$glass-border-specular: rgba(255, 255, 255, 0.35);
 
-// ─── Advanced Glassmorphism Engineering ──────────────────
-@mixin crystal-glass($bg-opacity: 0.14, $blur: 35px, $border-opacity: 0.32) {
-  background: rgba(255, 255, 255, $bg-opacity);
-  backdrop-filter: blur($blur) saturate(190%);
-  -webkit-backdrop-filter: blur($blur) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, $border-opacity); // Corretto il nome della variabile interna
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.45);
+// ─── Ingegneria dell'Effetto Cristallo (Glassmorphic Mixin Elevato) ───
+@mixin hyper-glass-panel($bg-opacity: 0.08, $blur: 40px) {
+  background: rgba(255, 255, 255, $bg-opacity) !important;
+  backdrop-filter: blur($blur) saturate(210%) !important;
+  -webkit-backdrop-filter: blur($blur) saturate(210%) !important;
+  border: 1px solid $glass-border-specular !important;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
 }
 
 .generi-page {
   min-height: 100vh;
-  padding-bottom: 100px;
+  padding-bottom: 120px !important;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--tropicalTheme);
+  background: var(--tropicalTheme) !important;
   position: relative;
   overflow: hidden;
 }
 
-// ─── Ecosistema delle Sfere di Luce Posteriores ───────────
+// ─── Core delle Atmosfere Luminose Posteriori ───
 .ambient-workspace {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 750px;
+  height: 900px !important;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -43,313 +42,284 @@ $accent-gold: #fac040;
   .glow-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.55;
+    filter: blur(110px) !important;
+    opacity: 0.48 !important;
   }
 
   .orb-1 {
-    top: -120px;
-    left: 15%;
-    width: 550px;
-    height: 550px;
-    background: var(--tropicalTheme45deg);
+    top: -150px !important;
+    left: 10% !important;
+    width: 650px !important;
+    height: 650px !important;
+    background: var(--tropicalTheme45deg) !important;
   }
 
   .orb-2 {
-    top: 180px;
-    right: 10%;
-    width: 400px;
-    height: 400px;
-    background: rgba(255, 217, 84, 0.4);
+    top: 220px !important;
+    right: 5% !important;
+    width: 500px !important;
+    height: 500px !important;
+    background: rgba(255, 217, 84, 0.35) !important;
+  }
+
+  .orb-3 {
+    bottom: 0 !important;
+    left: 30% !important;
+    width: 450px !important;
+    height: 450px !important;
+    background: rgba(232, 160, 48, 0.25) !important;
   }
 
   .ambient-curtain {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 0%, var(--tropicalTheme) 90%);
+    background: linear-gradient(to bottom, transparent 0%, var(--tropicalTheme) 85%) !important;
   }
 }
 
-// Container Fluid Universale
 .generi-container {
   position: relative;
   z-index: 10;
-  max-width: 1440px;
-  width: 92vw;
+  max-width: 1400px !important;
+  width: 90vw !important;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* ─── Hero Section ─── */
+// ─── Hero Zone Pulita Open-Air Senza Guscio di Vetro ───
+.generi-hero-clean-zone {
+  margin: 150px auto 60px auto !important;
+  max-width: 850px !important;
+  padding: 0 20px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .generi-hero {
-  padding: 160px 20px 48px 20px;
   text-align: center;
 
   &__eyebrow {
-    font-size: 11px;
-    letter-spacing: .25em;
+    font-size: 12px !important;
+    letter-spacing: .3em !important;
     text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 700;
-    margin: 0 0 6px;
+    color: var(--text-primary) !important;
+    opacity: 0.6 !important;
+    font-weight: 800 !important;
+    margin: 0 0 12px !important;
+    display: block;
   }
 
   &__title {
-    font-size: clamp(2.4rem, 5vw, 3.5rem);
-    font-weight: 850;
-    color: var(--text-primary);
-    letter-spacing: -.03em;
-    line-height: 1.1;
-    margin: 0 0 14px;
+    font-size: clamp(2.6rem, 5.5vw, 4.2rem) !important;
+    font-weight: 900 !important;
+    color: var(--text-primary) !important;
+    letter-spacing: -.04em !important;
+    line-height: 1.05 !important;
+    margin: 0 0 18px !important;
   }
 
   &__sub {
-    font-size: 15px;
-    color: var(--text-muted-dark);
-    max-width: 480px;
+    font-size: 16px !important;
+    color: var(--text-muted-dark) !important;
+    max-width: 580px !important;
     margin: 0 auto;
-    line-height: 1.65;
-    font-weight: 500;
+    line-height: 1.6 !important;
+    font-weight: 600 !important;
   }
 }
 
-/* ─── GRIGLIA FLUIDA COMPLETA ─── */
+// ─── Griglia Editoriale Proposta ───
 .generi-grid-canvas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
+  gap: 32px !important;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 !important;
   box-sizing: border-box;
 }
 
-/* ─── TESSERE IN VETRO TRASLUCIDO ─── */
-.premium-genre-card {
-  position: relative;
-  height: 155px;
-  border-radius: 24px;
+// ─── Tessere Verticali Prismatiche ad Alto Impatto ───
+.premium-genre-editorial-card {
+  position: relative !important;
+  height: 460px !important;
+  border-radius: 30px !important;
   overflow: hidden;
   cursor: pointer;
   outline: none;
   box-sizing: border-box;
-  @include crystal-glass(0.14, 32px, 0.28);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04) !important;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s ease !important;
 
-  &::before {
-    content: '';
+  .genre-card-artistic-backdrop {
     position: absolute;
     inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 50%);
-  }
-
-  &:hover,
-  &:focus {
-    transform: translateY(-5px) scale(1.01);
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow:
-      0 20px 45px rgba(0, 0, 0, .07),
-      0 0 0 1.5px rgba(255, 255, 255, 0.7);
-
-    .genre-card-img-bg {
-      transform: scale(1.05);
-    }
-
-    .genre-card-cta-orb {
-      background: $text-slate;
-      color: #ffffff;
-      border-color: $text-slate;
-      transform: scale(1.05) translateX(2px);
-    }
-  }
-}
-
-/* Visual Artwork Box */
-.genre-card-art-box {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  overflow: hidden;
-
-  .genre-card-img-bg {
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 1;
+    overflow: hidden;
 
-    -webkit-mask-image: linear-gradient(to right, black 0%, black 25%, transparent 65%);
-    mask-image: linear-gradient(to right, black 0%, black 25%, transparent 65%);
+    .genre-card-native-img {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.01);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .genre-card-chromatic-curtain {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.05) 0%,
+          rgba(0, 0, 0, 0.3) 50%,
+          rgba(0, 0, 0, 0.85) 100%) !important;
+    }
   }
 
-  .genre-card-art-overlay {
+  // RIPRISTINATA: Piastra di Vetro Interattiva Olografica delle Card
+  .genre-card-glass-plate {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.2) 100%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 28px !important;
+    box-sizing: border-box;
+    @include hyper-glass-panel(0.02, 0px); // Nitido all'inizio per esaltare l'immagine retrostante
+    transition: all 0.4s ease !important;
+  }
+
+  .genre-card-badge-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 6px 14px !important;
+    border-radius: 100px !important;
+
+    .badge-sparkle {
+      font-size: 11px !important;
+    }
+
+    .badge-counter-text {
+      font-size: 11px !important;
+      font-weight: 800 !important;
+      text-transform: uppercase;
+      color: $text-light-solid !important;
+      letter-spacing: 0.05em !important;
+    }
+  }
+
+  .glass-plate-body-content {
+    margin-top: auto !important;
+    margin-bottom: 20px !important;
+  }
+
+  .genre-card-monumental-title {
+    font-size: 28px !important;
+    font-weight: 900 !important;
+    color: $text-light-solid !important;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    margin: 0 0 10px 0 !important;
+  }
+
+  .genre-card-narrative-abstract {
+    font-size: 14px !important;
+    color: $text-light-muted !important;
+    line-height: 1.55 !important;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease !important;
+  }
+
+  .glass-plate-footer-action {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding-top: 16px !important;
+
+    .action-call-text {
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: $luxury-gold !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      transform: translateX(-5px) !important;
+      opacity: 0 !important;
+      transition: all 0.35s ease !important;
+    }
+  }
+
+  .genre-card-action-arrow-ring {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: $text-light-solid !important;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+
+    svg {
+      display: block;
+    }
+  }
+
+  // ─── Stati di Hover e Ghiacciamento Progressivo Cristallo ───
+  &:hover,
+  &:focus {
+    transform: translateY(-8px) scale(1.015) !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+
+    .genre-card-native-img {
+      transform: scale(1.08) !important;
+    }
+
+    .genre-card-glass-plate {
+      background: rgba(255, 255, 255, 0.12) !important;
+      backdrop-filter: blur(20px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    }
+
+    .genre-card-narrative-abstract {
+      color: $text-light-solid !important;
+    }
+
+    .action-call-text {
+      opacity: 1 !important;
+      transform: translateX(0px) !important;
+    }
+
+    .genre-card-action-arrow-ring {
+      background: $luxury-gold !important;
+      border-color: $luxury-gold !important;
+      color: #12121e !important;
+      transform: rotate(45deg) !important;
+    }
   }
 }
 
-/* Corpo del pannello contenuto */
-.genre-card-body-panel {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  padding: 0 24px 0 38%;
-  gap: 16px;
-  box-sizing: border-box;
-}
-
-.genre-card-content-stack {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.genre-card-count-tag {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: $text-muted-dark;
-  margin-bottom: 4px;
-}
-
-.genre-card-headline-title {
-  font-size: 21px;
-  font-weight: 800;
-  color: $text-slate;
-  letter-spacing: -.02em;
-  line-height: 1.15;
-  margin: 0 0 4px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.genre-card-description-text {
-  font-size: 13px;
-  color: $text-muted-dark;
-  line-height: 1.45;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 38px;
-}
-
-/* Pulsante CTA circolare */
-.genre-card-cta-orb {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(255, 255, 255, .7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $text-slate;
-  transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-
-  svg {
-    display: block;
-  }
-}
-
-/* ─── RESPONSIVE BREAKPOINTS ADAPTIVE ─── */
+// ─── Media Query Responsiveness di Precisione ───
 @media (max-width: 992px) {
-  .generi-grid-canvas {
-    padding: 0 16px;
-    gap: 16px;
-  }
-
-  .premium-genre-card {
-    height: 135px;
-    border-radius: 20px;
-  }
-
-  .genre-card-body-panel {
-    padding-left: 36%;
-  }
-
-  .genre-card-headline-title {
-    font-size: 19px;
-  }
-}
-
-@media (max-width: 768px) {
-  .generi-hero {
-    padding: 50px 20px 28px 20px;
-  }
-
-  .generi-grid-canvas {
-    grid-template-columns: 1fr;
-    padding: 0 12px;
-  }
-
-  .premium-genre-card {
-    height: 115px;
-
-    .genre-card-body-panel {
-      padding-left: 35%;
-      padding-right: 16px;
-    }
-
-    .genre-card-headline-title {
-      font-size: 18px;
-    }
-
-    .genre-card-description-text {
-      display: none;
-    }
-
-    .genre-card-content-stack {
-      justify-content: center;
-    }
-
-    .genre-card-cta-orb {
-      width: 34px;
-      height: 34px;
-    }
-  }
-}
-
-@media (max-width: 400px) {
-  .premium-genre-card {
-    height: 100px;
-
-    .genre-card-body-panel {
-      padding-left: 32%;
-    }
-
-    .genre-card-headline-title {
-      font-size: 16.5px;
-    }
-
-    .genre-card-count-tag {
-      font-size: 9px;
-    }
-  }
-}
-
-:host ::ng-deep {
-  .footerSection {
-    background: var(--tropicalTheme) !important;
-  }
-
-  .divCentrale {
-    background: var(--tropicalThemeYellow) !important;
+  .generi-hero-clean-zone {
+    margin: 110px auto 45px auto !important;
+    padding: 0 16px !important;
   }
 }
