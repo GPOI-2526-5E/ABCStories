@@ -85,7 +85,9 @@
               <div *ngIf="errors['confirmPassword']" class="text-danger small mt-1 ps-1 animate-fade-in">{{ errors['confirmPassword'] }}</div>
             </div>
 
-            <button class="btnCont5 mt-3 w-100 submit-btn reveal-field" type="submit">Registrati</button>
+            <button class="btnCont5 mt-3 w-100 submit-btn reveal-field" type="submit" [disabled]="isRegistering">
+              {{ isRegistering ? 'Registrazione in corso...' : 'Registrati' }}
+            </button>
           </div>
 
           <!-- Google login (nascosto dopo che l'email è verificata) -->

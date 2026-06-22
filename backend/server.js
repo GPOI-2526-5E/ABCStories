@@ -2129,6 +2129,22 @@ app.post('/api/progress', async (req, res) => {
   }
 });
 
+// Cancella / resetta progresso di lettura per una storia
+app.delete('/api/progress/:userId/:storyId', async (req, res) => {
+  try {
+    await pool.query(`
+      DELETE FROM reading_progress
+      WHERE user_id = $1 AND chapter_id IN (
+        SELECT id FROM chapters WHERE story_id = $2
+      )
+    `, [req.params.userId, req.params.storyId]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // ═══════════════ CHAPTERS ═══════════════
 
 // Lista capitoli di una storia

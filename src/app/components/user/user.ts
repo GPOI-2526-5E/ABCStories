@@ -119,6 +119,7 @@ export class User implements OnInit {
   searchHighlights = '';
   searchCollections = '';
   activeShareHighlightId: string | null = null;
+  activeShareHighlight: any = null;
 
   settings = {
     nome: '',
@@ -550,8 +551,9 @@ export class User implements OnInit {
         this.dropdownsOpen.reading_font_size = false;
         this.dropdownsOpen.reading_width = false;
       }
-      if (!target.closest('.highlight-share-container')) {
+      if (!target.closest('.highlight-share-container') && !target.closest('.mobile-share-sheet')) {
         this.activeShareHighlightId = null;
+        this.activeShareHighlight = null;
       }
     }
   }
@@ -953,12 +955,32 @@ export class User implements OnInit {
     img.src = url;
   }
 
+  isTouchDevice(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return 'ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  closeMobileShareMenu() {
+    this.activeShareHighlight = null;
+    this.cdr.detectChanges();
+  }
+
   toggleHighlightShare(hl: any, event: Event) {
     event.stopPropagation();
-    if (this.activeShareHighlightId === hl.id) {
+    if (this.isTouchDevice()) {
+      if (this.activeShareHighlight && this.activeShareHighlight.id === hl.id) {
+        this.activeShareHighlight = null;
+      } else {
+        this.activeShareHighlight = hl;
+      }
       this.activeShareHighlightId = null;
     } else {
-      this.activeShareHighlightId = hl.id;
+      if (this.activeShareHighlightId === hl.id) {
+        this.activeShareHighlightId = null;
+      } else {
+        this.activeShareHighlightId = hl.id;
+      }
+      this.activeShareHighlight = null;
     }
     this.cdr.detectChanges();
   }
@@ -970,6 +992,7 @@ export class User implements OnInit {
       () => {
         this.dialogService.alert('Copiato', 'Link della citazione copiato negli appunti!');
         this.activeShareHighlightId = null;
+        this.activeShareHighlight = null;
         this.cdr.detectChanges();
       },
       () => {
@@ -981,6 +1004,7 @@ export class User implements OnInit {
   shareHighlightToCommunity(hl: any, event: Event) {
     event.stopPropagation();
     this.activeShareHighlightId = null;
+    this.activeShareHighlight = null;
     this.router.navigate(['/community'], { 
       queryParams: { 
         shareStoryId: hl.story_id, 
@@ -1021,6 +1045,7 @@ export class User implements OnInit {
             url: decodeURIComponent(url)
           }).then(() => {
             this.activeShareHighlightId = null;
+            this.activeShareHighlight = null;
             this.cdr.detectChanges();
           }).catch((err) => {
             console.log('Condivisione annullata o fallita:', err);
@@ -1032,6 +1057,7 @@ export class User implements OnInit {
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
       this.activeShareHighlightId = null;
+      this.activeShareHighlight = null;
       this.cdr.detectChanges();
     }
   }

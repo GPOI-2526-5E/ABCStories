@@ -18,7 +18,7 @@ import { DialogService } from '../../services/dialog.service';
 export class Reader implements OnInit, OnDestroy {
 
   chapter: any = null;
-  chapters: any[] = [];
+  chapters = signal<any[]>([]);
   isLoading = true;
   error: string | null = null;
 
@@ -88,7 +88,7 @@ export class Reader implements OnInit, OnDestroy {
     const scrolled = el.scrollLeft;
     const total = el.scrollWidth - el.clientWidth;
     const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
-    this.scrollPercent.set(Math.min(100, pct));
+    this.updateScrollPercent(pct);
   }
 
   // Sidebar capitoli
@@ -99,17 +99,93 @@ export class Reader implements OnInit, OnDestroy {
   isScrolled = signal(false);
   isPastTitle = signal(false);
 
+  // Progresso di tutti i capitoli
+  chapterProgress = signal<{ [key: string]: number }>({});
+  private lastSavedPercent = -1;
+  private saveDebounceTimer: any = null;
+
+  getChapterProgress(chapterId: string): number {
+    if (this.chapter && this.chapter.id === chapterId) {
+      return this.scrollPercent();
+    }
+    return this.chapterProgress()[chapterId] ?? 0;
+  }
+
+  updateScrollPercent(pct: number) {
+    const finalPct = Math.min(100, Math.max(0, pct));
+    
+    // Only allow progress to increase (never decrease, unless reset by "Rileggi")
+    const currentPct = this.scrollPercent();
+    if (finalPct <= currentPct) {
+      this.cdr.detectChanges(); // Ensure the scroll position updates are fully handled
+      return;
+    }
+
+    this.scrollPercent.set(finalPct);
+
+    if (this.chapter) {
+      const current = { ...this.chapterProgress() };
+      current[this.chapter.id] = finalPct;
+      this.chapterProgress.set(current);
+    }
+
+    if (finalPct !== this.lastSavedPercent) {
+      if (finalPct === 100 || finalPct === 0) {
+        this.persistProgress();
+      } else {
+        this.scheduleDebouncedSave();
+      }
+    }
+    this.cdr.detectChanges(); // Ensure UI is updated instantly
+  }
+
+  private scheduleDebouncedSave() {
+    if (this.saveDebounceTimer) clearTimeout(this.saveDebounceTimer);
+    this.saveDebounceTimer = setTimeout(() => {
+      this.persistProgress();
+    }, 2000);
+  }
+
+  private scrollToPercent(pct: number): void {
+    if (!isPlatformBrowser(this.platformId) || pct <= 0) return;
+    setTimeout(() => {
+      if (this.isPageMode()) {
+        const el = document.querySelector('.reader-text') as HTMLElement;
+        if (el) {
+          const total = el.scrollWidth - el.clientWidth;
+          if (total > 0) {
+            el.scrollLeft = Math.round((pct / 100) * total);
+            this.updatePageCount(el);
+          }
+        }
+      } else {
+        const el = document.documentElement;
+        const total = el.scrollHeight - el.clientHeight;
+        if (total > 0) {
+          window.scrollTo({
+            top: Math.round((pct / 100) * total),
+            behavior: 'instant'
+          });
+        }
+      }
+    }, 150);
+  }
+
   // Progresso globale calcolato
   globalPercent = computed(() => {
-    if (!this.chapter || !this.chapters.length) return 0;
-    const idx = this.chapters.findIndex(c => c.id === this.chapter.id);
-    if (idx === -1) return 0;
-    const done = idx; // capitoli precedenti = 100%
-    const current = this.scrollPercent() / 100;
-    return Math.round(((done + current) / this.chapters.length) * 100);
+    const chs = this.chapters();
+    if (!chs.length) return 0;
+    let totalProgress = 0;
+    const currentProgress = this.chapterProgress();
+    for (const ch of chs) {
+      if (this.chapter && ch.id === this.chapter.id) {
+        totalProgress += this.scrollPercent();
+      } else {
+        totalProgress += currentProgress[ch.id] ?? 0;
+      }
+    }
+    return Math.round(totalProgress / chs.length);
   });
-
-  private saveTimer: any = null;
   private storyId: string = '';
 
   // Sottolineature
@@ -123,6 +199,8 @@ export class Reader implements OnInit, OnDestroy {
   private touchStartPos: { x: number; y: number } | null = null;
   private touchParagraphIndex: number | null = null;
   private touchStartOffset: number | null = null;
+  private minTouchOffset: number | null = null;
+  private maxTouchOffset: number | null = null;
   private touchParagraphEl: HTMLElement | null = null;
   private isDrawingHighlight = false;
   private isTouchScrolling = false;
@@ -197,7 +275,7 @@ export class Reader implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.saveTimer) clearInterval(this.saveTimer);
+    if (this.saveDebounceTimer) clearTimeout(this.saveDebounceTimer);
     this.persistProgress();
     this.cleanupTouchListeners();
   }
@@ -206,6 +284,7 @@ export class Reader implements OnInit, OnDestroy {
     this.isLoading = true;
     this.error = null;
     this.scrollPercent.set(0); // Reset del progresso per evitare leak dal capitolo precedente
+    this.lastSavedPercent = -1;
     this.api.getChapter(chapterId).subscribe({
       next: (data) => {
         this.chapter = data;
@@ -225,8 +304,26 @@ export class Reader implements OnInit, OnDestroy {
           }
           this.api.getReadingProgress(user.id, data.story_id).subscribe({
             next: (prog) => {
+              const progressObj: { [key: string]: number } = {};
+              prog.forEach((p: any) => {
+                progressObj[p.chapter_id] = p.progress_pct;
+              });
+              this.chapterProgress.set(progressObj);
+
               const me = prog.find((p: any) => p.chapter_id === chapterId);
-              if (me) this.scrollPercent.set(me.progress_pct);
+              if (me) {
+                this.scrollPercent.set(me.progress_pct);
+                this.lastSavedPercent = me.progress_pct;
+                if (me.progress_pct >= 100) {
+                  this.scrollToPercent(0);
+                } else {
+                  this.scrollToPercent(me.progress_pct);
+                }
+              } else {
+                this.scrollPercent.set(0);
+                this.lastSavedPercent = 0;
+              }
+              this.cdr.detectChanges();
             }
           });
         }
@@ -237,7 +334,6 @@ export class Reader implements OnInit, OnDestroy {
             if (el) this.updatePageCount(el);
           }, 300);
         }
-        this.startSaveTimer();
       },
       error: () => {
         this.error = 'Impossibile caricare il capitolo.';
@@ -249,20 +345,25 @@ export class Reader implements OnInit, OnDestroy {
 
   private loadChapterList(storyId: string): void {
     this.api.getChapters(storyId).subscribe({
-      next: (list) => this.chapters = list,
+      next: (list) => this.chapters.set(list),
     });
-  }
-
-  /** Salva il progresso ogni 5 secondi */
-  private startSaveTimer(): void {
-    if (this.saveTimer) clearInterval(this.saveTimer);
-    this.saveTimer = setInterval(() => this.persistProgress(), 5000);
   }
 
   private persistProgress(): void {
     const user = this.auth.currentUser();
     if (!user || !this.chapter) return;
-    this.api.saveReadingProgress(user.id, this.chapter.id, this.scrollPercent()).subscribe();
+    const currentPct = this.scrollPercent();
+    if (currentPct === this.lastSavedPercent) return;
+
+    this.lastSavedPercent = currentPct;
+
+    const currentMap = { ...this.chapterProgress() };
+    currentMap[this.chapter.id] = currentPct;
+    this.chapterProgress.set(currentMap);
+
+    if (this.saveDebounceTimer) clearTimeout(this.saveDebounceTimer);
+
+    this.api.saveReadingProgress(user.id, this.chapter.id, currentPct).subscribe();
   }
 
   @HostListener('window:resize')
@@ -284,7 +385,7 @@ export class Reader implements OnInit, OnDestroy {
 
     const total = el.scrollHeight - el.clientHeight;
     const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
-    this.scrollPercent.set(Math.min(100, pct));
+    this.updateScrollPercent(pct);
   }
 
   goToChapter(chapter: any): void {
@@ -295,38 +396,43 @@ export class Reader implements OnInit, OnDestroy {
 
   prevChapter(): void {
     if (!this.chapter) return;
-    const idx = this.chapters.findIndex(c => c.id === this.chapter.id);
-    if (idx > 0) this.goToChapter(this.chapters[idx - 1]);
+    const chs = this.chapters();
+    const idx = chs.findIndex(c => c.id === this.chapter.id);
+    if (idx > 0) this.goToChapter(chs[idx - 1]);
   }
 
   nextChapter(): void {
     if (!this.chapter) return;
-    const idx = this.chapters.findIndex(c => c.id === this.chapter.id);
-    if (idx < this.chapters.length - 1) {
+    const chs = this.chapters();
+    const idx = chs.findIndex(c => c.id === this.chapter.id);
+    if (idx < chs.length - 1) {
       // Segna il capitolo corrente come 100% letto prima di passare al prossimo
-      this.scrollPercent.set(100);
-      this.goToChapter(this.chapters[idx + 1]);
+      this.updateScrollPercent(100);
+      this.goToChapter(chs[idx + 1]);
     } else {
       // Fine storia → segna come completato e torna ai dettagli
-      this.scrollPercent.set(100);
+      this.updateScrollPercent(100);
       this.persistProgress();
       this.router.navigate(['/book', this.storyId]);
     }
   }
 
   get hasPrev(): boolean {
-    const idx = this.chapters.findIndex(c => c.id === this.chapter?.id);
+    const chs = this.chapters();
+    const idx = chs.findIndex(c => c.id === this.chapter?.id);
     return idx > 0;
   }
 
   get hasNext(): boolean {
-    const idx = this.chapters.findIndex(c => c.id === this.chapter?.id);
-    return idx < this.chapters.length - 1;
+    const chs = this.chapters();
+    const idx = chs.findIndex(c => c.id === this.chapter?.id);
+    return idx < chs.length - 1;
   }
 
   get isLastChapter(): boolean {
-    const idx = this.chapters.findIndex(c => c.id === this.chapter?.id);
-    return idx === this.chapters.length - 1;
+    const chs = this.chapters();
+    const idx = chs.findIndex(c => c.id === this.chapter?.id);
+    return idx === chs.length - 1;
   }
 
   toggleSidebar(): void {
@@ -477,6 +583,7 @@ export class Reader implements OnInit, OnDestroy {
   @HostListener('document:selectionchange')
   onSelectionChange() {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (this.isTouchDevice()) return; // Don't track native selection on touch devices
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.toString().trim()) {
       this.activeSelection = null;
@@ -604,6 +711,8 @@ export class Reader implements OnInit, OnDestroy {
       const startOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, pEl);
       if (startOffset !== null) {
         this.touchStartOffset = this.getWordBoundaryOffset(startOffset, pEl, 'start');
+        this.minTouchOffset = this.touchStartOffset;
+        this.maxTouchOffset = this.touchStartOffset;
       }
     }
   }
@@ -640,8 +749,17 @@ export class Reader implements OnInit, OnDestroy {
       if (this.isDrawingHighlight && this.touchStartOffset !== null) {
         const currentOffset = this.getCaretOffsetFromPoint(touch.clientX, touch.clientY, this.touchParagraphEl);
         if (currentOffset !== null && this.touchParagraphIndex !== null) {
-          let start = Math.min(this.touchStartOffset, currentOffset);
-          let end = Math.max(this.touchStartOffset, currentOffset);
+          if (this.minTouchOffset === null || this.minTouchOffset === undefined) {
+            this.minTouchOffset = this.touchStartOffset;
+          }
+          if (this.maxTouchOffset === null || this.maxTouchOffset === undefined) {
+            this.maxTouchOffset = this.touchStartOffset;
+          }
+          this.minTouchOffset = Math.min(this.minTouchOffset, currentOffset);
+          this.maxTouchOffset = Math.max(this.maxTouchOffset, currentOffset);
+
+          let start = this.minTouchOffset;
+          let end = this.maxTouchOffset;
 
           // Snap selection boundaries to full word boundaries
           start = this.getWordBoundaryOffset(start, this.touchParagraphEl, 'start');
@@ -806,21 +924,9 @@ export class Reader implements OnInit, OnDestroy {
     let end = this.activeSelection.endOffset;
 
     if (this.draggedHandleType === 'start') {
-      start = currentOffset;
-      if (start > end) {
-        // Swap role dynamically
-        start = end;
-        end = currentOffset;
-        this.draggedHandleType = 'end';
-      }
+      start = Math.min(currentOffset, end);
     } else {
-      end = currentOffset;
-      if (end < start) {
-        // Swap role dynamically
-        end = start;
-        start = currentOffset;
-        this.draggedHandleType = 'start';
-      }
+      end = Math.max(currentOffset, start);
     }
 
     const paragraphText = this.paragraphs[this.activeSelection.paragraphIndex] || '';
@@ -1189,7 +1295,12 @@ export class Reader implements OnInit, OnDestroy {
 
     if (!isInsideText && !isInsidePanel && !isInsideDialog) {
       window.getSelection()?.removeAllRanges();
-      this.hideFloatingBtn();
+      if (this.activeSelection && this.activeSelection.text && this.activeSelection.text.trim().length > 0) {
+        this.createHighlight();
+      } else {
+        this.hideFloatingBtn();
+        this.recomputeSegments();
+      }
       this.highlightModeActive = false;
       this.cdr.detectChanges();
     }

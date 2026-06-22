@@ -10,6 +10,7 @@ import { BOOK_UUID_MAP } from '../../services/book-uuid-map';
 import { Api } from '../../services/api';
 import { LoadingService } from '../../services/loading.service';
 import { InteractionsService } from '../../services/interactions.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface Reply {
   id: string;
@@ -46,6 +47,7 @@ const VISIBLE_STEP = 4;
 })
 
 export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
+  private isManuallyLoading = false;
   book: any = null;
   chapters: any[] = [];
   readingProgress: any[] = [];
@@ -186,6 +188,7 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
 
   private loadingService = inject(LoadingService);
   public interactions = inject(InteractionsService);
+  private auth = inject(AuthService);
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -299,6 +302,10 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
 
       const storyId = id ?? navState?.id;
       if (storyId) {
+        if (!this.book) {
+          this.isManuallyLoading = true;
+          this.loadingService.show();
+        }
         this.loadSideDetails(storyId, user);
         this.api.recordView(storyId, user?.id).subscribe({
           next: () => this.loadMainStory(storyId),
@@ -322,6 +329,10 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
           const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
           const show18Plus = user?.visualizza_18plus === true;
           if (story.is_18_plus && !show18Plus) {
+            if (this.isManuallyLoading) {
+              this.isManuallyLoading = false;
+              this.loadingService.hide();
+            }
             this.router.navigate(['/home']);
             return;
           }
@@ -329,7 +340,19 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
           this.preloadImage(this.book.img);
         } else if (!this.book) {
           this.book = this.bookService.getById(storyId);
-          if (this.book?.img) this.preloadImage(this.book.img);
+          if (this.book?.img) {
+            this.preloadImage(this.book.img);
+          } else {
+            if (this.isManuallyLoading) {
+              this.isManuallyLoading = false;
+              this.loadingService.hide();
+            }
+          }
+        } else {
+          if (this.isManuallyLoading) {
+            this.isManuallyLoading = false;
+            this.loadingService.hide();
+          }
         }
         this.cdr.detectChanges();
         if (isPlatformBrowser(this.platformId)) {
@@ -342,8 +365,13 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
         if (!this.book) {
           this.book = this.bookService.getById(storyId);
           this.cdr.detectChanges();
-          if (isPlatformBrowser(this.platformId)) {
-            setTimeout(() => this.onWindowScroll(), 50);
+        }
+        if (this.book?.img) {
+          this.preloadImage(this.book.img);
+        } else {
+          if (this.isManuallyLoading) {
+            this.isManuallyLoading = false;
+            this.loadingService.hide();
           }
         }
         this.loadChaptersAndProgress(storyId);
@@ -416,11 +444,28 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
   }
 
   private preloadImage(url: string) {
-    if (!isPlatformBrowser(this.platformId) || !url) return;
-    this.loadingService.show();
+    if (!isPlatformBrowser(this.platformId) || !url) {
+      if (this.isManuallyLoading) {
+        this.isManuallyLoading = false;
+        this.loadingService.hide();
+      }
+      return;
+    }
     const img = new Image();
-    img.onload = () => this.loadingService.hide();
-    img.onerror = () => this.loadingService.hide();
+    img.onload = () => {
+      if (this.isManuallyLoading) {
+        this.isManuallyLoading = false;
+        this.loadingService.hide();
+      }
+      this.cdr.detectChanges();
+    };
+    img.onerror = () => {
+      if (this.isManuallyLoading) {
+        this.isManuallyLoading = false;
+        this.loadingService.hide();
+      }
+      this.cdr.detectChanges();
+    };
     img.src = url;
   }
 
@@ -428,20 +473,40 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
     this.api.getChapters(storyId).subscribe({
       next: (chapters) => {
         this.chapters = chapters;
-        const user = (this as any).auth?.currentUser?.() ||
-          JSON.parse(localStorage.getItem('auth_user') ?? 'null');
+        const user = this.auth.currentUser();
         if (user) {
           this.api.getReadingProgress(user.id, storyId).subscribe({
             next: (prog) => {
               this.readingProgress = prog;
-              if (prog.length > 0 && chapters.length > 0) {
-                const total = prog.reduce((s: number, p: any) => s + p.progress_pct, 0);
-                this.overallProgress = Math.round(total / chapters.length);
+              if (chapters.length > 0) {
+                const readMap = new Map<string, number>(prog.map((p: any) => [p.chapter_id, p.progress_pct]));
+                let totalProgress = 0;
+                for (const ch of chapters) {
+                  totalProgress += readMap.get(ch.id) ?? 0;
+                }
+                this.overallProgress = Math.round(totalProgress / chapters.length);
+              } else {
+                this.overallProgress = 0;
               }
-              const readMap = new Map(prog.map((p: any) => [p.chapter_id, p.progress_pct]));
-              this.firstUnreadChapter = chapters.find(
-                c => !readMap.has(c.id) || (readMap.get(c.id) ?? 0) < 100
-              ) ?? chapters[0];
+
+              let lastReadChapterId: string | null = null;
+              if (prog && prog.length > 0) {
+                const sortedProg = [...prog].sort(
+                  (a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+                );
+                const latestEntry = sortedProg[0];
+                if (latestEntry) {
+                  if (latestEntry.progress_pct < 100) {
+                    lastReadChapterId = latestEntry.chapter_id;
+                  } else {
+                    const idx = chapters.findIndex(c => c.id === latestEntry.chapter_id);
+                    if (idx !== -1 && idx < chapters.length - 1) {
+                      lastReadChapterId = chapters[idx + 1].id;
+                    }
+                  }
+                }
+              }
+              this.firstUnreadChapter = chapters.find(c => c.id === lastReadChapterId) ?? chapters[0];
               this.cdr.detectChanges();
             }
           });
@@ -455,11 +520,36 @@ export class BookDetail implements OnInit, AfterViewInit, AfterViewChecked, OnDe
 
   startReading(): void {
     if (!this.book?.id) return;
-    const chapter = this.firstUnreadChapter ?? this.chapters[0];
-    if (!chapter) return;
-    const user = JSON.parse(localStorage.getItem('auth_user') ?? 'null');
-    this.api.recordView(this.book.id, user?.id).subscribe();
-    this.router.navigate(['/reader', this.book.id, chapter.id]);
+    const user = this.auth.currentUser();
+    
+    if (this.overallProgress >= 100 && user) {
+      this.api.resetReadingProgress(user.id, this.book.id).subscribe({
+        next: () => {
+          this.overallProgress = 0;
+          this.firstUnreadChapter = this.chapters[0];
+          this.readingProgress = [];
+          this.cdr.detectChanges();
+          
+          const chapter = this.chapters[0];
+          if (chapter) {
+            this.api.recordView(this.book.id, user.id).subscribe();
+            this.router.navigate(['/reader', this.book.id, chapter.id]);
+          }
+        },
+        error: (err) => {
+          console.error('Errore nel reset del progresso:', err);
+          const chapter = this.chapters[0];
+          if (chapter) {
+            this.router.navigate(['/reader', this.book.id, chapter.id]);
+          }
+        }
+      });
+    } else {
+      const chapter = this.firstUnreadChapter ?? this.chapters[0];
+      if (!chapter) return;
+      this.api.recordView(this.book.id, user?.id).subscribe();
+      this.router.navigate(['/reader', this.book.id, chapter.id]);
+    }
   }
 
   goToChapter(chapterId: string): void {

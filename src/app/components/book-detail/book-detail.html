@@ -1,11 +1,11 @@
 <app-navbar></app-navbar>
 <div class="book-detail-page">
 
+  @if (book) {
   <div class="ambient-bg" [style.backgroundImage]="'url(' + book?.img + ')'"></div>
   <div class="ambient-overlay"></div>
   <div class="hero-bottom-fade"></div>
 
-  @if (book) {
   <div class="detail-container container">
     <div class="detail-hero">
 

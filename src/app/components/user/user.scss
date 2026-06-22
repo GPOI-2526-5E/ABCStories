@@ -3214,4 +3214,226 @@ select.setting-input {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ── MOBILE SHARE BOTTOM SHEET ────────────────────────────── */
+.mobile-share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2999;
+  animation: fadeInOverlay 0.3s ease forwards;
+}
+
+.mobile-share-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 85vh;
+  background: rgba(var(--glass-rgb, 15, 23, 42), 0.65) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-top: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.25);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  z-index: 3000;
+  transform: translateY(100%) translateZ(0);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 16px 20px 34px 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  will-change: transform;
+  contain: layout style paint;
+
+  &.open {
+    transform: translateY(0) translateZ(0);
+  }
+
+  .sheet-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.15);
+
+    .sheet-drag-handle {
+      width: 40px;
+      height: 4px;
+      background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.3);
+      border-radius: 2px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sheet-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 4px;
+      background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.1);
+      border: none;
+      color: var(--text-primary);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.2);
+      }
+    }
+  }
+
+  .sheet-body {
+    padding-top: 18px;
+  }
+
+  .share-quote {
+    margin: 0 0 20px 0;
+    padding: 12px 16px;
+    background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.05);
+    border-left: 4px solid var(--tropicalThemeYellow, #f1c40f);
+    border-radius: 0 12px 12px 0;
+
+    .quote-text {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1rem;
+      font-style: italic;
+      line-height: 1.6;
+      color: var(--text-primary);
+      margin: 0 0 6px 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .quote-source {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .share-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sheet-action-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(var(--glass-border-rgb, 255, 255, 255), 0.15);
+    background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.08);
+    color: var(--text-primary) !important;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+      flex-shrink: 0;
+      stroke: var(--text-primary) !important;
+    }
+
+    &:active {
+      background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.15);
+      transform: scale(0.98);
+    }
+  }
+
+  .sheet-divider {
+    height: 1px;
+    background: rgba(var(--glass-border-rgb, 255, 255, 255), 0.15);
+    margin: 20px 0;
+  }
+
+  .sheet-social-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  .sheet-social-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .sheet-social-btn {
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.2s ease;
+
+    &.whatsapp {
+      background: rgba(37, 211, 102, 0.15);
+      border-color: rgba(37, 211, 102, 0.3);
+      color: #25d366;
+    }
+
+    &.telegram {
+      background: rgba(0, 136, 204, 0.15);
+      border-color: rgba(0, 136, 204, 0.3);
+      color: #0088cc;
+    }
+
+    &.facebook {
+      background: rgba(24, 119, 242, 0.15);
+      border-color: rgba(24, 119, 242, 0.3);
+      color: #1877f2;
+    }
+
+    &.x {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

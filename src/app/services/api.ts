@@ -187,6 +187,10 @@ export class Api {
     });
   }
 
+  resetReadingProgress(userId: string, storyId: string) {
+    return this.http.delete(`${this.apiUrl}/api/progress/${userId}/${storyId}`);
+  }
+
   // ═══════════════ CHAPTERS ═══════════════
 
   getChapters(storyId: string) {

@@ -37,6 +37,7 @@ export class Register implements AfterViewInit, OnDestroy {
   isVerifyingCode: boolean = false;
   resendCountdown: number = 0;
   resendTimerId: any = null;
+  isRegistering: boolean = false;
 
   // Validation and verification errors
   errors: { [key: string]: string } = {};
@@ -203,6 +204,8 @@ export class Register implements AfterViewInit, OnDestroy {
   onRegister(event: Event) {
     event.preventDefault();
 
+    if (this.isRegistering) return;
+
     if (!this.isEmailVerified) {
       this.dialogService.alert('Errore', 'Devi prima verificare la tua email.');
       return;
@@ -210,14 +213,18 @@ export class Register implements AfterViewInit, OnDestroy {
 
     if (!this.validate()) return;
 
+    this.isRegistering = true;
+
     this.api.register(this.email, this.username, this.password).subscribe({
       next: (response: any) => {
+        this.isRegistering = false;
         if (response.success) {
           this.authService.login(response.user);
           this.router.navigate(['/home']);
         }
       },
       error: (error: any) => {
+        this.isRegistering = false;
         if (error.status === 409) {
           this.dialogService.alert('Registrazione fallita', 'Email o username già in uso');
         } else {
