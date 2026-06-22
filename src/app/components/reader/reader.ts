@@ -788,30 +788,17 @@ export class Reader implements OnInit, OnDestroy {
       this.longPressTimeout = null;
     }
 
-    // Swipe-to-highlight immediate save on release (highlighter pen mode)
     if (this.highlightModeActive && this.isDrawingHighlight && this.activeSelection && this.activeSelection.text && this.activeSelection.text.trim().length > 0) {
-      this.createHighlight();
-    } else if (this.justSelectedWord) {
-      // Consume the flag and preserve the selection
-      this.justSelectedWord = false;
-    } else {
-      // Apply and save highlight when losing focus on the selection (tap outside)
-      const duration = Date.now() - this.touchStartTime;
-      if (duration < 250 && !this.isDraggingHandle) {
-        if (this.activeSelection && this.activeSelection.text && this.activeSelection.text.trim().length > 0) {
-          this.createHighlight();
-        } else {
-          this.activeSelection = null;
-          this.recomputeSegments();
-          this.cdr.detectChanges();
-        }
-      }
+      // Keep selection active so they can adjust using virtual handles
+      this.justSelectedWord = true;
     }
 
     this.touchStartPos = null;
     this.touchParagraphIndex = null;
     this.touchStartOffset = null;
     this.touchParagraphEl = null;
+    this.minTouchOffset = null;
+    this.maxTouchOffset = null;
     this.isDrawingHighlight = false;
     this.isTouchScrolling = false;
   }
@@ -1293,7 +1280,15 @@ export class Reader implements OnInit, OnDestroy {
     // Controlliamo se è un click su un dialog di conferma o un overlay (per l'eliminazione)
     const isInsideDialog = target.closest('.dialog-overlay') || target.closest('.dialog-container') || target.closest('.modal-container');
 
-    if (!isInsideText && !isInsidePanel && !isInsideDialog) {
+    // Su mobile consideriamo come "fuori dal testo" qualsiasi click che non sia su un paragrafo
+    const isInsideParagraph = target.closest('.reader-paragraph');
+    
+    // Per mobile, perdere il focus significa cliccare fuori dai paragrafi
+    const isLosingFocus = this.isTouchDevice()
+      ? (!isInsideParagraph && !isInsidePanel && !isInsideDialog)
+      : (!isInsideText && !isInsidePanel && !isInsideDialog);
+
+    if (isLosingFocus) {
       window.getSelection()?.removeAllRanges();
       if (this.activeSelection && this.activeSelection.text && this.activeSelection.text.trim().length > 0) {
         this.createHighlight();
